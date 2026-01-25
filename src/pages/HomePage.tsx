@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { TestShelby } from '../components/TestShelby';
 
 export function HomePage() {
+  const isDevelopment = import.meta.env.DEV;
+  
   return (
     <div className="home-page">
       <h2>Welcome to Secure Pastebin</h2>
@@ -24,6 +27,13 @@ export function HomePage() {
           <li>Links expire after 24 hours</li>
         </ul>
       </div>
+      
+      {isDevelopment && (
+        <>
+          <hr style={{ margin: '40px 0' }} />
+          <TestShelby />
+        </>
+      )}
     </div>
   );
 }
