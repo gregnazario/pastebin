@@ -30,10 +30,13 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@noble/ciphers": "^2.1.1",
+    "@noble/post-quantum": "^0.5.4",
     "@shelby-protocol/cli": "^0.0.18",
     "@types/node": "^25.0.10",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
+    "argon2-browser": "^1.18.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.12.0"
