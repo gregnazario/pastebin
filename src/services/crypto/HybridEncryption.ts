@@ -47,13 +47,12 @@ export class HybridEncryptionService {
       // Step 2: Derive key from password
       const { key: derivedKey, salt } = await KeyDerivationService.deriveKey(password);
       
-      // Step 3: Generate AES key and encapsulate with Kyber
-      const aesKey = AESService.generateKey();
-      const { ciphertext: kyberCiphertext } = await KyberService.encapsulate(kyberKeys.publicKey);
+      // Step 3: Generate shared secret using Kyber encapsulation
+      const { ciphertext: kyberCiphertext, sharedSecret } = await KyberService.encapsulate(kyberKeys.publicKey);
       
       // Step 4: Combine derived key and Kyber shared secret for AES key
       // This provides defense in depth - both password and Kyber key are needed
-      const combinedKey = await this.combineKeys(derivedKey, aesKey);
+      const combinedKey = await this.combineKeys(derivedKey, sharedSecret);
       
       // Step 5: Encrypt the actual data
       const aesCiphertext = await AESService.encryptCombined(data, combinedKey);
@@ -126,9 +125,8 @@ export class HybridEncryptionService {
         kyberPrivateKey,
       );
       
-      // Step 3: Generate the same AES key
-      const aesKey = AESService.generateKey(); // This should be deterministic based on shared secret
-      const combinedKey = await this.combineKeys(derivedKey, aesKey);
+      // Step 3: Combine derived key and shared secret to get the same AES key
+      const combinedKey = await this.combineKeys(derivedKey, sharedSecret);
       
       // Step 4: Decrypt the data
       const data = await AESService.decryptCombined(payload.aesCiphertext, combinedKey);
