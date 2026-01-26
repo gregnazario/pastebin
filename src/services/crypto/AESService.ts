@@ -1,5 +1,5 @@
-import { gcm } from '@noble/ciphers/aes';
-import { randomBytes } from '@noble/ciphers/utils';
+import { gcm } from '@noble/ciphers/aes.js';
+import { randomBytes } from '@noble/ciphers/utils.js';
 
 export interface AESEncryptionResult {
   ciphertext: Uint8Array;

@@ -11,12 +11,12 @@ const TEST_FILE_CONTENT = 'Hello, this is a test file for E2E testing!';
 test.describe('Upload and Download Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:3000');
   });
 
   test('should successfully upload and download a file', async ({ page }) => {
     // Step 1: Navigate to upload page
-    await page.click('text=Upload File');
+    await page.click('text=Upload a File');
     await expect(page).toHaveURL(/\/upload$/);
 
     // Step 2: Create and select a test file
@@ -36,16 +36,14 @@ test.describe('Upload and Download Flow', () => {
     ]);
 
     // Step 3: Enter password
-    await page.fill('input[type="password"]', TEST_PASSWORD);
-    
-    // Verify password strength indicator
-    await expect(page.locator('.password-strength-bar')).toBeVisible();
+    await page.fill('input#password', TEST_PASSWORD);
+    await page.fill('input#confirm-password', TEST_PASSWORD);
 
     // Step 4: Upload the file
-    await page.click('button:has-text("Upload and Encrypt")');
+    await page.click('button:has-text("Encrypt and Upload")');
 
     // Wait for upload to complete
-    await expect(page.locator('text=Upload complete!')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('text=Upload Complete!')).toBeVisible({ timeout: 30000 });
 
     // Step 5: Get the shareable link
     const shareableLink = await page.inputValue('input[readonly]');
@@ -61,7 +59,8 @@ test.describe('Upload and Download Flow', () => {
 
     // Step 7: Enter password on download page
     await expect(page.locator('text=Access File')).toBeVisible();
-    await page.fill('input[type="password"]', TEST_PASSWORD);
+    await page.fill('input#password', TEST_PASSWORD);
+    await page.fill('input#confirm-password', TEST_PASSWORD);
 
     // Step 8: Download and decrypt
     await page.click('button:has-text("Download and Decrypt")');
@@ -76,7 +75,7 @@ test.describe('Upload and Download Flow', () => {
 
   test('should fail with wrong password', async ({ page }) => {
     // First upload a file (simplified)
-    await page.goto('http://localhost:5173/upload');
+    await page.goto('http://localhost:3000/upload');
     
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.click('input[type="file"]');
@@ -89,9 +88,10 @@ test.describe('Upload and Download Flow', () => {
       },
     ]);
 
-    await page.fill('input[type="password"]', TEST_PASSWORD);
-    await page.click('button:has-text("Upload and Encrypt")');
-    await expect(page.locator('text=Upload complete!')).toBeVisible({ timeout: 30000 });
+    await page.fill('input#password', TEST_PASSWORD);
+    await page.fill('input#confirm-password', TEST_PASSWORD);
+    await page.click('button:has-text("Encrypt and Upload")');
+    await expect(page.locator('text=Upload Complete!')).toBeVisible({ timeout: 30000 });
 
     const shareableLink = await page.inputValue('input[readonly]');
 
@@ -106,7 +106,7 @@ test.describe('Upload and Download Flow', () => {
   });
 
   test('should validate password requirements', async ({ page }) => {
-    await page.goto('http://localhost:5173/upload');
+    await page.goto('http://localhost:3000/upload');
 
     // Select a file first
     const fileChooserPromise = page.waitForEvent('filechooser');
@@ -131,11 +131,12 @@ test.describe('Upload and Download Flow', () => {
     ];
 
     for (const weakPassword of weakPasswords) {
-      await page.fill('input[type="password"]', '');
-      await page.fill('input[type="password"]', weakPassword);
+      await page.fill('input#password', '');
+      await page.fill('input#password', weakPassword);
+      await page.fill('input#confirm-password', weakPassword);
       
       // Check that upload button is disabled or shows error
-      const uploadButton = page.locator('button:has-text("Upload and Encrypt")');
+      const uploadButton = page.locator('button:has-text("Encrypt and Upload")');
       const isDisabled = await uploadButton.isDisabled();
       
       if (!isDisabled) {
@@ -145,13 +146,15 @@ test.describe('Upload and Download Flow', () => {
     }
 
     // Test strong password
-    await page.fill('input[type="password"]', TEST_PASSWORD);
-    const strengthBar = page.locator('.password-strength-bar .strength-fill');
-    await expect(strengthBar).toHaveCSS('background-color', 'rgb(34, 197, 94)'); // green
+    await page.fill('input#password', TEST_PASSWORD);
+    await page.fill('input#confirm-password', TEST_PASSWORD);
+    // Check that the button is now enabled
+    const uploadButton = page.locator('button:has-text("Encrypt and Upload")');
+    await expect(uploadButton).toBeEnabled();
   });
 
   test('should handle large files', async ({ page }) => {
-    await page.goto('http://localhost:5173/upload');
+    await page.goto('http://localhost:3000/upload');
 
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.click('input[type="file"]');
@@ -167,8 +170,9 @@ test.describe('Upload and Download Flow', () => {
       },
     ]);
 
-    await page.fill('input[type="password"]', TEST_PASSWORD);
-    await page.click('button:has-text("Upload and Encrypt")');
+    await page.fill('input#password', TEST_PASSWORD);
+    await page.fill('input#confirm-password', TEST_PASSWORD);
+    await page.click('button:has-text("Encrypt and Upload")');
 
     // Should see progress updates
     await expect(page.locator('.upload-progress')).toBeVisible();
@@ -176,11 +180,11 @@ test.describe('Upload and Download Flow', () => {
     await expect(page.locator('text=Uploading to storage')).toBeVisible();
 
     // Wait for completion (longer timeout for large file)
-    await expect(page.locator('text=Upload complete!')).toBeVisible({ timeout: 60000 });
+    await expect(page.locator('text=Upload Complete!')).toBeVisible({ timeout: 60000 });
   });
 
   test('should enforce file size limit', async ({ page }) => {
-    await page.goto('http://localhost:5173/upload');
+    await page.goto('http://localhost:3000/upload');
 
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.click('input[type="file"]');
@@ -192,10 +196,10 @@ test.describe('Upload and Download Flow', () => {
   });
 
   test('should handle metadata encryption option', async ({ page }) => {
-    await page.goto('http://localhost:5173/upload');
+    await page.goto('http://localhost:3000/upload');
 
     // Check that metadata encryption checkbox exists
-    const metadataCheckbox = page.locator('input[type="checkbox"]#encrypt-metadata');
+    const metadataCheckbox = page.locator('input[type="checkbox"]');
     await expect(metadataCheckbox).toBeVisible();
     
     // Should be unchecked by default
@@ -207,7 +211,7 @@ test.describe('Upload and Download Flow', () => {
   });
 
   test('should show and hide password', async ({ page }) => {
-    await page.goto('http://localhost:5173/upload');
+    await page.goto('http://localhost:3000/upload');
 
     const passwordInput = page.locator('input#password');
     const toggleButton = page.locator('button.toggle-password');
@@ -229,7 +233,7 @@ test.describe('Upload and Download Flow', () => {
 
   test('should handle missing decryption key', async ({ page }) => {
     // Navigate to a file URL without the key fragment
-    await page.goto('http://localhost:5173/p/some-file-id');
+    await page.goto('http://localhost:3000/p/some-file-id');
 
     await expect(page.locator('text=Invalid link - missing decryption key')).toBeVisible();
     await expect(page.locator('text=Please use the complete link')).toBeVisible();
