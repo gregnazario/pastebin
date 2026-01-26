@@ -2,59 +2,81 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-01-25)
+## Current State (2026-01-26)
 
 ### Project Status
-- **Phase**: Phase 2 - Shelby.xyz Integration (Complete)
-- **Current Task**: Completing Shelby integration with tests
-- **Next Steps**: Phase 3 - Cryptography Implementation (Kyber + AES-GCM)
+- **Phase**: Phase 4 - Upload/Download Implementation (Complete)
+- **Current Task**: Integration testing of complete flow
+- **Next Steps**: Phase 5 - Testing, Polish, and Deployment
+
+### Completed Phases
+1. ✅ **Phase 1**: React TypeScript setup with routing
+2. ✅ **Phase 2**: Shelby.xyz storage integration
+3. ✅ **Phase 3**: Cryptography implementation (Kyber + AES-GCM)
+4. ✅ **Phase 4**: Upload/download UI with encryption
 
 ### Active Work
-- ✅ Created ShelbyService with upload/download/delete methods
-- ✅ Implemented retry logic and error handling
-- ✅ Set up environment configuration
-- ✅ Created comprehensive unit tests
-- ✅ Added browser-based integration test component
+- ✅ Created FileEncryptionService to orchestrate workflows
+- ✅ Updated UploadPage with password validation and progress
+- ✅ Updated ViewPage with decryption and download
+- ✅ Added progress indicators and error handling
+- ✅ Implemented secure link generation with key in fragment
+- ✅ Added clipboard functionality
 
-### Key Decisions Made
-1. Using @shelby-protocol/cli package (SDK not directly available)
-2. Implemented REST API pattern for Shelby integration
-3. Added retry logic with exponential backoff
-4. Environment-based configuration using Vite
-5. Test component only shown in development mode
+### Key Technical Decisions
+1. **Hybrid Encryption**: Kyber768 + AES-256-GCM for post-quantum security
+2. **Key Management**: Private key in URL fragment (never sent to server)
+3. **Password Validation**: Entropy-based with visual feedback
+4. **Progress Tracking**: Multi-stage progress for user feedback
+5. **Security**: Memory clearing, password hiding, automatic cleanup
 
-### Technical Architecture
-- **Storage**: ShelbyService class wraps Shelby API
-- **Config**: Environment variables via .env files
-- **Testing**: Vitest with unit tests + browser integration test
-- **Error Handling**: Custom ShelbyError class with retry logic
+### Architecture Overview
+```
+Frontend (React) → Encryption Layer → Storage (Shelby)
+    ↓                    ↓                    ↓
+  UI/UX            Kyber + AES          Decentralized
+                   Argon2 KDF              Storage
+```
+
+### Features Implemented
+- 📤 **Upload**: File selection, password validation, encryption, progress
+- 🔐 **Encryption**: Post-quantum Kyber + AES-GCM hybrid
+- 🔗 **Links**: Shareable URLs with private key in fragment
+- 📥 **Download**: Password entry, decryption, automatic download
+- 🎨 **UI**: Progress bars, error handling, success states
+- 📋 **Clipboard**: One-click link copying
 
 ### Environment
 - Working Directory: `/Users/greg/git/pastebin`
 - Platform: macOS (Darwin 25.2.0)
-- Git Status: Phase 1 committed, Phase 2 ready to commit
-- Dev Server: Run with `bun dev`
-- Tests: Run with `bun test`
+- Git Status: Phases 1-3 committed, Phase 4 ready
+- Dev Server: `bun dev`
+- Tests: `bun test`
+- Build: `bun run build`
 
-### Open Questions/Considerations
-- Actual Shelby API endpoints may differ from our implementation
-- Need to verify authentication requirements
-- May need to adjust based on real API responses
+### Known Issues
+- Argon2 WASM loading in tests (mocked)
+- Some crypto tests need runtime environment
+- Shelby API endpoints need verification
 
-### Recent Changes
-- Installed Shelby CLI package
-- Created ShelbyService with full CRUD operations
-- Added retry logic utility
-- Created comprehensive test suite
-- Added browser integration test component
+### Next Steps (Phase 5)
+- End-to-end testing of complete flow
+- Performance optimization
+- Security audit
+- Documentation
+- Deployment configuration
+- Production readiness
 
-### Next Phase Preview
-Phase 3 will implement:
-- Kyber post-quantum encryption
-- AES-GCM symmetric encryption
-- Argon2id password derivation
-- Secure key management
+### Commands
+```bash
+# Development
+bun dev          # Start dev server
+bun test         # Run tests
+bun run build    # Production build
+bun run lint     # Check code style
+bun run typecheck # Type checking
+```
 
 ---
 
-*Last updated: 2026-01-25*
+*Last updated: 2026-01-26*
