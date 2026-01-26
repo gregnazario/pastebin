@@ -232,3 +232,25 @@ main {
   font-family: monospace;
   font-size: 0.875rem;
 }
+
+/* Development navigation */
+.dev-nav {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.dev-nav a {
+  margin: 0 15px;
+  color: #ecf0f1;
+  text-decoration: none;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.dev-nav a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
