@@ -19,7 +19,10 @@ interface ArgonHashOptions {
   parallelism: number;
 }
 
-async function hash(options: ArgonHashOptions): Promise<{ hash: Uint8Array }> {
+/**
+ * Hash a password using PBKDF2 (fallback for Argon2)
+ */
+export async function hash(options: ArgonHashOptions): Promise<{ hash: Uint8Array }> {
   // Use Web Crypto API PBKDF2 as a fallback
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
