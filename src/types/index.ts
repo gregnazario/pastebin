@@ -1,25 +1,25 @@
 export interface FileMetadata {
-  name: string;
-  size: number;
-  mimeType: string;
-  uploadDate: number;
-  expirationDate?: number;
+  name: string
+  size: number
+  mimeType: string
+  uploadDate: number
+  expirationDate?: number
   encryptionConfig: {
-    encryptMetadata: boolean;
-    algorithm: string;
-  };
+    encryptMetadata: boolean
+    algorithm: string
+  }
 }
 
 export interface UploadResult {
-  id: string;
-  url: string;
-  expiresAt: number;
+  id: string
+  url: string
+  expiresAt: number
 }
 
 export interface ShelbyConfig {
-  apiUrl: string;
-  apiKey?: string;
-  network?: 'shelbynet' | 'testnet';
+  apiUrl: string
+  apiKey?: string
+  network?: 'shelbynet' | 'testnet'
 }
 
 export class ShelbyError extends Error {
@@ -28,7 +28,7 @@ export class ShelbyError extends Error {
     public code: string,
     public statusCode?: number,
   ) {
-    super(message);
-    this.name = 'ShelbyError';
+    super(message)
+    this.name = 'ShelbyError'
   }
 }

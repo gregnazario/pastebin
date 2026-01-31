@@ -1,19 +1,19 @@
-import { ml_kem768 } from '@noble/post-quantum/ml-kem.js';
+import { ml_kem768 } from '@noble/post-quantum/ml-kem.js'
 
 export interface KyberKeyPair {
-  publicKey: Uint8Array;
-  privateKey: Uint8Array;
+  publicKey: Uint8Array
+  privateKey: Uint8Array
 }
 
 export interface KyberEncapsulationResult {
-  sharedSecret: Uint8Array;
-  ciphertext: Uint8Array;
+  sharedSecret: Uint8Array
+  ciphertext: Uint8Array
 }
 
 export class KyberService {
   // Use ML-KEM-768 (Kyber768) for 192-bit security
   // This provides post-quantum security roughly equivalent to AES-192
-  private static readonly kyber = ml_kem768;
+  private static readonly kyber = ml_kem768
 
   /**
    * Generate a new Kyber key pair
@@ -22,19 +22,19 @@ export class KyberService {
   static async generateKeyPair(): Promise<KyberKeyPair> {
     try {
       // Generate random seed
-      const seed = crypto.getRandomValues(new Uint8Array(64));
+      const seed = crypto.getRandomValues(new Uint8Array(64))
 
       // Generate key pair
-      const { publicKey, secretKey } = KyberService.kyber.keygen(seed);
+      const { publicKey, secretKey } = KyberService.kyber.keygen(seed)
 
       return {
         publicKey,
         privateKey: secretKey,
-      };
+      }
     } catch (error) {
       throw new Error(
         `Kyber key generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      )
     }
   }
 
@@ -46,19 +46,19 @@ export class KyberService {
   static async encapsulate(publicKey: Uint8Array): Promise<KyberEncapsulationResult> {
     try {
       // Generate random seed for encapsulation
-      const seed = crypto.getRandomValues(new Uint8Array(32));
+      const seed = crypto.getRandomValues(new Uint8Array(32))
 
       // Encapsulate
-      const { sharedSecret, cipherText } = KyberService.kyber.encapsulate(publicKey, seed);
+      const { sharedSecret, cipherText } = KyberService.kyber.encapsulate(publicKey, seed)
 
       return {
         sharedSecret,
         ciphertext: cipherText,
-      };
+      }
     } catch (error) {
       throw new Error(
         `Kyber encapsulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      )
     }
   }
 
@@ -70,12 +70,12 @@ export class KyberService {
    */
   static async decapsulate(ciphertext: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
     try {
-      const sharedSecret = KyberService.kyber.decapsulate(ciphertext, privateKey);
-      return sharedSecret;
+      const sharedSecret = KyberService.kyber.decapsulate(ciphertext, privateKey)
+      return sharedSecret
     } catch (error) {
       throw new Error(
         `Kyber decapsulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      )
     }
   }
 
@@ -89,7 +89,7 @@ export class KyberService {
       privateKeySize: 2400, // bytes
       ciphertextSize: 1088, // bytes
       sharedSecretSize: 32, // bytes
-    };
+    }
   }
 
   /**
@@ -98,7 +98,7 @@ export class KyberService {
    * @returns boolean indicating if the key is valid
    */
   static validatePublicKey(publicKey: Uint8Array): boolean {
-    return publicKey.length === KyberService.getSizes().publicKeySize;
+    return publicKey.length === KyberService.getSizes().publicKeySize
   }
 
   /**
@@ -107,7 +107,7 @@ export class KyberService {
    * @returns boolean indicating if the key is valid
    */
   static validatePrivateKey(privateKey: Uint8Array): boolean {
-    return privateKey.length === KyberService.getSizes().privateKeySize;
+    return privateKey.length === KyberService.getSizes().privateKeySize
   }
 
   /**
@@ -116,6 +116,6 @@ export class KyberService {
    * @returns boolean indicating if the ciphertext is valid
    */
   static validateCiphertext(ciphertext: Uint8Array): boolean {
-    return ciphertext.length === KyberService.getSizes().ciphertextSize;
+    return ciphertext.length === KyberService.getSizes().ciphertextSize
   }
 }

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { FileEncryptionService, type UploadProgress } from '../../services/FileEncryptionService'
 import type { FileMetadata } from '../../types'
 
@@ -38,12 +38,7 @@ function ViewPage() {
 
     try {
       const service = new FileEncryptionService()
-      const result = await service.downloadFile(
-        id,
-        password,
-        privateKey,
-        setProgress
-      )
+      const result = await service.downloadFile(id, password, privateKey, setProgress)
 
       setDecryptedFile(result)
     } catch (err) {
@@ -59,7 +54,7 @@ function ViewPage() {
 
     const blob = FileEncryptionService.createDownloadableFile(
       decryptedFile.data,
-      decryptedFile.metadata
+      decryptedFile.metadata,
     )
     FileEncryptionService.triggerDownload(blob, decryptedFile.metadata.name)
   }, [decryptedFile])
@@ -70,8 +65,8 @@ function ViewPage() {
         <div className="error-box">
           <h2>Missing Decryption Key</h2>
           <p>
-            The decryption key is missing from the URL. Make sure you're using
-            the complete shareable link that includes the key after the # symbol.
+            The decryption key is missing from the URL. Make sure you're using the complete
+            shareable link that includes the key after the # symbol.
           </p>
         </div>
         <style>{styles}</style>
@@ -87,11 +82,17 @@ function ViewPage() {
         <div className="success">
           <h2>✅ Decryption Successful!</h2>
           <div className="file-details">
-            <p><strong>Filename:</strong> {decryptedFile.metadata.name}</p>
-            <p><strong>Size:</strong> {(decryptedFile.metadata.size / 1024).toFixed(2)} KB</p>
-            <p><strong>Type:</strong> {decryptedFile.metadata.mimeType}</p>
+            <p>
+              <strong>Filename:</strong> {decryptedFile.metadata.name}
+            </p>
+            <p>
+              <strong>Size:</strong> {(decryptedFile.metadata.size / 1024).toFixed(2)} KB
+            </p>
+            <p>
+              <strong>Type:</strong> {decryptedFile.metadata.mimeType}
+            </p>
           </div>
-          <button onClick={handleDownload} className="download-button">
+          <button type="button" onClick={handleDownload} className="download-button">
             Download File
           </button>
         </div>
@@ -100,9 +101,10 @@ function ViewPage() {
           <p>Enter the password to decrypt this file:</p>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="decrypt-password">Password</label>
             <div className="password-input">
               <input
+                id="decrypt-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -134,6 +136,7 @@ function ViewPage() {
           )}
 
           <button
+            type="button"
             onClick={handleDecrypt}
             disabled={!password || isLoading}
             className="decrypt-button"

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { FileEncryptionService, type UploadProgress } from '../services/FileEncryptionService'
 import { PasswordValidator } from '../services/validation/PasswordValidator'
 
@@ -39,12 +39,7 @@ function UploadPage() {
 
     try {
       const service = new FileEncryptionService()
-      const uploadResult = await service.uploadFile(
-        file,
-        password,
-        encryptMetadata,
-        setProgress
-      )
+      const uploadResult = await service.uploadFile(file, password, encryptMetadata, setProgress)
 
       setResult({
         url: uploadResult.shareableUrl,
@@ -74,24 +69,28 @@ function UploadPage() {
           <p>Share this link (includes encryption key in URL fragment):</p>
           <div className="url-container">
             <input type="text" readOnly value={result.url} />
-            <button onClick={copyToClipboard}>Copy</button>
+            <button type="button" onClick={copyToClipboard}>
+              Copy
+            </button>
           </div>
-          <p className="expires">
-            Expires: {new Date(result.expiresAt).toLocaleDateString()}
-          </p>
-          <button onClick={() => { setResult(null); setFile(null); setPassword(''); setConfirmPassword(''); }}>
+          <p className="expires">Expires: {new Date(result.expiresAt).toLocaleDateString()}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setResult(null)
+              setFile(null)
+              setPassword('')
+              setConfirmPassword('')
+            }}
+          >
             Upload Another File
           </button>
         </div>
       ) : (
         <div className="upload-form">
           <div className="form-group">
-            <label>Select File</label>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              disabled={isUploading}
-            />
+            <label htmlFor="file-input">Select File</label>
+            <input id="file-input" type="file" onChange={handleFileChange} disabled={isUploading} />
             {file && (
               <p className="file-info">
                 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
@@ -100,9 +99,10 @@ function UploadPage() {
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password-input">Password</label>
             <div className="password-input">
               <input
+                id="password-input"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -127,17 +127,16 @@ function UploadPage() {
           </div>
 
           <div className="form-group">
-            <label>Confirm Password</label>
+            <label htmlFor="confirm-password">Confirm Password</label>
             <input
+              id="confirm-password"
               type={showPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
               disabled={isUploading}
             />
-            {confirmPassword && !passwordsMatch && (
-              <p className="error">Passwords do not match</p>
-            )}
+            {confirmPassword && !passwordsMatch && <p className="error">Passwords do not match</p>}
           </div>
 
           <div className="form-group checkbox">
@@ -162,6 +161,7 @@ function UploadPage() {
           )}
 
           <button
+            type="button"
             onClick={handleUpload}
             disabled={!file || !passwordValidation.isValid || !passwordsMatch || isUploading}
             className="upload-button"

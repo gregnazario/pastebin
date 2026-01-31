@@ -6,7 +6,11 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "biome lint src",
+    "format": "biome format --write src",
+    "check": "biome check --write src",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aptos-labs/ts-sdk": "^6.0.0",
@@ -26,6 +30,7 @@
     "vite-tsconfig-paths": "^6.0.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.13",
     "@tanstack/devtools-vite": "^0.5.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",

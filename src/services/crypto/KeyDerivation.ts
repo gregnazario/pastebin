@@ -1,23 +1,23 @@
-import { argon2id } from 'hash-wasm';
+import { argon2id } from 'hash-wasm'
 
 export interface DerivedKeyResult {
-  key: Uint8Array;
-  salt: Uint8Array;
+  key: Uint8Array
+  salt: Uint8Array
   parameters: {
-    iterations: number;
-    memory: number;
-    parallelism: number;
-    hashLength: number;
-  };
+    iterations: number
+    memory: number
+    parallelism: number
+    hashLength: number
+  }
 }
 
 export class KeyDerivationService {
   // Default parameters for Argon2id
-  private static readonly DEFAULT_ITERATIONS = 3;
-  private static readonly DEFAULT_MEMORY = 64 * 1024; // 64MB in KB
-  private static readonly DEFAULT_PARALLELISM = 1;
-  private static readonly DEFAULT_HASH_LENGTH = 32; // 256 bits
-  private static readonly SALT_LENGTH = 32; // 256 bits
+  private static readonly DEFAULT_ITERATIONS = 3
+  private static readonly DEFAULT_MEMORY = 64 * 1024 // 64MB in KB
+  private static readonly DEFAULT_PARALLELISM = 1
+  private static readonly DEFAULT_HASH_LENGTH = 32 // 256 bits
+  private static readonly SALT_LENGTH = 32 // 256 bits
 
   /**
    * Derive a key from a password using Argon2id
@@ -28,7 +28,7 @@ export class KeyDerivationService {
   static async deriveKey(password: string, salt?: Uint8Array): Promise<DerivedKeyResult> {
     // Generate salt if not provided
     if (!salt) {
-      salt = crypto.getRandomValues(new Uint8Array(KeyDerivationService.SALT_LENGTH));
+      salt = crypto.getRandomValues(new Uint8Array(KeyDerivationService.SALT_LENGTH))
     }
 
     try {
@@ -40,10 +40,10 @@ export class KeyDerivationService {
         parallelism: KeyDerivationService.DEFAULT_PARALLELISM,
         hashLength: KeyDerivationService.DEFAULT_HASH_LENGTH,
         outputType: 'hex',
-      });
+      })
 
       // Convert hex to Uint8Array
-      const key = KeyDerivationService.hexToBytes(hashHex);
+      const key = KeyDerivationService.hexToBytes(hashHex)
 
       return {
         key,
@@ -54,11 +54,11 @@ export class KeyDerivationService {
           parallelism: KeyDerivationService.DEFAULT_PARALLELISM,
           hashLength: KeyDerivationService.DEFAULT_HASH_LENGTH,
         },
-      };
+      }
     } catch (error) {
       throw new Error(
         `Key derivation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      )
     }
   }
 
@@ -87,13 +87,13 @@ export class KeyDerivationService {
         parallelism,
         hashLength: KeyDerivationService.DEFAULT_HASH_LENGTH,
         outputType: 'hex',
-      });
+      })
 
-      return KeyDerivationService.hexToBytes(hashHex);
+      return KeyDerivationService.hexToBytes(hashHex)
     } catch (error) {
       throw new Error(
         `Key derivation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      )
     }
   }
 
@@ -101,11 +101,11 @@ export class KeyDerivationService {
    * Convert hex string to Uint8Array
    */
   private static hexToBytes(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2);
+    const bytes = new Uint8Array(hex.length / 2)
     for (let i = 0; i < bytes.length; i++) {
-      bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+      bytes[i] = parseInt(hex.substr(i * 2, 2), 16)
     }
-    return bytes;
+    return bytes
   }
 
   /**
@@ -113,7 +113,7 @@ export class KeyDerivationService {
    * @returns Random salt as Uint8Array
    */
   static generateSalt(): Uint8Array {
-    return crypto.getRandomValues(new Uint8Array(KeyDerivationService.SALT_LENGTH));
+    return crypto.getRandomValues(new Uint8Array(KeyDerivationService.SALT_LENGTH))
   }
 
   /**
@@ -122,9 +122,9 @@ export class KeyDerivationService {
    * @returns Base64url encoded string
    */
   static keyToBase64Url(key: Uint8Array): string {
-    const base64 = btoa(String.fromCharCode.apply(null, Array.from(key)));
+    const base64 = btoa(String.fromCharCode.apply(null, Array.from(key)))
     // Convert to base64url by replacing characters
-    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
   }
 
   /**
@@ -134,19 +134,19 @@ export class KeyDerivationService {
    */
   static base64UrlToKey(base64url: string): Uint8Array {
     // Convert from base64url to base64
-    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
 
     // Add padding if necessary
-    const padding = base64.length % 4;
+    const padding = base64.length % 4
     if (padding) {
-      base64 += '='.repeat(4 - padding);
+      base64 += '='.repeat(4 - padding)
     }
 
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
+    const binary = atob(base64)
+    const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
+      bytes[i] = binary.charCodeAt(i)
     }
-    return bytes;
+    return bytes
   }
 }

@@ -1,4 +1,4 @@
-import { HeadContent, Outlet, Scripts, createRootRoute, Link } from '@tanstack/react-router'
+import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -8,9 +8,7 @@ export const Route = createRootRoute({
       { title: 'Secure Pastebin - Post-Quantum Encrypted File Sharing' },
       { name: 'description', content: 'Share files securely with post-quantum encryption' },
     ],
-    links: [
-      { rel: 'icon', href: '/favicon.ico' },
-    ],
+    links: [{ rel: 'icon', href: '/favicon.ico' }],
   }),
   component: RootLayout,
 })
