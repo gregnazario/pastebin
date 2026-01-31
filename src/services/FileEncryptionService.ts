@@ -1,9 +1,17 @@
-import { config } from '../config';
-import type { FileMetadata } from '../types';
+/**
+ * File Encryption Service
+ * Handles client-side encryption/decryption and coordinates with server for storage
+ */
+
 import { HybridEncryptionService } from './crypto/HybridEncryption';
 import { KeyDerivationService } from './crypto/KeyDerivation';
-import { ShelbyService } from './storage/ShelbyService';
 import { PasswordValidator } from './validation/PasswordValidator';
+import type { FileMetadata } from '../types';
+import { uploadBlob, downloadBlob } from '../server/shelby';
+
+// Config
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+const LINK_EXPIRY_HOURS = 24 * 30; // 30 days
 
 export interface EncryptedUploadResult {
   fileId: string;
@@ -19,19 +27,8 @@ export interface UploadProgress {
 }
 
 export class FileEncryptionService {
-  private shelbyService: ShelbyService;
-
-  constructor() {
-    this.shelbyService = new ShelbyService();
-  }
-
   /**
    * Upload and encrypt a file
-   * @param file - The file to upload
-   * @param password - The password for encryption
-   * @param encryptMetadata - Whether to encrypt metadata
-   * @param onProgress - Progress callback
-   * @returns Promise with upload result
    */
   async uploadFile(
     file: File,
@@ -47,15 +44,13 @@ export class FileEncryptionService {
         message: 'Validating password...',
       });
 
-      // Validate password
       const passwordValidation = PasswordValidator.validate(password);
       if (!passwordValidation.isValid) {
         throw new Error(`Invalid password: ${passwordValidation.errors.join(', ')}`);
       }
 
-      // Check file size
-      if (file.size > config.app.maxFileSize) {
-        const maxSizeMB = config.app.maxFileSize / 1024 / 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        const maxSizeMB = MAX_FILE_SIZE / 1024 / 1024;
         throw new Error(`File too large. Maximum size is ${maxSizeMB}MB`);
       }
 
@@ -80,7 +75,7 @@ export class FileEncryptionService {
         size: file.size,
         mimeType: file.type || 'application/octet-stream',
         uploadDate: Date.now(),
-        expirationDate: Date.now() + config.app.linkExpiryHours * 60 * 60 * 1000,
+        expirationDate: Date.now() + LINK_EXPIRY_HOURS * 60 * 60 * 1000,
         encryptionConfig: {
           encryptMetadata,
           algorithm: 'Kyber768+AES256-GCM',
@@ -94,20 +89,21 @@ export class FileEncryptionService {
         encryptMetadata,
       );
 
-      // Stage 4: Upload to Shelby
+      // Stage 4: Upload to Shelby via server function
       onProgress?.({
         stage: 'uploading',
         progress: 60,
         message: 'Uploading encrypted file...',
       });
 
-      // Serialize the encrypted payload
       const serializedPayload = HybridEncryptionService.serializePayload(payload);
 
-      // Upload to Shelby
-      const uploadResult = await this.shelbyService.uploadFile(serializedPayload, {
-        encrypted: true,
-        metadataEncrypted: encryptMetadata,
+      // Call server function
+      const uploadResult = await uploadBlob({
+        data: {
+          data: Array.from(serializedPayload),
+          filename: file.name,
+        },
       });
 
       // Stage 5: Generate shareable link
@@ -117,7 +113,6 @@ export class FileEncryptionService {
         message: 'Upload complete!',
       });
 
-      // Encode the private key for URL fragment
       const encodedKey = KeyDerivationService.keyToBase64Url(keys.kyberPrivateKey);
       const shareableUrl = `${window.location.origin}/p/${uploadResult.id}#${encodedKey}`;
 
@@ -128,19 +123,12 @@ export class FileEncryptionService {
         expiresAt: uploadResult.expiresAt,
       };
     } catch (error) {
-      throw new Error(
-        `File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   /**
    * Download and decrypt a file
-   * @param fileId - The file ID from Shelby
-   * @param password - The password for decryption
-   * @param privateKeyFragment - The private key from URL fragment (optional)
-   * @param onProgress - Progress callback
-   * @returns Promise with decrypted file data and metadata
    */
   async downloadFile(
     fileId: string,
@@ -149,14 +137,15 @@ export class FileEncryptionService {
     onProgress?: (progress: UploadProgress) => void,
   ): Promise<{ data: Uint8Array; metadata: FileMetadata }> {
     try {
-      // Stage 1: Download from Shelby
+      // Stage 1: Download from Shelby via server function
       onProgress?.({
         stage: 'validating',
         progress: 20,
         message: 'Downloading encrypted file...',
       });
 
-      const encryptedData = await this.shelbyService.downloadFile(fileId);
+      const downloadResult = await downloadBlob({ data: { id: fileId } });
+      const encryptedData = new Uint8Array(downloadResult.data);
 
       // Stage 2: Deserialize payload
       onProgress?.({
@@ -170,7 +159,6 @@ export class FileEncryptionService {
       // Stage 3: Get private key
       let kyberPrivateKey: Uint8Array;
       if (privateKeyFragment) {
-        // Decode from URL fragment
         kyberPrivateKey = KeyDerivationService.base64UrlToKey(privateKeyFragment);
       } else {
         throw new Error('Private key required for decryption');
@@ -197,21 +185,17 @@ export class FileEncryptionService {
 
       return { data, metadata };
     } catch (error) {
-      throw new Error(
-        `File download failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw new Error(`File download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   /**
    * Read a File as Uint8Array
-   * @param file - The file to read
-   * @returns Promise with file data as Uint8Array
    */
   private readFileAsUint8Array(file: File): Promise<Uint8Array> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
+      
       reader.onload = () => {
         if (reader.result instanceof ArrayBuffer) {
           resolve(new Uint8Array(reader.result));
@@ -219,34 +203,25 @@ export class FileEncryptionService {
           reject(new Error('Failed to read file as ArrayBuffer'));
         }
       };
-
+      
       reader.onerror = () => {
         reject(new Error('Failed to read file'));
       };
-
+      
       reader.readAsArrayBuffer(file);
     });
   }
 
   /**
    * Create a downloadable file from decrypted data
-   * @param data - The decrypted file data
-   * @param metadata - The file metadata
-   * @returns Blob that can be downloaded
    */
   static createDownloadableFile(data: Uint8Array, metadata: FileMetadata): Blob {
-    // Create a proper ArrayBuffer-backed Uint8Array for Blob compatibility
-    const arrayBuffer = data.buffer.slice(
-      data.byteOffset,
-      data.byteOffset + data.byteLength,
-    ) as ArrayBuffer;
+    const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
     return new Blob([new Uint8Array(arrayBuffer)], { type: metadata.mimeType });
   }
 
   /**
    * Trigger a file download in the browser
-   * @param blob - The file blob
-   * @param filename - The filename to save as
    */
   static triggerDownload(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);

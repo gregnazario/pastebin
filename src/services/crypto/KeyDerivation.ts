@@ -1,4 +1,4 @@
-import * as argon2 from 'argon2-browser';
+import { argon2id } from 'hash-wasm';
 
 export interface DerivedKeyResult {
   key: Uint8Array;
@@ -14,7 +14,7 @@ export interface DerivedKeyResult {
 export class KeyDerivationService {
   // Default parameters for Argon2id
   private static readonly DEFAULT_ITERATIONS = 3;
-  private static readonly DEFAULT_MEMORY = 64 * 1024; // 64MB
+  private static readonly DEFAULT_MEMORY = 64 * 1024; // 64MB in KB
   private static readonly DEFAULT_PARALLELISM = 1;
   private static readonly DEFAULT_HASH_LENGTH = 32; // 256 bits
   private static readonly SALT_LENGTH = 32; // 256 bits
@@ -31,27 +31,28 @@ export class KeyDerivationService {
       salt = crypto.getRandomValues(new Uint8Array(KeyDerivationService.SALT_LENGTH));
     }
 
-    const params = {
-      pass: password,
-      salt,
-      type: argon2.ArgonType.Argon2id,
-      time: KeyDerivationService.DEFAULT_ITERATIONS,
-      mem: KeyDerivationService.DEFAULT_MEMORY,
-      hashLen: KeyDerivationService.DEFAULT_HASH_LENGTH,
-      parallelism: KeyDerivationService.DEFAULT_PARALLELISM,
-    };
-
     try {
-      const result = await argon2.hash(params);
+      const hashHex = await argon2id({
+        password,
+        salt,
+        iterations: KeyDerivationService.DEFAULT_ITERATIONS,
+        memorySize: KeyDerivationService.DEFAULT_MEMORY,
+        parallelism: KeyDerivationService.DEFAULT_PARALLELISM,
+        hashLength: KeyDerivationService.DEFAULT_HASH_LENGTH,
+        outputType: 'hex',
+      });
+
+      // Convert hex to Uint8Array
+      const key = KeyDerivationService.hexToBytes(hashHex);
 
       return {
-        key: new Uint8Array(result.hash),
+        key,
         salt,
         parameters: {
-          iterations: params.time,
-          memory: params.mem,
-          parallelism: params.parallelism,
-          hashLength: params.hashLen,
+          iterations: KeyDerivationService.DEFAULT_ITERATIONS,
+          memory: KeyDerivationService.DEFAULT_MEMORY,
+          parallelism: KeyDerivationService.DEFAULT_PARALLELISM,
+          hashLength: KeyDerivationService.DEFAULT_HASH_LENGTH,
         },
       };
     } catch (error) {
@@ -77,24 +78,34 @@ export class KeyDerivationService {
     memory: number,
     parallelism: number,
   ): Promise<Uint8Array> {
-    const params = {
-      pass: password,
-      salt,
-      type: argon2.ArgonType.Argon2id,
-      time: iterations,
-      mem: memory,
-      hashLen: KeyDerivationService.DEFAULT_HASH_LENGTH,
-      parallelism,
-    };
-
     try {
-      const result = await argon2.hash(params);
-      return new Uint8Array(result.hash);
+      const hashHex = await argon2id({
+        password,
+        salt,
+        iterations,
+        memorySize: memory,
+        parallelism,
+        hashLength: KeyDerivationService.DEFAULT_HASH_LENGTH,
+        outputType: 'hex',
+      });
+
+      return KeyDerivationService.hexToBytes(hashHex);
     } catch (error) {
       throw new Error(
         `Key derivation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
+  }
+
+  /**
+   * Convert hex string to Uint8Array
+   */
+  private static hexToBytes(hex: string): Uint8Array {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+    }
+    return bytes;
   }
 
   /**

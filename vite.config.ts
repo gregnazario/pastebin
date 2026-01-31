@@ -1,24 +1,26 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import { devtools } from '@tanstack/devtools-vite'
+import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import viteReact from '@vitejs/plugin-react'
+import viteTsConfigPaths from 'vite-tsconfig-paths'
+import { fileURLToPath, URL } from 'url'
 
-export default defineConfig({
-  plugins: [react()],
+const config = defineConfig({
   resolve: {
     alias: {
-      // Use browser-compatible mock for argon2
-      'argon2-browser': '/src/mocks/argon2-browser.ts',
-      // Mock Shelby for local testing
-      '../shelby/ShelbyService': '/src/mocks/shelby.ts',
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  server: {
-    port: 3000,
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-  },
-  optimizeDeps: {
-    exclude: ['argon2-browser'],
-  },
-});
+  plugins: [
+    devtools(),
+    // this is the plugin that enables path aliases
+    viteTsConfigPaths({
+      projects: ['./tsconfig.json'],
+    }),
+
+    tanstackStart(),
+    viteReact(),
+  ],
+})
+
+export default config
