@@ -13,9 +13,9 @@ export interface DerivedKeyResult {
 
 export class KeyDerivationService {
   // Default parameters for Argon2id
-  private static readonly DEFAULT_ITERATIONS = 3
-  private static readonly DEFAULT_MEMORY = 64 * 1024 // 64MB in KB
-  private static readonly DEFAULT_PARALLELISM = 1
+  static readonly DEFAULT_ITERATIONS = 3
+  static readonly DEFAULT_MEMORY = 64 * 1024 // 64MB in KB
+  static readonly DEFAULT_PARALLELISM = 1
   private static readonly DEFAULT_HASH_LENGTH = 32 // 256 bits
   private static readonly SALT_LENGTH = 32 // 256 bits
 
