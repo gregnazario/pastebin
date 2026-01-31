@@ -1,6 +1,6 @@
-import { ShelbyConfig, ShelbyError, UploadResult } from '../../types';
-import { withRetry } from '../../utils/retry';
 import { config } from '../../config';
+import { type ShelbyConfig, ShelbyError, type UploadResult } from '../../types';
+import { withRetry } from '../../utils/retry';
 
 export class ShelbyService {
   private config: ShelbyConfig;
@@ -9,7 +9,7 @@ export class ShelbyService {
   constructor(customConfig?: Partial<ShelbyConfig>) {
     this.config = {
       apiUrl: customConfig?.apiUrl || config.shelby.apiUrl,
-      network: customConfig?.network || config.shelby.network as 'shelbynet' | 'testnet',
+      network: customConfig?.network || (config.shelby.network as 'shelbynet' | 'testnet'),
       apiKey: customConfig?.apiKey || config.shelby.apiKey,
     };
     this.baseUrl = this.config.apiUrl;
@@ -26,6 +26,11 @@ export class ShelbyService {
       try {
         // For now, we'll use a PUT request to upload the blob
         // The actual implementation will depend on Shelby's API
+        // Create a proper ArrayBuffer-backed Uint8Array for Blob compatibility
+        const arrayBuffer = data.buffer.slice(
+          data.byteOffset,
+          data.byteOffset + data.byteLength,
+        ) as ArrayBuffer;
         const response = await fetch(`${this.baseUrl}/blobs`, {
           method: 'PUT',
           headers: {
@@ -33,7 +38,7 @@ export class ShelbyService {
             ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
             ...(metadata && { 'X-Metadata': JSON.stringify(metadata) }),
           },
-          body: data,
+          body: new Blob([new Uint8Array(arrayBuffer)]),
         });
 
         if (!response.ok) {
@@ -45,7 +50,7 @@ export class ShelbyService {
         }
 
         const result = await response.json();
-        
+
         return {
           id: result.id || result.blobId,
           url: `${this.baseUrl}/blobs/${result.id || result.blobId}`,
@@ -69,41 +74,44 @@ export class ShelbyService {
    * @returns Promise with file data as Uint8Array
    */
   async downloadFile(id: string): Promise<Uint8Array> {
-    return withRetry(async () => {
-      try {
-        const response = await fetch(`${this.baseUrl}/blobs/${id}`, {
-          method: 'GET',
-          headers: {
-            ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
-          },
-        });
+    return withRetry(
+      async () => {
+        try {
+          const response = await fetch(`${this.baseUrl}/blobs/${id}`, {
+            method: 'GET',
+            headers: {
+              ...(this.config.apiKey && { Authorization: `Bearer ${this.config.apiKey}` }),
+            },
+          });
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new ShelbyError('File not found', 'NOT_FOUND', 404);
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new ShelbyError('File not found', 'NOT_FOUND', 404);
+            }
+            throw new ShelbyError(
+              `Download failed: ${response.statusText}`,
+              'DOWNLOAD_ERROR',
+              response.status,
+            );
+          }
+
+          const buffer = await response.arrayBuffer();
+          return new Uint8Array(buffer);
+        } catch (error) {
+          if (error instanceof ShelbyError) {
+            throw error;
           }
           throw new ShelbyError(
-            `Download failed: ${response.statusText}`,
-            'DOWNLOAD_ERROR',
-            response.status,
+            `Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            'NETWORK_ERROR',
           );
         }
-
-        const buffer = await response.arrayBuffer();
-        return new Uint8Array(buffer);
-      } catch (error) {
-        if (error instanceof ShelbyError) {
-          throw error;
-        }
-        throw new ShelbyError(
-          `Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          'NETWORK_ERROR',
-        );
-      }
-    }, {
-      // Don't retry 404s
-      shouldRetry: (error) => error.code !== 'NOT_FOUND' && error.statusCode !== 404,
-    });
+      },
+      {
+        // Don't retry 404s
+        shouldRetry: (error) => error.code !== 'NOT_FOUND' && error.statusCode !== 404,
+      },
+    );
   }
 
   /**

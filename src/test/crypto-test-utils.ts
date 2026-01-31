@@ -13,7 +13,7 @@ export const TEST_FILE_CONTENT = 'Hello, this is a test file content!';
 export function createTestFile(
   content: string = TEST_FILE_CONTENT,
   filename: string = 'test.txt',
-  mimeType: string = 'text/plain'
+  mimeType: string = 'text/plain',
 ): File {
   const blob = new Blob([content], { type: mimeType });
   return new File([blob], filename, { type: mimeType });
@@ -57,7 +57,7 @@ export function arraysEqual(a: Uint8Array, b: Uint8Array): boolean {
  */
 export function stringToHex(str: string): string {
   return Array.from(str)
-    .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+    .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
     .join(' ');
 }
 
@@ -66,12 +66,11 @@ export function stringToHex(str: string): string {
  */
 export function mockFileReader(): void {
   global.FileReader = vi.fn(() => ({
-    readAsArrayBuffer: vi.fn(function(this: any, file: File) {
-      const reader = this;
+    readAsArrayBuffer: vi.fn(function (this: any, file: File) {
       setTimeout(() => {
-        file.arrayBuffer().then(buffer => {
-          reader.result = buffer;
-          reader.onload?.();
+        file.arrayBuffer().then((buffer) => {
+          this.result = buffer;
+          this.onload?.();
         });
       }, 0);
     }),
@@ -85,7 +84,7 @@ export function mockFileReader(): void {
  * Wait for async operations to complete
  */
 export async function waitForAsync(ms: number = 10): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, ms));
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -95,7 +94,7 @@ export function mockShelbyUpload(fileId: string = 'test-file-id'): void {
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
     json: async () => ({ id: fileId, blobId: fileId }),
-  });
+  }) as unknown as typeof fetch;
 }
 
 /**
@@ -105,7 +104,7 @@ export function mockShelbyDownload(data: Uint8Array): void {
   global.fetch = vi.fn().mockResolvedValue({
     ok: true,
     arrayBuffer: async () => data.buffer,
-  });
+  }) as unknown as typeof fetch;
 }
 
 /**

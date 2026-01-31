@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CryptoBenchmarks } from '../benchmarks/crypto-benchmarks';
 import { FileTypeTests } from '../test/file-type-tests';
 
@@ -26,7 +26,7 @@ export function BenchmarkPage() {
     const originalLog = console.log;
     console.log = (...args) => {
       originalLog(...args);
-      setLogs(prev => [...prev, args.join(' ')]);
+      setLogs((prev) => [...prev, args.join(' ')]);
     };
 
     try {
@@ -39,25 +39,28 @@ export function BenchmarkPage() {
       }
     } catch (error) {
       console.error('Benchmark error:', error);
-      setLogs(prev => [...prev, `Error: ${error}`]);
+      setLogs((prev) => [...prev, `Error: ${error}`]);
     } finally {
       console.log = originalLog;
       setIsRunning(false);
     }
   };
 
-  const groupedResults = results.reduce((acc, result) => {
-    if (!acc[result.operation]) {
-      acc[result.operation] = [];
-    }
-    acc[result.operation].push(result);
-    return acc;
-  }, {} as Record<string, BenchmarkResult[]>);
+  const groupedResults = results.reduce(
+    (acc, result) => {
+      if (!acc[result.operation]) {
+        acc[result.operation] = [];
+      }
+      acc[result.operation].push(result);
+      return acc;
+    },
+    {} as Record<string, BenchmarkResult[]>,
+  );
 
   return (
     <div className="benchmark-page">
       <h2>Testing & Benchmarks</h2>
-      
+
       <div className="tabs">
         <button
           className={`tab ${activeTab === 'performance' ? 'active' : ''}`}
@@ -72,16 +75,16 @@ export function BenchmarkPage() {
           File Type Tests
         </button>
       </div>
-      
+
       <div className="benchmark-info">
         {activeTab === 'performance' ? (
           <>
             <p>
-              Test the performance of the encryption algorithms with various file sizes.
-              This will measure the speed of Kyber key generation, key derivation, and
-              AES-GCM encryption/decryption.
+              Test the performance of the encryption algorithms with various file sizes. This will
+              measure the speed of Kyber key generation, key derivation, and AES-GCM
+              encryption/decryption.
             </p>
-            
+
             <div className="warning-box">
               <strong>Note:</strong> These benchmarks run in your browser using the mocked
               implementations. Real performance with native libraries may differ.
@@ -90,25 +93,22 @@ export function BenchmarkPage() {
         ) : (
           <>
             <p>
-              Test encryption and decryption with various file types and sizes.
-              This ensures that different file formats are correctly preserved
-              through the encryption process.
+              Test encryption and decryption with various file types and sizes. This ensures that
+              different file formats are correctly preserved through the encryption process.
             </p>
-            
+
             <div className="info-box">
-              <strong>Tests include:</strong> Plain text, JSON, HTML, CSV, Binary data,
-              Unicode text, and files from 0 bytes to 99MB.
+              <strong>Tests include:</strong> Plain text, JSON, HTML, CSV, Binary data, Unicode
+              text, and files from 0 bytes to 99MB.
             </div>
           </>
         )}
       </div>
 
-      <button
-        onClick={runBenchmarks}
-        disabled={isRunning}
-        className="button primary"
-      >
-        {isRunning ? 'Running Tests...' : `Run ${activeTab === 'performance' ? 'Benchmarks' : 'File Type Tests'}`}
+      <button onClick={runBenchmarks} disabled={isRunning} className="button primary">
+        {isRunning
+          ? 'Running Tests...'
+          : `Run ${activeTab === 'performance' ? 'Benchmarks' : 'File Type Tests'}`}
       </button>
 
       {logs.length > 0 && (
@@ -125,7 +125,7 @@ export function BenchmarkPage() {
       {results.length > 0 && activeTab === 'performance' && (
         <div className="benchmark-results">
           <h3>Results</h3>
-          
+
           {Object.entries(groupedResults).map(([operation, opResults]) => (
             <div key={operation} className="result-group">
               <h4>{operation}</h4>
@@ -159,17 +159,19 @@ export function BenchmarkPage() {
             <ul>
               {(() => {
                 const hybridEnc = results.filter(
-                  r => r.operation === 'Hybrid Encryption' && r.throughputMBps > 0
+                  (r) => r.operation === 'Hybrid Encryption' && r.throughputMBps > 0,
                 );
-                const avgThroughput = hybridEnc.length > 0
-                  ? hybridEnc.reduce((sum, r) => sum + r.throughputMBps, 0) / hybridEnc.length
-                  : 0;
+                const avgThroughput =
+                  hybridEnc.length > 0
+                    ? hybridEnc.reduce((sum, r) => sum + r.throughputMBps, 0) / hybridEnc.length
+                    : 0;
 
                 const slowest = results
-                  .filter(r => r.throughputMBps > 0)
-                  .reduce((prev, curr) =>
-                    curr.throughputMBps < prev.throughputMBps ? curr : prev
-                  , results[0]);
+                  .filter((r) => r.throughputMBps > 0)
+                  .reduce(
+                    (prev, curr) => (curr.throughputMBps < prev.throughputMBps ? curr : prev),
+                    results[0],
+                  );
 
                 return (
                   <>
@@ -179,13 +181,15 @@ export function BenchmarkPage() {
                           Average encryption speed: <strong>{avgThroughput.toFixed(2)} MB/s</strong>
                         </li>
                         <li>
-                          Time to encrypt 100MB: <strong>{(100 / avgThroughput).toFixed(1)} seconds</strong>
+                          Time to encrypt 100MB:{' '}
+                          <strong>{(100 / avgThroughput).toFixed(1)} seconds</strong>
                         </li>
                       </>
                     )}
                     {slowest && slowest.throughputMBps > 0 && (
                       <li>
-                        Bottleneck: <strong>{slowest.operation}</strong> at {slowest.throughputMBps.toFixed(2)} MB/s
+                        Bottleneck: <strong>{slowest.operation}</strong> at{' '}
+                        {slowest.throughputMBps.toFixed(2)} MB/s
                       </li>
                     )}
                   </>
@@ -196,23 +200,30 @@ export function BenchmarkPage() {
         </div>
       )}
 
-      {activeTab === 'fileTypes' && logs.length > 0 && logs.some(log => log.includes('TEST SUMMARY')) && (
-        <div className="test-results">
-          <h3>Test Results</h3>
-          <div className="test-summary">
-            <pre>{logs.filter(log => 
-              log.includes('✅') || 
-              log.includes('❌') || 
-              log.includes('TEST SUMMARY') ||
-              log.includes('Total:') ||
-              log.includes('Passed:') ||
-              log.includes('Failed:')
-            ).join('\n')}</pre>
+      {activeTab === 'fileTypes' &&
+        logs.length > 0 &&
+        logs.some((log) => log.includes('TEST SUMMARY')) && (
+          <div className="test-results">
+            <h3>Test Results</h3>
+            <div className="test-summary">
+              <pre>
+                {logs
+                  .filter(
+                    (log) =>
+                      log.includes('✅') ||
+                      log.includes('❌') ||
+                      log.includes('TEST SUMMARY') ||
+                      log.includes('Total:') ||
+                      log.includes('Passed:') ||
+                      log.includes('Failed:'),
+                  )
+                  .join('\n')}
+              </pre>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <style jsx>{`
+      <style>{`
         .benchmark-page {
           max-width: 1000px;
           margin: 0 auto;

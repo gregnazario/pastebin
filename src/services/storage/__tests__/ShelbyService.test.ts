@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ShelbyService } from '../ShelbyService';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShelbyError } from '../../../types';
+import { ShelbyService } from '../ShelbyService';
 
 describe('ShelbyService', () => {
   let service: ShelbyService;
-  
+
   beforeEach(() => {
     service = new ShelbyService({
       apiUrl: 'https://api.test.shelby.xyz',
@@ -19,7 +19,7 @@ describe('ShelbyService', () => {
         ok: true,
         json: vi.fn().mockResolvedValue({ id: 'test-file-id' }),
       };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       const testData = new Uint8Array([1, 2, 3, 4]);
       const result = await service.uploadFile(testData);
@@ -27,14 +27,14 @@ describe('ShelbyService', () => {
       expect(result.id).toBe('test-file-id');
       expect(result.url).toContain('test-file-id');
       expect(result.expiresAt).toBeGreaterThan(Date.now());
-      
+
       expect(fetch).toHaveBeenCalledWith(
         'https://api.test.shelby.xyz/blobs',
         expect.objectContaining({
           method: 'PUT',
           headers: expect.objectContaining({
             'Content-Type': 'application/octet-stream',
-            'Authorization': 'Bearer test-api-key',
+            Authorization: 'Bearer test-api-key',
           }),
           body: testData,
         }),
@@ -47,10 +47,10 @@ describe('ShelbyService', () => {
         status: 500,
         statusText: 'Internal Server Error',
       };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       const testData = new Uint8Array([1, 2, 3, 4]);
-      
+
       await expect(service.uploadFile(testData)).rejects.toThrow(ShelbyError);
     });
 
@@ -65,7 +65,7 @@ describe('ShelbyService', () => {
           ok: true,
           json: vi.fn().mockResolvedValue({ id: 'test-file-id' }),
         });
-      });
+      }) as unknown as typeof fetch;
 
       const testData = new Uint8Array([1, 2, 3, 4]);
       const result = await service.uploadFile(testData);
@@ -79,11 +79,11 @@ describe('ShelbyService', () => {
         ok: true,
         json: vi.fn().mockResolvedValue({ id: 'test-file-id' }),
       };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       const testData = new Uint8Array([1, 2, 3, 4]);
       const metadata = { filename: 'test.txt', size: 4 };
-      
+
       await service.uploadFile(testData, metadata);
 
       expect(fetch).toHaveBeenCalledWith(
@@ -104,7 +104,7 @@ describe('ShelbyService', () => {
         ok: true,
         arrayBuffer: vi.fn().mockResolvedValue(testData.buffer),
       };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       const result = await service.downloadFile('test-file-id');
 
@@ -114,7 +114,7 @@ describe('ShelbyService', () => {
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
-            'Authorization': 'Bearer test-api-key',
+            Authorization: 'Bearer test-api-key',
           }),
         }),
       );
@@ -125,7 +125,7 @@ describe('ShelbyService', () => {
         ok: false,
         status: 404,
       };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       await expect(service.downloadFile('non-existent-id')).rejects.toThrow(
         expect.objectContaining({
@@ -140,7 +140,7 @@ describe('ShelbyService', () => {
         ok: false,
         status: 404,
       };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       await expect(service.downloadFile('non-existent-id')).rejects.toThrow();
       expect(fetch).toHaveBeenCalledTimes(1); // Should not retry
@@ -150,7 +150,7 @@ describe('ShelbyService', () => {
   describe('deleteFile', () => {
     it('should successfully delete a file', async () => {
       const mockResponse = { ok: true };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       await service.deleteFile('test-file-id');
 
@@ -167,7 +167,7 @@ describe('ShelbyService', () => {
         ok: false,
         status: 404,
       };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       await expect(service.deleteFile('non-existent-id')).resolves.toBeUndefined();
     });
@@ -176,7 +176,7 @@ describe('ShelbyService', () => {
   describe('fileExists', () => {
     it('should return true for existing file', async () => {
       const mockResponse = { ok: true };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       const exists = await service.fileExists('test-file-id');
 
@@ -191,7 +191,7 @@ describe('ShelbyService', () => {
 
     it('should return false for non-existing file', async () => {
       const mockResponse = { ok: false };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      global.fetch = vi.fn().mockResolvedValue(mockResponse) as unknown as typeof fetch;
 
       const exists = await service.fileExists('non-existent-id');
 
@@ -199,7 +199,9 @@ describe('ShelbyService', () => {
     });
 
     it('should return false on network error', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = vi
+        .fn()
+        .mockRejectedValue(new Error('Network error')) as unknown as typeof fetch;
 
       const exists = await service.fileExists('test-file-id');
 

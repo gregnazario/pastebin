@@ -1,16 +1,15 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { TestShelby } from '../components/TestShelby';
 
 export function HomePage() {
   const isDevelopment = import.meta.env.DEV;
-  
+
   return (
     <div className="home-page">
       <h2>Welcome to Secure Pastebin</h2>
       <p>
-        Share files securely using post-quantum encryption. Your files are encrypted locally
-        in your browser before being uploaded.
+        Share files securely using post-quantum encryption. Your files are encrypted locally in your
+        browser before being uploaded.
       </p>
       <div className="actions">
         <Link to="/upload" className="button primary">
@@ -27,7 +26,7 @@ export function HomePage() {
           <li>Links expire after 24 hours</li>
         </ul>
       </div>
-      
+
       {isDevelopment && (
         <>
           <hr style={{ margin: '40px 0' }} />

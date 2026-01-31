@@ -26,26 +26,30 @@ export class AESService {
   ): Promise<AESEncryptionResult> {
     try {
       // Validate key size
-      if (key.length !== this.KEY_SIZE) {
-        throw new Error(`Invalid key size: expected ${this.KEY_SIZE} bytes, got ${key.length}`);
+      if (key.length !== AESService.KEY_SIZE) {
+        throw new Error(
+          `Invalid key size: expected ${AESService.KEY_SIZE} bytes, got ${key.length}`,
+        );
       }
 
       // Generate random nonce
-      const nonce = randomBytes(this.NONCE_SIZE);
-      
+      const nonce = randomBytes(AESService.NONCE_SIZE);
+
       // Create cipher instance
       const cipher = gcm(key, nonce, additionalData);
-      
+
       // Encrypt the data
       const ciphertext = cipher.encrypt(data);
-      
+
       return {
         ciphertext,
         nonce,
         tag: new Uint8Array(0), // Tag is included in ciphertext for @noble/ciphers
       };
     } catch (error) {
-      throw new Error(`AES encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `AES encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -65,23 +69,29 @@ export class AESService {
   ): Promise<Uint8Array> {
     try {
       // Validate inputs
-      if (key.length !== this.KEY_SIZE) {
-        throw new Error(`Invalid key size: expected ${this.KEY_SIZE} bytes, got ${key.length}`);
+      if (key.length !== AESService.KEY_SIZE) {
+        throw new Error(
+          `Invalid key size: expected ${AESService.KEY_SIZE} bytes, got ${key.length}`,
+        );
       }
-      
-      if (nonce.length !== this.NONCE_SIZE) {
-        throw new Error(`Invalid nonce size: expected ${this.NONCE_SIZE} bytes, got ${nonce.length}`);
+
+      if (nonce.length !== AESService.NONCE_SIZE) {
+        throw new Error(
+          `Invalid nonce size: expected ${AESService.NONCE_SIZE} bytes, got ${nonce.length}`,
+        );
       }
 
       // Create cipher instance
       const cipher = gcm(key, nonce, additionalData);
-      
+
       // Decrypt the data
       const plaintext = cipher.decrypt(ciphertext);
-      
+
       return plaintext;
     } catch (error) {
-      throw new Error(`AES decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `AES decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -90,7 +100,7 @@ export class AESService {
    * @returns Random 256-bit key
    */
   static generateKey(): Uint8Array {
-    return randomBytes(this.KEY_SIZE);
+    return randomBytes(AESService.KEY_SIZE);
   }
 
   /**
@@ -105,13 +115,13 @@ export class AESService {
     key: Uint8Array,
     additionalData?: Uint8Array,
   ): Promise<Uint8Array> {
-    const { ciphertext, nonce } = await this.encrypt(data, key, additionalData);
-    
+    const { ciphertext, nonce } = await AESService.encrypt(data, key, additionalData);
+
     // Combine nonce and ciphertext
     const combined = new Uint8Array(nonce.length + ciphertext.length);
     combined.set(nonce, 0);
     combined.set(ciphertext, nonce.length);
-    
+
     return combined;
   }
 
@@ -127,15 +137,15 @@ export class AESService {
     key: Uint8Array,
     additionalData?: Uint8Array,
   ): Promise<Uint8Array> {
-    if (combined.length < this.NONCE_SIZE) {
+    if (combined.length < AESService.NONCE_SIZE) {
       throw new Error('Combined data too short to contain nonce');
     }
-    
+
     // Extract nonce and ciphertext
-    const nonce = combined.slice(0, this.NONCE_SIZE);
-    const ciphertext = combined.slice(this.NONCE_SIZE);
-    
-    return this.decrypt(ciphertext, key, nonce, additionalData);
+    const nonce = combined.slice(0, AESService.NONCE_SIZE);
+    const ciphertext = combined.slice(AESService.NONCE_SIZE);
+
+    return AESService.decrypt(ciphertext, key, nonce, additionalData);
   }
 
   /**
@@ -144,9 +154,9 @@ export class AESService {
    */
   static getSizes() {
     return {
-      keySize: this.KEY_SIZE,
-      nonceSize: this.NONCE_SIZE,
-      tagSize: this.TAG_SIZE,
+      keySize: AESService.KEY_SIZE,
+      nonceSize: AESService.NONCE_SIZE,
+      tagSize: AESService.TAG_SIZE,
     };
   }
 }

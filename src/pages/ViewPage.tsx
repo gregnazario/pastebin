@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FileEncryptionService, UploadProgress } from '../services/FileEncryptionService';
-import { FileMetadata } from '../types';
+import { FileEncryptionService, type UploadProgress } from '../services/FileEncryptionService';
+import type { FileMetadata } from '../types';
 import '../view-page.css';
 
 export function ViewPage() {
@@ -11,7 +11,10 @@ export function ViewPage() {
   const [error, setError] = useState<string | null>(null);
   const [privateKeyFragment, setPrivateKeyFragment] = useState<string>('');
   const [downloadProgress, setDownloadProgress] = useState<UploadProgress | null>(null);
-  const [decryptedFile, setDecryptedFile] = useState<{ data: Uint8Array; metadata: FileMetadata } | null>(null);
+  const [decryptedFile, setDecryptedFile] = useState<{
+    data: Uint8Array;
+    metadata: FileMetadata;
+  } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const fileEncryptionService = new FileEncryptionService();
@@ -34,28 +37,25 @@ export function ViewPage() {
       setError('Missing decryption key. Please check your link.');
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
     setDownloadProgress(null);
-    
+
     try {
       const result = await fileEncryptionService.downloadFile(
         id!,
         password,
         privateKeyFragment,
-        (progress) => setDownloadProgress(progress)
+        (progress) => setDownloadProgress(progress),
       );
-      
+
       setDecryptedFile(result);
-      
+
       // Automatically trigger download
-      const blob = FileEncryptionService.createDownloadableFile(
-        result.data,
-        result.metadata
-      );
+      const blob = FileEncryptionService.createDownloadableFile(result.data, result.metadata);
       FileEncryptionService.triggerDownload(blob, result.metadata.name);
-      
+
       // Clear password for security
       setPassword('');
     } catch (err) {
@@ -69,7 +69,7 @@ export function ViewPage() {
     if (decryptedFile) {
       const blob = FileEncryptionService.createDownloadableFile(
         decryptedFile.data,
-        decryptedFile.metadata
+        decryptedFile.metadata,
       );
       FileEncryptionService.triggerDownload(blob, decryptedFile.metadata.name);
     }
@@ -78,7 +78,7 @@ export function ViewPage() {
   return (
     <div className="view-page">
       <h2>Access File</h2>
-      
+
       {!privateKeyFragment ? (
         <div className="error">
           <p>Invalid link - missing decryption key</p>
@@ -87,37 +87,49 @@ export function ViewPage() {
       ) : (
         <>
           <div className="file-access-info">
-            <p>File ID: <code>{id}</code></p>
+            <p>
+              File ID: <code>{id}</code>
+            </p>
             {decryptedFile && (
               <div className="file-details">
                 <h3>File Information:</h3>
                 <ul>
-                  <li><strong>Name:</strong> {decryptedFile.metadata.name}</li>
-                  <li><strong>Size:</strong> {(decryptedFile.metadata.size / 1024 / 1024).toFixed(2)} MB</li>
-                  <li><strong>Type:</strong> {decryptedFile.metadata.mimeType}</li>
-                  <li><strong>Uploaded:</strong> {new Date(decryptedFile.metadata.uploadDate).toLocaleString()}</li>
+                  <li>
+                    <strong>Name:</strong> {decryptedFile.metadata.name}
+                  </li>
+                  <li>
+                    <strong>Size:</strong> {(decryptedFile.metadata.size / 1024 / 1024).toFixed(2)}{' '}
+                    MB
+                  </li>
+                  <li>
+                    <strong>Type:</strong> {decryptedFile.metadata.mimeType}
+                  </li>
+                  <li>
+                    <strong>Uploaded:</strong>{' '}
+                    {new Date(decryptedFile.metadata.uploadDate).toLocaleString()}
+                  </li>
                   {decryptedFile.metadata.expirationDate && (
-                    <li><strong>Expires:</strong> {new Date(decryptedFile.metadata.expirationDate).toLocaleString()}</li>
+                    <li>
+                      <strong>Expires:</strong>{' '}
+                      {new Date(decryptedFile.metadata.expirationDate).toLocaleString()}
+                    </li>
                   )}
                 </ul>
               </div>
             )}
           </div>
-          
+
           {error && <div className="error">{error}</div>}
-          
+
           {downloadProgress && (
             <div className="upload-progress">
               <p>{downloadProgress.message}</p>
               <div className="progress-bar">
-                <div 
-                  className="progress-fill"
-                  style={{ width: `${downloadProgress.progress}%` }}
-                />
+                <div className="progress-fill" style={{ width: `${downloadProgress.progress}%` }} />
               </div>
             </div>
           )}
-          
+
           {!decryptedFile ? (
             <>
               <div className="form-group">
@@ -144,9 +156,7 @@ export function ViewPage() {
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
-                <p className="help-text">
-                  Enter the password that was used to encrypt this file
-                </p>
+                <p className="help-text">Enter the password that was used to encrypt this file</p>
               </div>
 
               <button
@@ -161,10 +171,7 @@ export function ViewPage() {
             <div className="download-success">
               <p className="success-message">✓ File decrypted successfully!</p>
               <p>Your download should start automatically. If not:</p>
-              <button
-                onClick={handleDownloadAgain}
-                className="button primary"
-              >
+              <button onClick={handleDownloadAgain} className="button primary">
                 Download Again
               </button>
             </div>

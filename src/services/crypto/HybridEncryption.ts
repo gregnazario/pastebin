@@ -1,7 +1,7 @@
-import { KyberService } from './KyberService';
+import type { FileMetadata } from '../../types';
 import { AESService } from './AESService';
 import { KeyDerivationService } from './KeyDerivation';
-import { FileMetadata } from '../../types';
+import { KyberService } from './KyberService';
 
 export interface EncryptedPayload {
   // Kyber encapsulated key
@@ -43,25 +43,27 @@ export class HybridEncryptionService {
     try {
       // Step 1: Generate Kyber key pair
       const kyberKeys = await KyberService.generateKeyPair();
-      
+
       // Step 2: Derive key from password
       const { key: derivedKey, salt } = await KeyDerivationService.deriveKey(password);
-      
+
       // Step 3: Generate shared secret using Kyber encapsulation
-      const { ciphertext: kyberCiphertext, sharedSecret } = await KyberService.encapsulate(kyberKeys.publicKey);
-      
+      const { ciphertext: kyberCiphertext, sharedSecret } = await KyberService.encapsulate(
+        kyberKeys.publicKey,
+      );
+
       // Step 4: Combine derived key and Kyber shared secret for AES key
       // This provides defense in depth - both password and Kyber key are needed
-      const combinedKey = await this.combineKeys(derivedKey, sharedSecret);
-      
+      const combinedKey = await HybridEncryptionService.combineKeys(derivedKey, sharedSecret);
+
       // Step 5: Encrypt the actual data
       const aesCiphertext = await AESService.encryptCombined(data, combinedKey);
-      
+
       // Step 6: Handle metadata
       let metadataBytes: Uint8Array;
       if (encryptMetadata) {
         // Derive a separate key for metadata encryption
-        const metadataKey = await this.deriveMetadataKey(derivedKey, salt);
+        const metadataKey = await HybridEncryptionService.deriveMetadataKey(derivedKey, salt);
         const metadataJson = JSON.stringify(metadata);
         const metadataData = new TextEncoder().encode(metadataJson);
         metadataBytes = await AESService.encryptCombined(metadataData, metadataKey);
@@ -70,16 +72,16 @@ export class HybridEncryptionService {
         const metadataJson = JSON.stringify(metadata);
         metadataBytes = new TextEncoder().encode(metadataJson);
       }
-      
+
       const payload: EncryptedPayload = {
         kyberCiphertext,
         aesCiphertext,
         salt,
         metadata: metadataBytes,
         metadataEncrypted: encryptMetadata,
-        version: this.VERSION,
+        version: HybridEncryptionService.VERSION,
       };
-      
+
       return {
         payload,
         keys: {
@@ -88,7 +90,9 @@ export class HybridEncryptionService {
         },
       };
     } catch (error) {
-      throw new Error(`Hybrid encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Hybrid encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -106,10 +110,10 @@ export class HybridEncryptionService {
   ): Promise<{ data: Uint8Array; metadata: FileMetadata }> {
     try {
       // Validate version
-      if (payload.version !== this.VERSION) {
+      if (payload.version !== HybridEncryptionService.VERSION) {
         throw new Error(`Unsupported payload version: ${payload.version}`);
       }
-      
+
       // Step 1: Derive key from password and salt
       const derivedKey = await KeyDerivationService.deriveKeyCustom(
         password,
@@ -118,23 +122,23 @@ export class HybridEncryptionService {
         KeyDerivationService['DEFAULT_MEMORY'],
         KeyDerivationService['DEFAULT_PARALLELISM'],
       );
-      
+
       // Step 2: Decapsulate Kyber to get shared secret
-      const sharedSecret = await KyberService.decapsulate(
-        payload.kyberCiphertext,
-        kyberPrivateKey,
-      );
-      
+      const sharedSecret = await KyberService.decapsulate(payload.kyberCiphertext, kyberPrivateKey);
+
       // Step 3: Combine derived key and shared secret to get the same AES key
-      const combinedKey = await this.combineKeys(derivedKey, sharedSecret);
-      
+      const combinedKey = await HybridEncryptionService.combineKeys(derivedKey, sharedSecret);
+
       // Step 4: Decrypt the data
       const data = await AESService.decryptCombined(payload.aesCiphertext, combinedKey);
-      
+
       // Step 5: Handle metadata
       let metadata: FileMetadata;
       if (payload.metadataEncrypted) {
-        const metadataKey = await this.deriveMetadataKey(derivedKey, payload.salt);
+        const metadataKey = await HybridEncryptionService.deriveMetadataKey(
+          derivedKey,
+          payload.salt,
+        );
         const metadataData = await AESService.decryptCombined(payload.metadata, metadataKey);
         const metadataJson = new TextDecoder().decode(metadataData);
         metadata = JSON.parse(metadataJson);
@@ -142,10 +146,12 @@ export class HybridEncryptionService {
         const metadataJson = new TextDecoder().decode(payload.metadata);
         metadata = JSON.parse(metadataJson);
       }
-      
+
       return { data, metadata };
     } catch (error) {
-      throw new Error(`Hybrid decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Hybrid decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -181,9 +187,9 @@ export class HybridEncryptionService {
     // Use a different context to derive metadata key
     const metadataSalt = new Uint8Array(salt.length);
     for (let i = 0; i < salt.length; i++) {
-      metadataSalt[i] = salt[i] ^ this.METADATA_KEY_INDEX;
+      metadataSalt[i] = salt[i] ^ HybridEncryptionService.METADATA_KEY_INDEX;
     }
-    
+
     // Simple derivation - in production use HKDF
     const combined = new Uint8Array(32);
     for (let i = 0; i < 32; i++) {
@@ -199,50 +205,59 @@ export class HybridEncryptionService {
    */
   static serializePayload(payload: EncryptedPayload): Uint8Array {
     // Create a simple binary format:
-    // [version(1)] [flags(1)] [salt_len(2)] [salt] [kyber_len(2)] [kyber] 
+    // [version(1)] [flags(1)] [salt_len(2)] [salt] [kyber_len(2)] [kyber]
     // [aes_len(4)] [aes] [metadata_len(4)] [metadata]
-    
+
     const flags = payload.metadataEncrypted ? 0x01 : 0x00;
-    
-    const totalSize = 1 + 1 + 2 + payload.salt.length + 2 + payload.kyberCiphertext.length +
-                     4 + payload.aesCiphertext.length + 4 + payload.metadata.length;
-    
+
+    const totalSize =
+      1 +
+      1 +
+      2 +
+      payload.salt.length +
+      2 +
+      payload.kyberCiphertext.length +
+      4 +
+      payload.aesCiphertext.length +
+      4 +
+      payload.metadata.length;
+
     const buffer = new Uint8Array(totalSize);
     let offset = 0;
-    
+
     // Version
     buffer[offset++] = payload.version;
-    
+
     // Flags
     buffer[offset++] = flags;
-    
+
     // Salt
-    buffer[offset++] = (payload.salt.length >> 8) & 0xFF;
-    buffer[offset++] = payload.salt.length & 0xFF;
+    buffer[offset++] = (payload.salt.length >> 8) & 0xff;
+    buffer[offset++] = payload.salt.length & 0xff;
     buffer.set(payload.salt, offset);
     offset += payload.salt.length;
-    
+
     // Kyber ciphertext
-    buffer[offset++] = (payload.kyberCiphertext.length >> 8) & 0xFF;
-    buffer[offset++] = payload.kyberCiphertext.length & 0xFF;
+    buffer[offset++] = (payload.kyberCiphertext.length >> 8) & 0xff;
+    buffer[offset++] = payload.kyberCiphertext.length & 0xff;
     buffer.set(payload.kyberCiphertext, offset);
     offset += payload.kyberCiphertext.length;
-    
+
     // AES ciphertext
-    buffer[offset++] = (payload.aesCiphertext.length >> 24) & 0xFF;
-    buffer[offset++] = (payload.aesCiphertext.length >> 16) & 0xFF;
-    buffer[offset++] = (payload.aesCiphertext.length >> 8) & 0xFF;
-    buffer[offset++] = payload.aesCiphertext.length & 0xFF;
+    buffer[offset++] = (payload.aesCiphertext.length >> 24) & 0xff;
+    buffer[offset++] = (payload.aesCiphertext.length >> 16) & 0xff;
+    buffer[offset++] = (payload.aesCiphertext.length >> 8) & 0xff;
+    buffer[offset++] = payload.aesCiphertext.length & 0xff;
     buffer.set(payload.aesCiphertext, offset);
     offset += payload.aesCiphertext.length;
-    
+
     // Metadata
-    buffer[offset++] = (payload.metadata.length >> 24) & 0xFF;
-    buffer[offset++] = (payload.metadata.length >> 16) & 0xFF;
-    buffer[offset++] = (payload.metadata.length >> 8) & 0xFF;
-    buffer[offset++] = payload.metadata.length & 0xFF;
+    buffer[offset++] = (payload.metadata.length >> 24) & 0xff;
+    buffer[offset++] = (payload.metadata.length >> 16) & 0xff;
+    buffer[offset++] = (payload.metadata.length >> 8) & 0xff;
+    buffer[offset++] = payload.metadata.length & 0xff;
     buffer.set(payload.metadata, offset);
-    
+
     return buffer;
   }
 
@@ -253,35 +268,41 @@ export class HybridEncryptionService {
    */
   static deserializePayload(buffer: Uint8Array): EncryptedPayload {
     let offset = 0;
-    
+
     // Version
     const version = buffer[offset++];
-    
+
     // Flags
     const flags = buffer[offset++];
     const metadataEncrypted = (flags & 0x01) !== 0;
-    
+
     // Salt
     const saltLen = (buffer[offset++] << 8) | buffer[offset++];
     const salt = buffer.slice(offset, offset + saltLen);
     offset += saltLen;
-    
+
     // Kyber ciphertext
     const kyberLen = (buffer[offset++] << 8) | buffer[offset++];
     const kyberCiphertext = buffer.slice(offset, offset + kyberLen);
     offset += kyberLen;
-    
+
     // AES ciphertext
-    const aesLen = (buffer[offset++] << 24) | (buffer[offset++] << 16) |
-                   (buffer[offset++] << 8) | buffer[offset++];
+    const aesLen =
+      (buffer[offset++] << 24) |
+      (buffer[offset++] << 16) |
+      (buffer[offset++] << 8) |
+      buffer[offset++];
     const aesCiphertext = buffer.slice(offset, offset + aesLen);
     offset += aesLen;
-    
+
     // Metadata
-    const metadataLen = (buffer[offset++] << 24) | (buffer[offset++] << 16) |
-                        (buffer[offset++] << 8) | buffer[offset++];
+    const metadataLen =
+      (buffer[offset++] << 24) |
+      (buffer[offset++] << 16) |
+      (buffer[offset++] << 8) |
+      buffer[offset++];
     const metadata = buffer.slice(offset, offset + metadataLen);
-    
+
     return {
       version,
       metadataEncrypted,

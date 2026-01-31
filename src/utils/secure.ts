@@ -10,12 +10,12 @@ export function secureClear(buffer: Uint8Array): void {
   if (buffer && buffer.length > 0) {
     // Overwrite with zeros
     buffer.fill(0);
-    
+
     // Additional overwrite with random data for extra security
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       crypto.getRandomValues(buffer);
     }
-    
+
     // Final overwrite with zeros
     buffer.fill(0);
   }
@@ -31,7 +31,7 @@ export function secureClearString(str: string): string {
   // Best effort - create a new string and hope GC clears the old one
   if (str && str.length > 0) {
     // Try to trigger garbage collection by creating pressure
-    const dummy = new Array(str.length).fill('0').join('');
+    void new Array(str.length).fill('0').join('');
     return '';
   }
   return '';
@@ -42,18 +42,18 @@ export function secureClearString(str: string): string {
  */
 export class SecureBuffer {
   private data: Uint8Array | null;
-  
+
   constructor(data: Uint8Array) {
     this.data = new Uint8Array(data);
   }
-  
+
   /**
    * Get the data (returns null if already cleared)
    */
   get(): Uint8Array | null {
     return this.data;
   }
-  
+
   /**
    * Clear the data
    */
@@ -63,7 +63,7 @@ export class SecureBuffer {
       this.data = null;
     }
   }
-  
+
   /**
    * Use the data in a callback, then auto-clear
    * @param callback - Function to use the data
@@ -73,7 +73,7 @@ export class SecureBuffer {
     if (!this.data) {
       throw new Error('SecureBuffer already cleared');
     }
-    
+
     try {
       return callback(this.data);
     } finally {
@@ -92,12 +92,12 @@ export function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) {
     return false;
   }
-  
+
   let result = 0;
   for (let i = 0; i < a.length; i++) {
     result |= a[i] ^ b[i];
   }
-  
+
   return result === 0;
 }
 
@@ -140,7 +140,7 @@ export function getRandomBytes(length: number): Uint8Array {
  */
 export function bufferToHex(buffer: Uint8Array): string {
   return Array.from(buffer)
-    .map(b => b.toString(16).padStart(2, '0'))
+    .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 }
 
@@ -153,7 +153,7 @@ export function hexToBuffer(hex: string): Uint8Array {
   if (hex.length % 2 !== 0) {
     throw new Error('Invalid hex string length');
   }
-  
+
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < bytes.length; i++) {
     bytes[i] = parseInt(hex.substr(i * 2, 2), 16);

@@ -1,9 +1,9 @@
-import { HybridEncryptionService, EncryptedPayload } from './crypto/HybridEncryption';
+import { config } from '../config';
+import type { FileMetadata } from '../types';
+import { HybridEncryptionService } from './crypto/HybridEncryption';
 import { KeyDerivationService } from './crypto/KeyDerivation';
 import { ShelbyService } from './storage/ShelbyService';
 import { PasswordValidator } from './validation/PasswordValidator';
-import { FileMetadata, UploadResult } from '../types';
-import { config } from '../config';
 
 export interface EncryptedUploadResult {
   fileId: string;
@@ -128,7 +128,9 @@ export class FileEncryptionService {
         expiresAt: uploadResult.expiresAt,
       };
     } catch (error) {
-      throw new Error(`File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -195,7 +197,9 @@ export class FileEncryptionService {
 
       return { data, metadata };
     } catch (error) {
-      throw new Error(`File download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `File download failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -207,7 +211,7 @@ export class FileEncryptionService {
   private readFileAsUint8Array(file: File): Promise<Uint8Array> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = () => {
         if (reader.result instanceof ArrayBuffer) {
           resolve(new Uint8Array(reader.result));
@@ -215,11 +219,11 @@ export class FileEncryptionService {
           reject(new Error('Failed to read file as ArrayBuffer'));
         }
       };
-      
+
       reader.onerror = () => {
         reject(new Error('Failed to read file'));
       };
-      
+
       reader.readAsArrayBuffer(file);
     });
   }
@@ -231,7 +235,12 @@ export class FileEncryptionService {
    * @returns Blob that can be downloaded
    */
   static createDownloadableFile(data: Uint8Array, metadata: FileMetadata): Blob {
-    return new Blob([data], { type: metadata.mimeType });
+    // Create a proper ArrayBuffer-backed Uint8Array for Blob compatibility
+    const arrayBuffer = data.buffer.slice(
+      data.byteOffset,
+      data.byteOffset + data.byteLength,
+    ) as ArrayBuffer;
+    return new Blob([new Uint8Array(arrayBuffer)], { type: metadata.mimeType });
   }
 
   /**

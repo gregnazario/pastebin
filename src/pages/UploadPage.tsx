@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
-import { FileEncryptionService, EncryptedUploadResult, UploadProgress } from '../services/FileEncryptionService';
-import { PasswordValidator } from '../services/validation/PasswordValidator';
+import type React from 'react';
+import { useState } from 'react';
 import { config } from '../config';
+import {
+  type EncryptedUploadResult,
+  FileEncryptionService,
+  type UploadProgress,
+} from '../services/FileEncryptionService';
+import { PasswordValidator } from '../services/validation/PasswordValidator';
 
 export function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -74,11 +79,11 @@ export function UploadPage() {
         file,
         password,
         encryptMetadata,
-        (progress) => setUploadProgress(progress)
+        (progress) => setUploadProgress(progress),
       );
-      
+
       setUploadResult(result);
-      
+
       // Clear sensitive data
       setPassword('');
       setConfirmPassword('');
@@ -108,7 +113,7 @@ export function UploadPage() {
             <p>Your file has been encrypted and uploaded successfully.</p>
             <p>The link will expire in {config.app.linkExpiryHours} hours.</p>
           </div>
-          
+
           <div className="form-group">
             <label>Shareable Link:</label>
             <div className="link-container">
@@ -118,10 +123,7 @@ export function UploadPage() {
                 readOnly
                 onClick={(e) => e.currentTarget.select()}
               />
-              <button
-                onClick={() => copyToClipboard(uploadResult.shareableUrl)}
-                className="button"
-              >
+              <button onClick={() => copyToClipboard(uploadResult.shareableUrl)} className="button">
                 Copy
               </button>
             </div>
@@ -149,21 +151,18 @@ export function UploadPage() {
   return (
     <div className="upload-page">
       <h2>Upload a File</h2>
-      
+
       {error && <div className="error">{error}</div>}
-      
+
       {uploadProgress && (
         <div className="upload-progress">
           <p>{uploadProgress.message}</p>
           <div className="progress-bar">
-            <div 
-              className="progress-fill"
-              style={{ width: `${uploadProgress.progress}%` }}
-            />
+            <div className="progress-fill" style={{ width: `${uploadProgress.progress}%` }} />
           </div>
         </div>
       )}
-      
+
       <div className="upload-form">
         <div className="form-group">
           <label htmlFor="file-input">Select File (max 100MB)</label>
@@ -203,7 +202,9 @@ export function UploadPage() {
           {passwordErrors.length > 0 && (
             <ul className="password-errors">
               {passwordErrors.map((error, index) => (
-                <li key={index} className="error-item">{error}</li>
+                <li key={index} className="error-item">
+                  {error}
+                </li>
               ))}
             </ul>
           )}

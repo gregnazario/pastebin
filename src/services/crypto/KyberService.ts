@@ -23,16 +23,18 @@ export class KyberService {
     try {
       // Generate random seed
       const seed = crypto.getRandomValues(new Uint8Array(64));
-      
+
       // Generate key pair
-      const { publicKey, secretKey } = this.kyber.keygen(seed);
-      
+      const { publicKey, secretKey } = KyberService.kyber.keygen(seed);
+
       return {
         publicKey,
         privateKey: secretKey,
       };
     } catch (error) {
-      throw new Error(`Kyber key generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Kyber key generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -45,16 +47,18 @@ export class KyberService {
     try {
       // Generate random seed for encapsulation
       const seed = crypto.getRandomValues(new Uint8Array(32));
-      
+
       // Encapsulate
-      const { sharedSecret, cipherText } = this.kyber.encapsulate(publicKey, seed);
-      
+      const { sharedSecret, cipherText } = KyberService.kyber.encapsulate(publicKey, seed);
+
       return {
         sharedSecret,
         ciphertext: cipherText,
       };
     } catch (error) {
-      throw new Error(`Kyber encapsulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Kyber encapsulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -64,15 +68,14 @@ export class KyberService {
    * @param privateKey - The recipient's private key
    * @returns Promise with shared secret
    */
-  static async decapsulate(
-    ciphertext: Uint8Array,
-    privateKey: Uint8Array,
-  ): Promise<Uint8Array> {
+  static async decapsulate(ciphertext: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
     try {
-      const sharedSecret = this.kyber.decapsulate(ciphertext, privateKey);
+      const sharedSecret = KyberService.kyber.decapsulate(ciphertext, privateKey);
       return sharedSecret;
     } catch (error) {
-      throw new Error(`Kyber decapsulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Kyber decapsulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -82,10 +85,10 @@ export class KyberService {
    */
   static getSizes() {
     return {
-      publicKeySize: 1184,    // bytes
-      privateKeySize: 2400,   // bytes
-      ciphertextSize: 1088,   // bytes
-      sharedSecretSize: 32,   // bytes
+      publicKeySize: 1184, // bytes
+      privateKeySize: 2400, // bytes
+      ciphertextSize: 1088, // bytes
+      sharedSecretSize: 32, // bytes
     };
   }
 
@@ -95,7 +98,7 @@ export class KyberService {
    * @returns boolean indicating if the key is valid
    */
   static validatePublicKey(publicKey: Uint8Array): boolean {
-    return publicKey.length === this.getSizes().publicKeySize;
+    return publicKey.length === KyberService.getSizes().publicKeySize;
   }
 
   /**
@@ -104,7 +107,7 @@ export class KyberService {
    * @returns boolean indicating if the key is valid
    */
   static validatePrivateKey(privateKey: Uint8Array): boolean {
-    return privateKey.length === this.getSizes().privateKeySize;
+    return privateKey.length === KyberService.getSizes().privateKeySize;
   }
 
   /**
@@ -113,6 +116,6 @@ export class KyberService {
    * @returns boolean indicating if the ciphertext is valid
    */
   static validateCiphertext(ciphertext: Uint8Array): boolean {
-    return ciphertext.length === this.getSizes().ciphertextSize;
+    return ciphertext.length === KyberService.getSizes().ciphertextSize;
   }
 }

@@ -12,7 +12,7 @@ export class KeyDerivationService {
   // Use PBKDF2 for browser compatibility (not as secure as Argon2, but works)
   private static readonly ITERATIONS = 100000;
   private static readonly KEY_LENGTH = 32; // 256 bits
-  
+
   /**
    * Derive a key from password
    * @param password - The password to derive from
@@ -32,24 +32,29 @@ export class KeyDerivationService {
       encoder.encode(password),
       'PBKDF2',
       false,
-      ['deriveBits']
+      ['deriveBits'],
     );
 
     // Derive key using PBKDF2
+    // Create a proper ArrayBuffer-backed salt for deriveBits compatibility
+    const saltBuffer = salt.buffer.slice(
+      salt.byteOffset,
+      salt.byteOffset + salt.byteLength,
+    ) as ArrayBuffer;
     const derivedBits = await crypto.subtle.deriveBits(
       {
         name: 'PBKDF2',
-        salt,
-        iterations: this.ITERATIONS,
-        hash: 'SHA-256'
+        salt: new Uint8Array(saltBuffer),
+        iterations: KeyDerivationService.ITERATIONS,
+        hash: 'SHA-256',
       },
       keyMaterial,
-      this.KEY_LENGTH * 8 // bits
+      KeyDerivationService.KEY_LENGTH * 8, // bits
     );
 
     return {
       key: new Uint8Array(derivedBits),
-      salt
+      salt,
     };
   }
 
@@ -65,11 +70,11 @@ export class KeyDerivationService {
   static async deriveKeyCustom(
     password: string,
     salt: Uint8Array,
-    iterations?: number,
-    memory?: number,
-    parallelism?: number
+    _iterations?: number,
+    _memory?: number,
+    _parallelism?: number,
   ): Promise<Uint8Array> {
-    const result = await this.deriveKey(password, salt);
+    const result = await KeyDerivationService.deriveKey(password, salt);
     return result.key;
   }
 }

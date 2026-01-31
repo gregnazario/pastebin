@@ -1,24 +1,32 @@
 // Global test setup
-import { beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, vi } from 'vitest';
 
 // Mock fetch for tests
-global.fetch = vi.fn();
+global.fetch = vi.fn() as unknown as typeof fetch;
 
 // Mock argon2-browser for tests
 vi.mock('argon2-browser', () => {
   return {
     default: {
-      hash: async ({ pass, salt, type, time, mem, hashLen, parallelism }) => {
+      hash: async ({
+        pass,
+        salt,
+        hashLen,
+      }: {
+        pass: string;
+        salt: Uint8Array;
+        hashLen: number;
+      }) => {
         // Simple mock implementation
         const encoder = new TextEncoder();
         const passBytes = encoder.encode(pass);
         const hash = new Uint8Array(hashLen);
-        
+
         // Generate deterministic hash based on password and salt
         for (let i = 0; i < hashLen; i++) {
           hash[i] = (passBytes[i % passBytes.length] ^ salt[i % salt.length]) % 256;
         }
-        
+
         return { hash };
       },
       ArgonType: {
@@ -71,7 +79,7 @@ vi.mock('@noble/post-quantum/ml-kem', () => {
 // Mock noble ciphers library for tests
 vi.mock('@noble/ciphers/aes', () => {
   return {
-    gcm: (key: Uint8Array, nonce: Uint8Array, AAD?: Uint8Array) => {
+    gcm: (key: Uint8Array, nonce: Uint8Array, _AAD?: Uint8Array) => {
       return {
         encrypt: (plaintext: Uint8Array) => {
           // Simple XOR cipher for testing

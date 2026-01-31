@@ -25,28 +25,25 @@ export class KeyDerivationService {
    * @param salt - Optional salt (will generate if not provided)
    * @returns Promise with derived key and parameters
    */
-  static async deriveKey(
-    password: string,
-    salt?: Uint8Array,
-  ): Promise<DerivedKeyResult> {
+  static async deriveKey(password: string, salt?: Uint8Array): Promise<DerivedKeyResult> {
     // Generate salt if not provided
     if (!salt) {
-      salt = crypto.getRandomValues(new Uint8Array(this.SALT_LENGTH));
+      salt = crypto.getRandomValues(new Uint8Array(KeyDerivationService.SALT_LENGTH));
     }
-    
+
     const params = {
       pass: password,
       salt,
       type: argon2.ArgonType.Argon2id,
-      time: this.DEFAULT_ITERATIONS,
-      mem: this.DEFAULT_MEMORY,
-      hashLen: this.DEFAULT_HASH_LENGTH,
-      parallelism: this.DEFAULT_PARALLELISM,
+      time: KeyDerivationService.DEFAULT_ITERATIONS,
+      mem: KeyDerivationService.DEFAULT_MEMORY,
+      hashLen: KeyDerivationService.DEFAULT_HASH_LENGTH,
+      parallelism: KeyDerivationService.DEFAULT_PARALLELISM,
     };
-    
+
     try {
       const result = await argon2.hash(params);
-      
+
       return {
         key: new Uint8Array(result.hash),
         salt,
@@ -58,10 +55,12 @@ export class KeyDerivationService {
         },
       };
     } catch (error) {
-      throw new Error(`Key derivation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Key derivation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
-  
+
   /**
    * Derive a key with custom parameters
    * @param password - The password to derive from
@@ -84,26 +83,28 @@ export class KeyDerivationService {
       type: argon2.ArgonType.Argon2id,
       time: iterations,
       mem: memory,
-      hashLen: this.DEFAULT_HASH_LENGTH,
+      hashLen: KeyDerivationService.DEFAULT_HASH_LENGTH,
       parallelism,
     };
-    
+
     try {
       const result = await argon2.hash(params);
       return new Uint8Array(result.hash);
     } catch (error) {
-      throw new Error(`Key derivation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Key derivation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
-  
+
   /**
    * Generate a random salt
    * @returns Random salt as Uint8Array
    */
   static generateSalt(): Uint8Array {
-    return crypto.getRandomValues(new Uint8Array(this.SALT_LENGTH));
+    return crypto.getRandomValues(new Uint8Array(KeyDerivationService.SALT_LENGTH));
   }
-  
+
   /**
    * Convert derived key to base64url format (for URL fragments)
    * @param key - The key to encode
@@ -112,12 +113,9 @@ export class KeyDerivationService {
   static keyToBase64Url(key: Uint8Array): string {
     const base64 = btoa(String.fromCharCode.apply(null, Array.from(key)));
     // Convert to base64url by replacing characters
-    return base64
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
-  
+
   /**
    * Convert base64url back to Uint8Array
    * @param base64url - Base64url encoded string
@@ -125,16 +123,14 @@ export class KeyDerivationService {
    */
   static base64UrlToKey(base64url: string): Uint8Array {
     // Convert from base64url to base64
-    let base64 = base64url
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-    
+    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+
     // Add padding if necessary
     const padding = base64.length % 4;
     if (padding) {
       base64 += '='.repeat(4 - padding);
     }
-    
+
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {

@@ -1,38 +1,51 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { FileEncryptionService } from '../FileEncryptionService';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestFile, TEST_PASSWORD } from '../../test/crypto-test-utils';
+import { FileEncryptionService } from '../FileEncryptionService';
 
 // Mock all crypto services
 vi.mock('../crypto/HybridEncryption', () => ({
   HybridEncryptionService: {
-    encrypt: vi.fn().mockImplementation(async (data, password, metadata, encryptMetadata) => ({
-      payload: {
-        kyberCiphertext: new Uint8Array([1, 2, 3]),
-        aesCiphertext: new Uint8Array([4, 5, 6]),
-        salt: new Uint8Array([7, 8, 9]),
-        metadata: new TextEncoder().encode(JSON.stringify(metadata)),
-        metadataEncrypted: encryptMetadata,
-        version: 1,
-      },
-      keys: {
-        kyberPublicKey: new Uint8Array([10, 11, 12]),
-        kyberPrivateKey: new Uint8Array([13, 14, 15]),
-      },
-    })),
-    decrypt: vi.fn().mockImplementation(async (payload, password, privateKey) => ({
-      data: new TextEncoder().encode('Decrypted content'),
-      metadata: {
-        name: 'test.txt',
-        size: 17,
-        mimeType: 'text/plain',
-        uploadDate: Date.now(),
-        encryptionConfig: {
-          encryptMetadata: false,
-          algorithm: 'test',
+    encrypt: vi
+      .fn()
+      .mockImplementation(
+        async (
+          _data: unknown,
+          _password: unknown,
+          metadata: unknown,
+          encryptMetadata: boolean,
+        ) => ({
+          payload: {
+            kyberCiphertext: new Uint8Array([1, 2, 3]),
+            aesCiphertext: new Uint8Array([4, 5, 6]),
+            salt: new Uint8Array([7, 8, 9]),
+            metadata: new TextEncoder().encode(JSON.stringify(metadata)),
+            metadataEncrypted: encryptMetadata,
+            version: 1,
+          },
+          keys: {
+            kyberPublicKey: new Uint8Array([10, 11, 12]),
+            kyberPrivateKey: new Uint8Array([13, 14, 15]),
+          },
+        }),
+      ),
+    decrypt: vi
+      .fn()
+      .mockImplementation(async (_payload: unknown, _password: unknown, _privateKey: unknown) => ({
+        data: new TextEncoder().encode('Decrypted content'),
+        metadata: {
+          name: 'test.txt',
+          size: 17,
+          mimeType: 'text/plain',
+          uploadDate: Date.now(),
+          encryptionConfig: {
+            encryptMetadata: false,
+            algorithm: 'test',
+          },
         },
-      },
-    })),
-    serializePayload: vi.fn().mockImplementation((payload) => new Uint8Array([1, 2, 3, 4, 5])),
+      })),
+    serializePayload: vi
+      .fn()
+      .mockImplementation((_payload: unknown) => new Uint8Array([1, 2, 3, 4, 5])),
     deserializePayload: vi.fn().mockImplementation(() => ({
       kyberCiphertext: new Uint8Array([1, 2, 3]),
       aesCiphertext: new Uint8Array([4, 5, 6]),
@@ -51,12 +64,6 @@ vi.mock('../shelby/ShelbyService', () => ({
   },
 }));
 
-vi.mock('../crypto/PasswordService', () => ({
-  PasswordService: {
-    validatePassword: vi.fn().mockReturnValue({ isValid: true, score: 4 }),
-  },
-}));
-
 describe('FileEncryptionService (Simple)', () => {
   let service: FileEncryptionService;
 
@@ -72,11 +79,10 @@ describe('FileEncryptionService (Simple)', () => {
 
     // Mock FileReader
     global.FileReader = vi.fn(() => ({
-      readAsArrayBuffer: vi.fn(function(this: any, file: File) {
-        const reader = this;
+      readAsArrayBuffer: vi.fn(function (this: any, _file: File) {
         setTimeout(() => {
-          reader.result = new ArrayBuffer(8);
-          reader.onload?.();
+          this.result = new ArrayBuffer(8);
+          this.onload?.();
         }, 0);
       }),
       result: null,
@@ -88,13 +94,9 @@ describe('FileEncryptionService (Simple)', () => {
   describe('uploadFile', () => {
     it('should upload a file successfully', async () => {
       const testFile = createTestFile();
-      
-      const result = await service.uploadFile(
-        testFile,
-        TEST_PASSWORD,
-        false,
-      );
-      
+
+      const result = await service.uploadFile(testFile, TEST_PASSWORD, false);
+
       expect(result.fileId).toBe('test-file-id');
       expect(result.shareableUrl).toContain(`http://localhost:3000/p/test-file-id#`);
       expect(result.kyberPrivateKey).toBeInstanceOf(Uint8Array);
@@ -102,41 +104,33 @@ describe('FileEncryptionService (Simple)', () => {
     });
 
     it('should validate password strength', async () => {
-      const { PasswordService } = await import('../crypto/PasswordService');
-      (PasswordService.validatePassword as any).mockReturnValueOnce({ isValid: false, score: 1 });
-      
       const testFile = createTestFile();
-      
-      await expect(
-        service.uploadFile(testFile, 'weak', false)
-      ).rejects.toThrow('Invalid password');
+
+      await expect(service.uploadFile(testFile, 'weak', false)).rejects.toThrow('Invalid password');
     });
 
     it('should enforce file size limit', async () => {
       // Create a file larger than 100MB
       const largeFile = new File([new ArrayBuffer(105 * 1024 * 1024)], 'large.txt');
-      
-      await expect(
-        service.uploadFile(largeFile, TEST_PASSWORD, false)
-      ).rejects.toThrow('File too large');
+
+      await expect(service.uploadFile(largeFile, TEST_PASSWORD, false)).rejects.toThrow(
+        'File too large',
+      );
     });
 
     it('should track upload progress', async () => {
       const testFile = createTestFile();
       const progressUpdates: any[] = [];
-      
-      await service.uploadFile(
-        testFile,
-        TEST_PASSWORD,
-        false,
-        (progress) => progressUpdates.push(progress)
+
+      await service.uploadFile(testFile, TEST_PASSWORD, false, (progress) =>
+        progressUpdates.push(progress),
       );
-      
+
       expect(progressUpdates.length).toBeGreaterThan(0);
-      expect(progressUpdates.some(p => p.stage === 'validating')).toBe(true);
-      expect(progressUpdates.some(p => p.stage === 'encrypting')).toBe(true);
-      expect(progressUpdates.some(p => p.stage === 'uploading')).toBe(true);
-      expect(progressUpdates.some(p => p.stage === 'complete')).toBe(true);
+      expect(progressUpdates.some((p) => p.stage === 'validating')).toBe(true);
+      expect(progressUpdates.some((p) => p.stage === 'encrypting')).toBe(true);
+      expect(progressUpdates.some((p) => p.stage === 'uploading')).toBe(true);
+      expect(progressUpdates.some((p) => p.stage === 'complete')).toBe(true);
     });
   });
 
@@ -147,22 +141,18 @@ describe('FileEncryptionService (Simple)', () => {
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=/g, '');
-      
-      const result = await service.downloadFile(
-        fileId,
-        TEST_PASSWORD,
-        privateKeyFragment,
-      );
-      
+
+      const result = await service.downloadFile(fileId, TEST_PASSWORD, privateKeyFragment);
+
       expect(result.data).toBeInstanceOf(Uint8Array);
       expect(new TextDecoder().decode(result.data)).toBe('Decrypted content');
       expect(result.metadata.name).toBe('test.txt');
     });
 
     it('should require private key', async () => {
-      await expect(
-        service.downloadFile('test-id', TEST_PASSWORD, undefined)
-      ).rejects.toThrow('Private key required');
+      await expect(service.downloadFile('test-id', TEST_PASSWORD, undefined)).rejects.toThrow(
+        'Private key required',
+      );
     });
 
     it('should track download progress', async () => {
@@ -171,20 +161,17 @@ describe('FileEncryptionService (Simple)', () => {
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=/g, '');
-      
+
       const progressUpdates: any[] = [];
-      
-      await service.downloadFile(
-        fileId,
-        TEST_PASSWORD,
-        privateKeyFragment,
-        (progress) => progressUpdates.push(progress)
+
+      await service.downloadFile(fileId, TEST_PASSWORD, privateKeyFragment, (progress) =>
+        progressUpdates.push(progress),
       );
-      
+
       expect(progressUpdates.length).toBeGreaterThan(0);
-      expect(progressUpdates.some(p => p.stage === 'validating')).toBe(true);
-      expect(progressUpdates.some(p => p.stage === 'decrypting')).toBe(true);
-      expect(progressUpdates.some(p => p.stage === 'complete')).toBe(true);
+      expect(progressUpdates.some((p) => p.stage === 'validating')).toBe(true);
+      expect(progressUpdates.some((p) => p.stage === 'decrypting')).toBe(true);
+      expect(progressUpdates.some((p) => p.stage === 'complete')).toBe(true);
     });
   });
 
@@ -201,9 +188,9 @@ describe('FileEncryptionService (Simple)', () => {
           algorithm: 'test',
         },
       };
-      
+
       const blob = FileEncryptionService.createDownloadableFile(data, metadata);
-      
+
       expect(blob).toBeInstanceOf(Blob);
       expect(blob.type).toBe('application/pdf');
       expect(blob.size).toBe(data.length);
@@ -213,21 +200,25 @@ describe('FileEncryptionService (Simple)', () => {
   describe('triggerDownload', () => {
     it('should create and click a download link', () => {
       const blob = new Blob(['test content'], { type: 'text/plain' });
-      
+
       // Mock DOM methods
-      const link = { 
-        href: '', 
-        download: '', 
-        click: vi.fn() 
+      const link = {
+        href: '',
+        download: '',
+        click: vi.fn(),
       };
       const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(link as any);
-      const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => link as any);
-      const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => link as any);
-      const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
+      const appendChildSpy = vi
+        .spyOn(document.body, 'appendChild')
+        .mockImplementation(() => link as any);
+      const removeChildSpy = vi
+        .spyOn(document.body, 'removeChild')
+        .mockImplementation(() => link as any);
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
       const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL');
-      
+
       FileEncryptionService.triggerDownload(blob, 'test.txt');
-      
+
       expect(createElementSpy).toHaveBeenCalledWith('a');
       expect(link.href).toBe('blob:test');
       expect(link.download).toBe('test.txt');

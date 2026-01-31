@@ -1,13 +1,12 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { BenchmarkPage } from './pages/BenchmarkPage';
 import { HomePage } from './pages/HomePage';
 import { UploadPage } from './pages/UploadPage';
 import { ViewPage } from './pages/ViewPage';
-import { BenchmarkPage } from './pages/BenchmarkPage';
 
 export function App() {
   const isDevelopment = import.meta.env.DEV;
-  
+
   return (
     <BrowserRouter>
       <div className="app">
@@ -27,9 +26,7 @@ export function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/p/:id" element={<ViewPage />} />
-            {isDevelopment && (
-              <Route path="/benchmark" element={<BenchmarkPage />} />
-            )}
+            {isDevelopment && <Route path="/benchmark" element={<BenchmarkPage />} />}
           </Routes>
         </main>
       </div>

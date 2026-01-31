@@ -27,29 +27,31 @@ async function hash(options: ArgonHashOptions): Promise<{ hash: Uint8Array }> {
     encoder.encode(options.pass),
     'PBKDF2',
     false,
-    ['deriveBits']
+    ['deriveBits'],
   );
+
+  // Create a proper ArrayBuffer-backed salt for deriveBits
+  const saltBuffer = new Uint8Array(options.salt).buffer;
 
   const derivedBits = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
-      salt: options.salt,
+      salt: new Uint8Array(saltBuffer),
       iterations: options.time * 1000, // Convert time to iterations
-      hash: 'SHA-256'
+      hash: 'SHA-256',
     },
     keyMaterial,
-    options.hashLen * 8 // Convert bytes to bits
+    options.hashLen * 8, // Convert bytes to bits
   );
 
   return {
-    hash: new Uint8Array(derivedBits)
+    hash: new Uint8Array(derivedBits),
   };
 }
 
 const argon2 = {
   hash,
-  ArgonType
+  ArgonType,
 };
 
 export default argon2;
-export { ArgonType };
