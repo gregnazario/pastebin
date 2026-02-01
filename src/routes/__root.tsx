@@ -4,7 +4,7 @@ import '../styles.css'
 // Site metadata
 const SITE_TITLE = 'Secure Pastebin - Post-Quantum Encrypted File Sharing'
 const SITE_DESCRIPTION = 'Share files securely with post-quantum encryption. Uses ML-KEM (Kyber) + AES-256-GCM hybrid encryption to protect against future quantum attacks.'
-const SITE_URL = 'https://pastebin.example.com' // Update with actual domain
+const SITE_URL = 'https://pastebin.sed.fyi' // Update with actual domain
 
 export const Route = createRootRoute({
   head: () => ({

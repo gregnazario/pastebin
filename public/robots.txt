@@ -6,4 +6,4 @@ Allow: /
 Disallow: /p/
 
 # Sitemap
-Sitemap: https://pastebin.example.com/sitemap.xml
+Sitemap: https://pastebin.sed.fyi/sitemap.xml
