@@ -1,40 +1,64 @@
 import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router'
+import '../styles.css'
+
+// Site metadata
+const SITE_TITLE = 'Secure Pastebin - Post-Quantum Encrypted File Sharing'
+const SITE_DESCRIPTION = 'Share files securely with post-quantum encryption. Uses ML-KEM (Kyber) + AES-256-GCM hybrid encryption to protect against future quantum attacks.'
+const SITE_URL = 'https://pastebin.example.com' // Update with actual domain
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Secure Pastebin - Post-Quantum Encrypted File Sharing' },
-      { name: 'description', content: 'Share files securely with post-quantum encryption' },
-      // Security headers
-      {
-        httpEquiv: 'Content-Security-Policy',
-        content: [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline'", // unsafe-inline needed for inline styles/scripts
-          "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: blob:",
-          "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz",
-          "frame-ancestors 'none'", // Prevent clickjacking
-          "base-uri 'self'",
-          "form-action 'self'",
-        ].join('; '),
-      },
-      { httpEquiv: 'X-Content-Type-Options', content: 'nosniff' },
-      { httpEquiv: 'X-Frame-Options', content: 'DENY' },
-      { httpEquiv: 'X-XSS-Protection', content: '1; mode=block' },
-      { httpEquiv: 'Referrer-Policy', content: 'strict-origin-when-cross-origin' },
-      {
-        httpEquiv: 'Strict-Transport-Security',
-        content: 'max-age=31536000; includeSubDomains; preload',
-      },
-      {
-        httpEquiv: 'Permissions-Policy',
-        content: 'geolocation=(), microphone=(), camera=()',
-      },
+      { title: SITE_TITLE },
+      { name: 'description', content: SITE_DESCRIPTION },
+      
+      // Open Graph / Facebook
+      { property: 'og:type', content: 'website' },
+      { property: 'og:url', content: SITE_URL },
+      { property: 'og:title', content: SITE_TITLE },
+      { property: 'og:description', content: SITE_DESCRIPTION },
+      { property: 'og:image', content: `${SITE_URL}/og-image.png` },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
+      { property: 'og:image:alt', content: 'Secure Pastebin - Post-quantum encrypted file sharing with ML-KEM, AES-256-GCM, and Argon2id' },
+      { property: 'og:site_name', content: 'Secure Pastebin' },
+      { property: 'og:locale', content: 'en_US' },
+      
+      // Twitter Card
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:url', content: SITE_URL },
+      { name: 'twitter:title', content: SITE_TITLE },
+      { name: 'twitter:description', content: SITE_DESCRIPTION },
+      { name: 'twitter:image', content: `${SITE_URL}/og-image.png` },
+      { name: 'twitter:image:alt', content: 'Secure Pastebin - Post-quantum encrypted file sharing' },
+      
+      // Additional SEO
+      { name: 'author', content: 'Secure Pastebin' },
+      { name: 'keywords', content: 'pastebin, encryption, post-quantum, kyber, ml-kem, aes-256, secure file sharing, privacy, argon2' },
+      { name: 'robots', content: 'index, follow' },
+      { name: 'theme-color', content: '#2c3e50' },
+      
+      // NOTE: Security headers (CSP, X-Frame-Options, HSTS, etc.) are now set via
+      // HTTP response headers in src/server.ts for better security.
+      // HTTP headers are more secure than meta tags because:
+      // 1. They apply before any content loads (prevents race conditions)
+      // 2. frame-ancestors directive only works in HTTP headers
+      // 3. Harder for attackers to inject/bypass
     ],
-    links: [{ rel: 'icon', href: '/favicon.ico' }],
+    links: [
+      // Favicons - SVG preferred, ICO fallback
+      { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' },
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      // Apple touch icon for iOS
+      { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+      // PWA manifest
+      { rel: 'manifest', href: '/manifest.json' },
+      // Preconnect to Shelby API for faster uploads/downloads
+      { rel: 'preconnect', href: 'https://api.shelby.xyz' },
+      { rel: 'dns-prefetch', href: 'https://api.shelby.xyz' },
+    ],
   }),
   component: RootLayout,
 })
@@ -44,7 +68,6 @@ function RootLayout() {
     <html lang="en">
       <head>
         <HeadContent />
-        <style>{globalStyles}</style>
       </head>
       <body>
         <header className="app-header">
@@ -66,57 +89,3 @@ function RootLayout() {
     </html>
   )
 }
-
-const globalStyles = `
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    line-height: 1.6;
-    color: #333;
-  }
-
-  .app-header {
-    background: #2c3e50;
-    color: white;
-    padding: 15px 20px;
-  }
-
-  .header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .logo {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: white;
-    text-decoration: none;
-  }
-
-  nav {
-    display: flex;
-    gap: 20px;
-  }
-
-  nav a {
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  nav a:hover,
-  nav a[data-status="active"] {
-    color: white;
-  }
-
-  main {
-    min-height: calc(100vh - 60px);
-  }
-`

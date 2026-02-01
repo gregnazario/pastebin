@@ -32,68 +32,6 @@ function HomePage() {
           Upload a File
         </Link>
       </div>
-
-      <style>{`
-        .home-page {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 40px 20px;
-          text-align: center;
-        }
-
-        .hero h1 {
-          font-size: 2.5rem;
-          margin-bottom: 10px;
-          color: #1a1a2e;
-        }
-
-        .tagline {
-          font-size: 1.2rem;
-          color: #666;
-          margin-bottom: 40px;
-        }
-
-        .features {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 30px;
-          margin-bottom: 40px;
-          text-align: left;
-        }
-
-        .feature {
-          padding: 20px;
-          background: #f8f9fa;
-          border-radius: 8px;
-        }
-
-        .feature h3 {
-          margin-top: 0;
-          font-size: 1.1rem;
-        }
-
-        .feature p {
-          margin-bottom: 0;
-          color: #666;
-          font-size: 0.9rem;
-        }
-
-        .upload-button {
-          display: inline-block;
-          padding: 15px 40px;
-          background: #2c3e50;
-          color: white;
-          text-decoration: none;
-          border-radius: 8px;
-          font-size: 1.1rem;
-          font-weight: 500;
-          transition: background 0.2s;
-        }
-
-        .upload-button:hover {
-          background: #1a252f;
-        }
-      `}</style>
     </div>
   )
 }

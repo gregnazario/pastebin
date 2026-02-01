@@ -1,7 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useCallback, useState } from 'react'
-import { FileEncryptionService, type UploadProgress } from '../services/FileEncryptionService'
+import { useCallback, useMemo, useState } from 'react'
+import type { UploadProgress } from '../services/FileEncryptionService'
 import { PasswordValidator } from '../services/validation/PasswordValidator'
+
+/** Maximum file size in bytes (100MB) - must match server limit */
+const MAX_FILE_SIZE = 100 * 1024 * 1024
+const MAX_FILE_SIZE_MB = MAX_FILE_SIZE / 1024 / 1024
 
 export const Route = createFileRoute('/upload')({
   component: UploadPage,
@@ -18,12 +22,32 @@ function UploadPage() {
   const [result, setResult] = useState<{ url: string; expiresAt: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const passwordValidation = PasswordValidator.validate(password)
+  // Memoize password validation to avoid recalculating on every render
+  const passwordValidation = useMemo(
+    () => PasswordValidator.validate(password),
+    [password]
+  )
   const passwordsMatch = password === confirmPassword
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
+      // Early file size validation to prevent wasted effort
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        setError(`File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB. Your file is ${(selectedFile.size / 1024 / 1024).toFixed(2)}MB.`)
+        setFile(null)
+        // Clear the input so user can select again
+        e.target.value = ''
+        return
+      }
+
+      if (selectedFile.size === 0) {
+        setError('Cannot upload empty files.')
+        setFile(null)
+        e.target.value = ''
+        return
+      }
+
       setFile(selectedFile)
       setError(null)
       setResult(null)
@@ -38,6 +62,8 @@ function UploadPage() {
     setResult(null)
 
     try {
+      // Dynamic import - only load crypto libraries when actually uploading
+      const { FileEncryptionService } = await import('../services/FileEncryptionService')
       const service = new FileEncryptionService()
       const uploadResult = await service.uploadFile(file, password, encryptMetadata, setProgress)
 
@@ -171,171 +197,6 @@ function UploadPage() {
         </div>
       )}
 
-      <style>{`
-        .upload-page {
-          max-width: 500px;
-          margin: 0 auto;
-          padding: 40px 20px;
-        }
-
-        .upload-page h1 {
-          text-align: center;
-          margin-bottom: 30px;
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 8px;
-          font-weight: 500;
-        }
-
-        .form-group input[type="text"],
-        .form-group input[type="password"],
-        .form-group input[type="file"] {
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          font-size: 16px;
-        }
-
-        .password-input {
-          position: relative;
-        }
-
-        .password-input input {
-          padding-right: 50px;
-        }
-
-        .toggle-password {
-          position: absolute;
-          right: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 18px;
-        }
-
-        .checkbox label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-        }
-
-        .checkbox input {
-          width: auto;
-        }
-
-        .file-info {
-          margin-top: 8px;
-          color: #666;
-          font-size: 14px;
-        }
-
-        .password-errors {
-          margin: 8px 0 0;
-          padding-left: 20px;
-          color: #e74c3c;
-          font-size: 14px;
-        }
-
-        .error {
-          color: #e74c3c;
-          font-size: 14px;
-          margin-top: 4px;
-        }
-
-        .error-message {
-          background: #fdecea;
-          border: 1px solid #e74c3c;
-          padding: 12px;
-          border-radius: 6px;
-          color: #c0392b;
-          margin-bottom: 20px;
-        }
-
-        .progress {
-          margin-bottom: 20px;
-        }
-
-        .progress-bar {
-          height: 8px;
-          background: #2c3e50;
-          border-radius: 4px;
-          transition: width 0.3s;
-        }
-
-        .progress p {
-          margin-top: 8px;
-          color: #666;
-          font-size: 14px;
-        }
-
-        .upload-button {
-          width: 100%;
-          padding: 15px;
-          background: #2c3e50;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          font-size: 16px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-
-        .upload-button:hover:not(:disabled) {
-          background: #1a252f;
-        }
-
-        .upload-button:disabled {
-          background: #bdc3c7;
-          cursor: not-allowed;
-        }
-
-        .result {
-          text-align: center;
-        }
-
-        .result h2 {
-          color: #27ae60;
-        }
-
-        .url-container {
-          display: flex;
-          gap: 10px;
-          margin: 20px 0;
-        }
-
-        .url-container input {
-          flex: 1;
-          padding: 12px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          font-size: 14px;
-        }
-
-        .url-container button {
-          padding: 12px 20px;
-          background: #2c3e50;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .expires {
-          color: #666;
-          font-size: 14px;
-        }
-      `}</style>
     </div>
   )
 }

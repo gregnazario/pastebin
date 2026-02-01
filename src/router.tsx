@@ -10,7 +10,12 @@ export const getRouter = () => {
     context: {},
 
     scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
+    // Cache preloaded data for 30 seconds
+    defaultPreloadStaleTime: 30_000,
+    // Preload routes on hover for faster navigation
+    defaultPreload: 'intent',
+    // Don't preload on viewport (saves bandwidth)
+    defaultPreloadDelay: 100,
   })
 
   return router

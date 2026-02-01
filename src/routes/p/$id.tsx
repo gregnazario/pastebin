@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useState } from 'react'
-import { FileEncryptionService, type UploadProgress } from '../../services/FileEncryptionService'
+import type { UploadProgress } from '../../services/FileEncryptionService'
 import type { FileMetadata } from '../../types'
 
 /**
@@ -50,6 +50,8 @@ function ViewPage() {
     setError(null)
 
     try {
+      // Dynamic import - only load crypto libraries when actually decrypting
+      const { FileEncryptionService } = await import('../../services/FileEncryptionService')
       const service = new FileEncryptionService()
       const result = await service.downloadFile(id, password, privateKey, setProgress)
 
@@ -62,9 +64,11 @@ function ViewPage() {
     }
   }, [id, password, privateKey])
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     if (!decryptedFile) return
 
+    // Dynamic import for download utilities
+    const { FileEncryptionService } = await import('../../services/FileEncryptionService')
     const blob = FileEncryptionService.createDownloadableFile(
       decryptedFile.data,
       decryptedFile.metadata,
@@ -83,7 +87,6 @@ function ViewPage() {
             correct link.
           </p>
         </div>
-        <style>{styles}</style>
       </div>
     )
   }
@@ -98,7 +101,6 @@ function ViewPage() {
             shareable link that includes the key after the # symbol.
           </p>
         </div>
-        <style>{styles}</style>
       </div>
     )
   }
@@ -199,188 +201,6 @@ function ViewPage() {
           </button>
         </div>
       )}
-
-      <style>{styles}</style>
     </div>
   )
 }
-
-const styles = `
-  .view-page {
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
-
-  .view-page h1 {
-    text-align: center;
-    margin-bottom: 30px;
-  }
-
-  .security-warning {
-    background: #fff8e6;
-    border: 1px solid #f0c36d;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-
-  .warning-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-    color: #8a6914;
-    margin-bottom: 8px;
-  }
-
-  .dismiss-warning {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #8a6914;
-    padding: 0;
-    line-height: 1;
-  }
-
-  .security-warning p {
-    margin: 0 0 8px 0;
-    color: #5d4a0a;
-    font-size: 14px;
-  }
-
-  .security-warning ul {
-    margin: 0;
-    padding-left: 20px;
-    color: #5d4a0a;
-    font-size: 13px;
-  }
-
-  .security-warning li {
-    margin: 4px 0;
-  }
-
-  .error-box {
-    background: #fdecea;
-    border: 1px solid #e74c3c;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-  }
-
-  .error-box h2 {
-    color: #c0392b;
-    margin-top: 0;
-  }
-
-  .decrypt-form p {
-    text-align: center;
-    color: #666;
-    margin-bottom: 20px;
-  }
-
-  .form-group {
-    margin-bottom: 20px;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-  }
-
-  .password-input {
-    position: relative;
-  }
-
-  .password-input input {
-    width: 100%;
-    padding: 12px;
-    padding-right: 50px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 16px;
-  }
-
-  .toggle-password {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-  }
-
-  .error-message {
-    background: #fdecea;
-    border: 1px solid #e74c3c;
-    padding: 12px;
-    border-radius: 6px;
-    color: #c0392b;
-    margin-bottom: 20px;
-  }
-
-  .progress {
-    margin-bottom: 20px;
-  }
-
-  .progress-bar {
-    height: 8px;
-    background: #2c3e50;
-    border-radius: 4px;
-    transition: width 0.3s;
-  }
-
-  .progress p {
-    margin-top: 8px;
-    color: #666;
-    font-size: 14px;
-  }
-
-  .decrypt-button,
-  .download-button {
-    width: 100%;
-    padding: 15px;
-    background: #2c3e50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .decrypt-button:hover:not(:disabled),
-  .download-button:hover {
-    background: #1a252f;
-  }
-
-  .decrypt-button:disabled {
-    background: #bdc3c7;
-    cursor: not-allowed;
-  }
-
-  .success {
-    text-align: center;
-  }
-
-  .success h2 {
-    color: #27ae60;
-  }
-
-  .file-details {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 20px 0;
-    text-align: left;
-  }
-
-  .file-details p {
-    margin: 8px 0;
-  }
-`

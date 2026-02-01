@@ -1,11 +1,12 @@
 /**
  * File Encryption Service
- * Handles client-side encryption/decryption and coordinates with server for storage
+ * Handles client-side encryption/decryption and coordinates with server for storage.
+ * Uses a Web Worker for CPU-intensive crypto operations to keep the UI responsive.
  */
 
 import { downloadBlob, uploadBlob } from '../server/shelby'
 import type { FileMetadata } from '../types'
-import { HybridEncryptionService } from './crypto/HybridEncryption'
+import { getCryptoWorkerService } from './CryptoWorkerService'
 import { KeyDerivationService } from './crypto/KeyDerivation'
 import { PasswordValidator } from './validation/PasswordValidator'
 
@@ -29,6 +30,7 @@ export interface UploadProgress {
 export class FileEncryptionService {
   /**
    * Upload and encrypt a file
+   * Encryption runs in a Web Worker to keep UI responsive
    */
   async uploadFile(
     file: File,
@@ -40,7 +42,7 @@ export class FileEncryptionService {
       // Stage 1: Validate inputs
       onProgress?.({
         stage: 'validating',
-        progress: 10,
+        progress: 5,
         message: 'Validating password...',
       })
 
@@ -57,19 +59,13 @@ export class FileEncryptionService {
       // Stage 2: Read file data
       onProgress?.({
         stage: 'encrypting',
-        progress: 20,
+        progress: 10,
         message: 'Reading file...',
       })
 
       const fileData = await this.readFileAsUint8Array(file)
 
-      // Stage 3: Encrypt the file
-      onProgress?.({
-        stage: 'encrypting',
-        progress: 40,
-        message: 'Encrypting file...',
-      })
-
+      // Stage 3: Encrypt the file in Web Worker
       const metadata: FileMetadata = {
         name: file.name,
         size: file.size,
@@ -82,11 +78,23 @@ export class FileEncryptionService {
         },
       }
 
-      const { payload, keys } = await HybridEncryptionService.encrypt(
+      // Use Web Worker for CPU-intensive encryption
+      const cryptoWorker = getCryptoWorkerService()
+      const { serializedPayload, kyberPrivateKey } = await cryptoWorker.encrypt(
         fileData,
         password,
         metadata,
         encryptMetadata,
+        // Forward worker progress to caller
+        (_stage, percent, message) => {
+          // Map worker progress (0-100) to encryption stage (15-55)
+          const mappedProgress = 15 + Math.round(percent * 0.4)
+          onProgress?.({
+            stage: 'encrypting',
+            progress: mappedProgress,
+            message,
+          })
+        },
       )
 
       // Stage 4: Upload to Shelby via server function
@@ -95,8 +103,6 @@ export class FileEncryptionService {
         progress: 60,
         message: 'Uploading encrypted file...',
       })
-
-      const serializedPayload = HybridEncryptionService.serializePayload(payload)
 
       // Call server function
       const uploadResult = await uploadBlob({
@@ -113,13 +119,13 @@ export class FileEncryptionService {
         message: 'Upload complete!',
       })
 
-      const encodedKey = KeyDerivationService.keyToBase64Url(keys.kyberPrivateKey)
+      const encodedKey = KeyDerivationService.keyToBase64Url(kyberPrivateKey)
       const shareableUrl = `${window.location.origin}/p/${uploadResult.id}#${encodedKey}`
 
       return {
         fileId: uploadResult.id,
         shareableUrl,
-        kyberPrivateKey: keys.kyberPrivateKey,
+        kyberPrivateKey,
         expiresAt: uploadResult.expiresAt,
       }
     } catch (error) {
@@ -131,6 +137,7 @@ export class FileEncryptionService {
 
   /**
    * Download and decrypt a file
+   * Decryption runs in a Web Worker to keep UI responsive
    */
   async downloadFile(
     fileId: string,
@@ -142,23 +149,20 @@ export class FileEncryptionService {
       // Stage 1: Download from Shelby via server function
       onProgress?.({
         stage: 'validating',
-        progress: 20,
+        progress: 10,
         message: 'Downloading encrypted file...',
       })
 
       const downloadResult = await downloadBlob({ data: { id: fileId } })
       const encryptedData = new Uint8Array(downloadResult.data)
 
-      // Stage 2: Deserialize payload
+      // Stage 2: Get private key
       onProgress?.({
         stage: 'encrypting',
-        progress: 40,
+        progress: 20,
         message: 'Preparing to decrypt...',
       })
 
-      const payload = HybridEncryptionService.deserializePayload(encryptedData)
-
-      // Stage 3: Get private key
       let kyberPrivateKey: Uint8Array
       if (privateKeyFragment) {
         kyberPrivateKey = KeyDerivationService.base64UrlToKey(privateKeyFragment)
@@ -166,17 +170,22 @@ export class FileEncryptionService {
         throw new Error('Private key required for decryption')
       }
 
-      // Stage 4: Decrypt the file
-      onProgress?.({
-        stage: 'encrypting',
-        progress: 60,
-        message: 'Decrypting file...',
-      })
-
-      const { data, metadata } = await HybridEncryptionService.decrypt(
-        payload,
+      // Stage 3: Decrypt the file in Web Worker
+      const cryptoWorker = getCryptoWorkerService()
+      const { data, metadata } = await cryptoWorker.decrypt(
+        encryptedData,
         password,
         kyberPrivateKey,
+        // Forward worker progress to caller
+        (_stage, percent, message) => {
+          // Map worker progress (0-100) to decryption stage (25-90)
+          const mappedProgress = 25 + Math.round(percent * 0.65)
+          onProgress?.({
+            stage: 'encrypting',
+            progress: mappedProgress,
+            message,
+          })
+        },
       )
 
       onProgress?.({

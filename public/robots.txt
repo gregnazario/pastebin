@@ -1,3 +1,9 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Don't index individual paste pages (they're private/encrypted)
+Disallow: /p/
+
+# Sitemap
+Sitemap: https://pastebin.example.com/sitemap.xml

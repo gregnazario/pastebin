@@ -62,6 +62,65 @@ const uploadRateLimits = new Map<string, RateLimitEntry>()
 const downloadRateLimits = new Map<string, RateLimitEntry>()
 
 /**
+ * Extract client IP from request headers
+ * Supports common proxy headers (X-Forwarded-For, X-Real-IP, CF-Connecting-IP)
+ * @param headers - Request headers object or Headers instance
+ * @returns Client IP address or 'unknown'
+ */
+function getClientIp(headers: Headers | Record<string, string | undefined>): string {
+  // Helper to get header value
+  const getHeader = (name: string): string | undefined => {
+    if (headers instanceof Headers) {
+      return headers.get(name) || undefined
+    }
+    return headers[name]
+  }
+
+  // Check X-Forwarded-For (standard proxy header)
+  const forwardedFor = getHeader('x-forwarded-for')
+  if (forwardedFor) {
+    // Take the first IP (original client), trim whitespace
+    const firstIp = forwardedFor.split(',')[0].trim()
+    if (firstIp && isValidIpAddress(firstIp)) {
+      return firstIp
+    }
+  }
+
+  // Check X-Real-IP (nginx)
+  const realIp = getHeader('x-real-ip')
+  if (realIp && isValidIpAddress(realIp)) {
+    return realIp
+  }
+
+  // Check CF-Connecting-IP (Cloudflare)
+  const cfIp = getHeader('cf-connecting-ip')
+  if (cfIp && isValidIpAddress(cfIp)) {
+    return cfIp
+  }
+
+  // Fallback
+  return 'unknown'
+}
+
+/**
+ * Validate IP address format (basic validation)
+ */
+function isValidIpAddress(ip: string): boolean {
+  // IPv4 pattern
+  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/
+  // IPv6 pattern (simplified)
+  const ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^([0-9a-fA-F]{1,4}:)*:([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$/
+
+  if (ipv4Pattern.test(ip)) {
+    // Validate each octet is <= 255
+    const octets = ip.split('.').map(Number)
+    return octets.every((o) => o >= 0 && o <= 255)
+  }
+
+  return ipv6Pattern.test(ip)
+}
+
+/**
  * Check and update rate limit for an operation
  * @param limits - The rate limit map to use
  * @param key - The key to rate limit (e.g., IP address)
@@ -314,9 +373,21 @@ export const uploadBlob = createServerFn({ method: 'POST' })
 
     return { data: input.data as number[], filename: input.filename }
   })
-  .handler(async ({ data: input }) => {
-    // Rate limiting (using a placeholder IP - in production, extract from request headers)
-    const clientId = 'default' // In production: extract from x-forwarded-for or similar
+  .handler(async ({ data: input, context }) => {
+    // Rate limiting - extract client IP from request headers if available
+    // Note: TanStack Start may provide request context differently depending on version
+    // Fall back to 'unknown' if headers not available (still rate limits, just globally)
+    let clientId = 'unknown'
+    try {
+      // @ts-expect-error - context.request may exist depending on TanStack Start version
+      const headers = context?.request?.headers
+      if (headers) {
+        clientId = getClientIp(headers)
+      }
+    } catch {
+      // Use fallback
+    }
+
     if (isRateLimited(uploadRateLimits, clientId, MAX_UPLOADS_PER_WINDOW)) {
       log('warn', 'Rate limit exceeded for upload', { clientId })
       throw new Error('Too many requests. Please try again later.')
@@ -413,9 +484,19 @@ export const downloadBlob = createServerFn({ method: 'GET' })
 
     return { id: input.id }
   })
-  .handler(async ({ data: input }) => {
-    // Rate limiting
-    const clientId = 'default' // In production: extract from request headers
+  .handler(async ({ data: input, context }) => {
+    // Rate limiting - extract client IP from request headers if available
+    let clientId = 'unknown'
+    try {
+      // @ts-expect-error - context.request may exist depending on TanStack Start version
+      const headers = context?.request?.headers
+      if (headers) {
+        clientId = getClientIp(headers)
+      }
+    } catch {
+      // Use fallback
+    }
+
     if (isRateLimited(downloadRateLimits, clientId, MAX_DOWNLOADS_PER_WINDOW)) {
       log('warn', 'Rate limit exceeded for download', { clientId })
       throw new Error('Too many requests. Please try again later.')
