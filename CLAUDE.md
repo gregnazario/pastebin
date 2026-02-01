@@ -63,28 +63,31 @@ This file contains the development rules and guidelines for this project.
 
 ## Commands to Run
 
+**Always use `bun` instead of `npm` for all package management and script execution.**
+
 When code changes are made, run these commands (when available):
-- Linting: `npm run lint` or equivalent
-- Type checking: `npm run typecheck` or equivalent
-- Tests: `npm test` or equivalent
+- Linting: `bun run lint`
+- Type checking: `bun run typecheck`
+- Tests: `bun test`
+- Build: `bun run build`
+- Dev server: `bun run dev`
 
 ## Critical Build Configuration
 
 ### WASM File Handling for Shelby SDK
 
-The `@shelby-protocol/clay-codes` package contains a `clay.wasm` file that must be available at runtime. The Nitro bundler must be configured to externalize this package to prevent the WASM file from being separated from the JS code during bundling.
+The `@shelby-protocol/clay-codes` package contains a `clay.wasm` file that must be available at runtime. When Nitro bundles the server code, the JS is placed in `.output/server/_chunks/_libs/@shelby-protocol/` but the WASM file is not automatically copied.
 
-**DO NOT REMOVE** the `externals` configuration in `vite.config.ts`:
+**DO NOT REMOVE** the postbuild script in `package.json`:
 
-```typescript
-nitro({
-  externals: {
-    external: ['@shelby-protocol/clay-codes'],
-  },
-})
+```json
+"build": "vite build && npm run postbuild",
+"postbuild": "node scripts/copy-wasm.mjs",
 ```
 
-Without this configuration, Vercel deployments will fail with:
+The `scripts/copy-wasm.mjs` script copies `clay.wasm` from `node_modules/@shelby-protocol/clay-codes/dist/` to the output directory where the bundled code expects to find it.
+
+Without this script, Vercel deployments will fail with:
 ```
 Unable to locate clay.wasm. Tried: /var/task/_chunks/_libs/@shelby-protocol/clay.wasm, /var/task/_chunks/_libs/dist/clay.wasm
 ```

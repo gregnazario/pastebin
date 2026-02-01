@@ -24,14 +24,7 @@ const config = defineConfig(({ mode }) => ({
     }),
     tanstackStart(),
     // Nitro enables deployment to Vercel, Netlify, Cloudflare, etc.
-    // CRITICAL: @shelby-protocol/clay-codes contains clay.wasm which must stay in node_modules.
-    // Without this externalization, Vercel deployment fails with "Unable to locate clay.wasm".
-    // See CLAUDE.md for details. DO NOT REMOVE.
-    nitro({
-      externals: {
-        external: ['@shelby-protocol/clay-codes'],
-      },
-    }),
+    nitro(),
     viteReact(),
     // Note: Compression (gzip/brotli) should be handled at deployment level
     // (Vercel, Cloudflare, Nginx automatically compress responses)
