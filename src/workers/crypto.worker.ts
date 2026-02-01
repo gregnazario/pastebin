@@ -4,7 +4,7 @@
  * to keep the UI responsive during cryptographic operations.
  */
 
-import { HybridEncryptionService, type EncryptedPayload } from '../services/crypto/HybridEncryption'
+import { type EncryptedPayload, HybridEncryptionService } from '../services/crypto/HybridEncryption'
 import type { FileMetadata } from '../types'
 
 // Message types for worker communication

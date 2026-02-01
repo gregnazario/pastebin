@@ -14,22 +14,41 @@ import { createServerEntry } from '@tanstack/react-start/server-entry'
  * Security headers configuration
  * These are applied to all responses for defense-in-depth
  */
-const SECURITY_HEADERS: Record<string, string> = {
-  // Content Security Policy - controls which resources can be loaded
-  // More effective than meta tag CSP as it applies before any content loads
-  'Content-Security-Policy': [
+/**
+ * Build CSP based on environment
+ * In development, we need to allow inline scripts for Vite HMR
+ * In production, we use strict CSP for security
+ */
+function buildCSP(isDev: boolean): string {
+  return [
     "default-src 'self'",
-    "script-src 'self'",
-    "style-src 'self'",
+    isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self'",
+    isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz",
+    isDev
+      ? "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz ws://localhost:* http://localhost:*"
+      : "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz",
     "worker-src 'self' blob:",
     "frame-ancestors 'none'", // Only works via HTTP header, not meta tag!
     "base-uri 'self'",
     "form-action 'self'",
     'upgrade-insecure-requests',
-  ].join('; '),
+  ].join('; ')
+}
+
+/**
+ * Build mode constant defined at build time via Vite config
+ * - 'development' during `vite dev`
+ * - 'production' during `vite build`
+ */
+declare const __BUILD_MODE__: string
+const isDev = __BUILD_MODE__ === 'development'
+
+const SECURITY_HEADERS: Record<string, string> = {
+  // Content Security Policy - controls which resources can be loaded
+  // More effective than meta tag CSP as it applies before any content loads
+  'Content-Security-Policy': buildCSP(isDev),
 
   // Prevent MIME type sniffing
   'X-Content-Type-Options': 'nosniff',

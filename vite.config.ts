@@ -6,7 +6,11 @@ import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import { fileURLToPath, URL } from 'url'
 
-const config = defineConfig({
+const config = defineConfig(({ mode }) => ({
+  define: {
+    // Make build mode available in both client and server code
+    '__BUILD_MODE__': JSON.stringify(mode),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -70,6 +74,6 @@ const config = defineConfig({
       '@tanstack/react-router',
     ],
   },
-})
+}))
 
 export default config
