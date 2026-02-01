@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { ChainIcon, KeyIcon, QuantumIcon } from '../components/Icons'
 import { Onboarding } from '../components/Onboarding'
 
 export const Route = createFileRoute('/')({
@@ -15,17 +16,23 @@ function HomePage() {
 
         <div className="features">
           <div className="feature">
-            <h3>🔐 Post-Quantum Security</h3>
+            <h3>
+              <QuantumIcon size="1.2em" className="feature-icon" /> Post-Quantum Security
+            </h3>
             <p>
               ML-KEM (Kyber) + AES-256-GCM hybrid encryption protects against future quantum attacks
             </p>
           </div>
           <div className="feature">
-            <h3>🔑 Password Protected</h3>
+            <h3>
+              <KeyIcon size="1.2em" className="feature-icon" /> Password Protected
+            </h3>
             <p>Argon2id key derivation ensures strong password-based protection</p>
           </div>
           <div className="feature">
-            <h3>⛓️ Decentralized Storage</h3>
+            <h3>
+              <ChainIcon size="1.2em" className="feature-icon" /> Decentralized Storage
+            </h3>
             <p>Files stored on Shelby Protocol - censorship-resistant and reliable</p>
           </div>
         </div>

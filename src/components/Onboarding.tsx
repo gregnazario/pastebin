@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
+import { LinkIcon, LockIcon, ShieldIcon, WaveIcon } from './Icons'
 
 const ONBOARDING_KEY = 'secure-pastebin-onboarding-seen'
 
@@ -98,29 +100,38 @@ export function Onboarding() {
 }
 
 /**
+ * Onboarding step type
+ */
+interface OnboardingStep {
+  icon: ReactNode
+  title: string
+  description: string
+}
+
+/**
  * Onboarding steps configuration
  */
-const steps = [
+const steps: OnboardingStep[] = [
   {
-    icon: '👋',
+    icon: <WaveIcon size={48} />,
     title: 'Welcome to Secure Pastebin',
     description:
       'Share files with post-quantum encryption. Your files are encrypted in your browser before upload — we never see your data.',
   },
   {
-    icon: '🔐',
+    icon: <LockIcon size={48} />,
     title: 'Client-Side Encryption',
     description:
       'All encryption happens locally. Your password and files never leave your device unencrypted.',
   },
   {
-    icon: '🛡️',
+    icon: <ShieldIcon size={48} />,
     title: 'Future-Proof Security',
     description:
       'We use ML-KEM (Kyber) + AES-256-GCM hybrid encryption to protect against future quantum computer attacks.',
   },
   {
-    icon: '🔗',
+    icon: <LinkIcon size={48} />,
     title: 'Safe Link Sharing',
     description:
       "The decryption key is embedded in the URL fragment (#) — it's never sent to any server. Share links via secure channels.",

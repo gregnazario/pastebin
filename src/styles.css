@@ -172,6 +172,113 @@ code {
   color: var(--header-text);
   text-decoration: none;
   z-index: 101;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   Inline SVG Icons
+   ========================================================================== */
+
+/* General inline icon styling */
+.inline-icon {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.inline-icon svg {
+  vertical-align: middle;
+}
+
+/* Icon in feature cards, section headers */
+.feature-icon,
+.section-icon,
+.footer-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.feature h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feature h3 svg {
+  flex-shrink: 0;
+}
+
+/* Footer icon styling */
+.footer-tagline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Security/Privacy card headers with icons */
+.security-card h3,
+.privacy-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Warning box icon */
+.warning-box strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Collapsible header icons */
+.collapsible-header > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Password toggle button icon */
+.toggle-password {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.toggle-password:hover {
+  color: var(--text-primary);
+}
+
+/* Password action buttons with icons */
+.generate-password-btn,
+.copy-password-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Drop zone icons */
+.drop-icon svg,
+.file-icon svg {
+  color: var(--text-muted);
+}
+
+.drop-zone.has-file .file-icon svg {
+  color: var(--success-text);
+}
+
+.drop-zone.drag-over .drop-icon svg {
+  color: var(--accent-primary);
 }
 
 /* Desktop Navigation */
@@ -220,6 +327,13 @@ code {
   transition: background-color 0.2s;
   line-height: 1;
   color: var(--header-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle svg {
+  display: block;
 }
 
 .theme-toggle:hover {
@@ -1626,6 +1740,15 @@ main {
   font-size: 64px;
   margin-bottom: 16px;
   line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--accent-primary);
+}
+
+.onboarding-icon svg {
+  width: 48px;
+  height: 48px;
 }
 
 .onboarding-title {
@@ -2012,8 +2135,9 @@ main {
     margin: 10px;
   }
   
-  .onboarding-icon {
-    font-size: 48px;
+  .onboarding-icon svg {
+    width: 40px;
+    height: 40px;
   }
   
   .onboarding-title {
@@ -2067,8 +2191,12 @@ main {
     overflow-y: auto;
   }
   
+  .onboarding-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  
   .onboarding-icon {
-    font-size: 32px;
     margin-bottom: 8px;
   }
   

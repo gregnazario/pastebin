@@ -1,5 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+import {
+  AlertIcon,
+  CheckIcon,
+  EyeIcon,
+  ShieldIcon,
+  WrenchIcon,
+  XCircleIcon,
+} from '../components/Icons'
 
 export const Route = createFileRoute('/docs')({
   component: DocsPage,
@@ -13,7 +21,7 @@ function CollapsibleSection({
   children,
   defaultOpen = false,
 }: {
-  title: string
+  title: React.ReactNode
   children: React.ReactNode
   defaultOpen?: boolean
 }) {
@@ -65,7 +73,7 @@ function EncryptionFlowDiagram() {
         <g className="step step-1">
           <rect x="100" y="60" width="200" height="50" rx="8" className="node" />
           <text x="200" y="90" textAnchor="middle" className="node-text">
-            📄 File + 🔑 Password
+            File + Password
           </text>
           <text x="200" y="125" textAnchor="middle" className="step-label">
             1. Select file &amp; enter password
@@ -82,7 +90,7 @@ function EncryptionFlowDiagram() {
         <g className="step step-2">
           <rect x="100" y="180" width="200" height="50" rx="8" className="node node-process" />
           <text x="200" y="210" textAnchor="middle" className="node-text">
-            🔐 Argon2id
+            Argon2id KDF
           </text>
           <text x="200" y="245" textAnchor="middle" className="step-label">
             2. Derive encryption key
@@ -99,7 +107,7 @@ function EncryptionFlowDiagram() {
         <g className="step step-3">
           <rect x="100" y="300" width="200" height="50" rx="8" className="node node-process" />
           <text x="200" y="330" textAnchor="middle" className="node-text">
-            🛡️ ML-KEM + AES-256
+            ML-KEM + AES-256
           </text>
           <text x="200" y="365" textAnchor="middle" className="step-label">
             3. Encrypt file
@@ -119,7 +127,7 @@ function EncryptionFlowDiagram() {
         <g className="step step-4">
           <rect x="500" y="150" width="200" height="80" rx="8" className="node node-cloud" />
           <text x="600" y="185" textAnchor="middle" className="node-text">
-            ☁️ Encrypted Blob
+            Encrypted Blob
           </text>
           <text x="600" y="210" textAnchor="middle" className="node-subtext">
             Stored securely
@@ -136,7 +144,7 @@ function EncryptionFlowDiagram() {
         <g className="step step-5">
           <rect x="50" y="370" width="260" height="25" rx="4" className="node node-link" />
           <text x="180" y="388" textAnchor="middle" className="node-text-small">
-            🔗 pastebin.sed.fyi/p/id#key
+            pastebin.sed.fyi/p/id#key
           </text>
         </g>
 
@@ -144,7 +152,7 @@ function EncryptionFlowDiagram() {
         <g className="security-note">
           <rect x="420" y="340" width="160" height="50" rx="6" className="note-box" />
           <text x="500" y="360" textAnchor="middle" className="note-text">
-            🔒 Key in URL fragment
+            Key in URL fragment
           </text>
           <text x="500" y="378" textAnchor="middle" className="note-subtext">
             Never sent to server
@@ -197,7 +205,13 @@ function DocsPage() {
           </li>
         </ol>
 
-        <CollapsibleSection title="🔧 Technical Details">
+        <CollapsibleSection
+          title={
+            <>
+              <WrenchIcon size="1em" className="section-icon" /> Technical Details
+            </>
+          }
+        >
           <ul className="tech-details">
             <li>
               <strong>Key Encapsulation:</strong> ML-KEM-768 (Kyber) - NIST post-quantum standard
@@ -226,7 +240,9 @@ function DocsPage() {
 
         <div className="security-grid">
           <div className="security-card security-protected">
-            <h3>✅ What's Protected</h3>
+            <h3>
+              <CheckIcon size="1em" className="section-icon" /> What's Protected
+            </h3>
             <ul>
               <li>File contents — always encrypted</li>
               <li>File name — optionally encrypted</li>
@@ -236,7 +252,9 @@ function DocsPage() {
           </div>
 
           <div className="security-card security-threat">
-            <h3>🛡️ Protected Against</h3>
+            <h3>
+              <ShieldIcon size="1em" className="section-icon" /> Protected Against
+            </h3>
             <ul>
               <li>Server breaches — encrypted data is useless without keys</li>
               <li>Man-in-the-middle attacks — key never in HTTP request</li>
@@ -246,7 +264,13 @@ function DocsPage() {
           </div>
         </div>
 
-        <CollapsibleSection title="🔧 Technical Details">
+        <CollapsibleSection
+          title={
+            <>
+              <WrenchIcon size="1em" className="section-icon" /> Technical Details
+            </>
+          }
+        >
           <p>
             The hybrid encryption scheme uses ML-KEM-768 for key encapsulation, which provides
             approximately 192 bits of classical security and is resistant to known quantum attacks.
@@ -272,9 +296,11 @@ function DocsPage() {
 
         <div className="warning-box">
           <p>
-            <strong>⚠️ The Threat:</strong> Adversaries can record encrypted data today and store it
-            until quantum computers can break the encryption — potentially exposing secrets years or
-            decades later.
+            <strong>
+              <AlertIcon size="1em" className="section-icon" /> The Threat:
+            </strong>{' '}
+            Adversaries can record encrypted data today and store it until quantum computers can
+            break the encryption — potentially exposing secrets years or decades later.
           </p>
         </div>
 
@@ -284,7 +310,13 @@ function DocsPage() {
           believed to be hard for both classical and quantum computers.
         </p>
 
-        <CollapsibleSection title="🔧 Technical Details">
+        <CollapsibleSection
+          title={
+            <>
+              <WrenchIcon size="1em" className="section-icon" /> Technical Details
+            </>
+          }
+        >
           <p>
             ML-KEM-768 is based on the Module Learning with Errors (MLWE) problem. The security
             relies on the difficulty of distinguishing structured lattice samples from random ones.
@@ -306,7 +338,9 @@ function DocsPage() {
 
         <div className="privacy-grid">
           <div className="privacy-card cannot-see">
-            <h3>🚫 We Cannot See</h3>
+            <h3>
+              <XCircleIcon size="1em" className="section-icon" /> We Cannot See
+            </h3>
             <ul>
               <li>Your file contents</li>
               <li>Your file name (if metadata encryption enabled)</li>
@@ -317,7 +351,9 @@ function DocsPage() {
           </div>
 
           <div className="privacy-card can-see">
-            <h3>👁️ We Can See</h3>
+            <h3>
+              <EyeIcon size="1em" className="section-icon" /> We Can See
+            </h3>
             <ul>
               <li>Encrypted blob size</li>
               <li>Upload timestamp</li>
