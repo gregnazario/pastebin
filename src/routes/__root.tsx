@@ -116,10 +116,14 @@ function useDarkMode() {
   }, [isDark])
 
   const toggle = useCallback(() => {
-    setIsDark((prev) => !prev)
+    setIsDark((prev) => {
+      const newValue = !prev
+      // Save to localStorage inside the updater to use the correct new value
+      localStorage.setItem('theme', newValue ? 'dark' : 'light')
+      return newValue
+    })
     setIsManualOverride(true)
-    localStorage.setItem('theme', isDark ? 'light' : 'dark')
-  }, [isDark])
+  }, [])
 
   const reset = useCallback(() => {
     localStorage.removeItem('theme')
