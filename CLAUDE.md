@@ -76,23 +76,20 @@ When code changes are made, run these commands (when available):
 
 ### WASM File Handling for Shelby SDK
 
-The `@shelby-protocol/clay-codes` package contains a `clay.wasm` file that must be available at runtime. When Nitro bundles the server code, the JS is placed in `.output/server/_chunks/_libs/@shelby-protocol/` but the WASM file is not automatically copied.
+The `@shelby-protocol/clay-codes` package contains a `clay.wasm` file that must be available at runtime. When Nitro bundles the server code, the JS is placed in the output directory but the WASM file is not automatically copied.
 
-**DO NOT REMOVE** the `copyClayWasm()` function and Nitro hooks in `vite.config.ts`:
+**DO NOT REMOVE** the `copyClayWasmPlugin()` Vite plugin in `vite.config.ts`:
 
 ```typescript
-nitro({
-  hooks: {
-    compiled: () => {
-      copyClayWasm()
-    },
-  },
-})
+// In plugins array:
+copyClayWasmPlugin(),
 ```
 
-The `copyClayWasm()` function copies `clay.wasm` from `node_modules/@shelby-protocol/clay-codes/dist/` to the output directory where the bundled code expects to find it. This runs as part of the Nitro build process, ensuring it works on Vercel and other deployment platforms.
+This plugin uses Vite's `closeBundle` hook to copy `clay.wasm` after the build completes. It must be a separate Vite plugin (not Nitro hooks) to avoid overwriting Nitro's preset hooks which generate required Vercel config files.
 
-Without this configuration, deployments will fail with:
+The plugin handles both local builds (`.output/server/`) and Vercel builds (`.vercel/output/functions/__server.func/`).
+
+Without this plugin, deployments will fail with:
 ```
 Unable to locate clay.wasm. Tried: /var/task/_chunks/_libs/@shelby-protocol/clay.wasm, /var/task/_chunks/_libs/dist/clay.wasm
 ```
