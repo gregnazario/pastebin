@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertIcon, CheckIcon, EyeIcon, EyeOffIcon } from '../../components/Icons'
+import { useKeychainEntry } from '../../hooks/useKeychain'
 import type { UploadProgress } from '../../services/FileEncryptionService'
 import type { FileMetadata } from '../../types'
 
@@ -108,6 +109,9 @@ function ViewPage() {
   } | null>(null)
   const [showSecurityWarning, setShowSecurityWarning] = useState(true)
   const [showPreview, setShowPreview] = useState(false)
+
+  // Keychain integration - check if we have the password saved
+  const keychainEntry = useKeychainEntry(id, false) // Don't auto-retrieve for security
 
   // Determine if the file can be previewed
   const previewInfo = useMemo(() => {
@@ -344,7 +348,7 @@ function ViewPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                disabled={isLoading}
+                disabled={isLoading || keychainEntry.isLoading}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && password) {
                     handleDecrypt()
@@ -359,6 +363,44 @@ function ViewPage() {
                 {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
               </button>
             </div>
+
+            {/* Keychain auto-fill button */}
+            {!keychainEntry.entry && !password && (
+              <button
+                type="button"
+                className="keychain-fill-btn"
+                onClick={async () => {
+                  await keychainEntry.retrieve()
+                  if (keychainEntry.entry) {
+                    setPassword(keychainEntry.entry.password)
+                  }
+                }}
+                disabled={isLoading || keychainEntry.isLoading}
+              >
+                {keychainEntry.isLoading ? '🔄 Checking keychain...' : '🔑 Fill from keychain'}
+              </button>
+            )}
+
+            {keychainEntry.entry && !password && (
+              <div className="keychain-found">
+                <p>
+                  🔑 Password found in keychain
+                  {keychainEntry.entry.label && ` for "${keychainEntry.entry.label}"`}
+                </p>
+                <button
+                  type="button"
+                  className="use-keychain-btn"
+                  onClick={() => {
+                    if (keychainEntry.entry) {
+                      setPassword(keychainEntry.entry.password)
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  Use saved password
+                </button>
+              </div>
+            )}
           </div>
 
           {error && <div className="error-message">{error}</div>}

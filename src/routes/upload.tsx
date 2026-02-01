@@ -11,6 +11,7 @@ import {
   NoteIcon,
 } from '../components/Icons'
 import { useToast } from '../components/Toast'
+import { useKeychain } from '../hooks/useKeychain'
 import type { UploadProgress } from '../services/FileEncryptionService'
 import { PasswordValidator } from '../services/validation/PasswordValidator'
 
@@ -41,6 +42,7 @@ function generateSecurePassword(length = 20): string {
 
 function UploadPage() {
   const { showToast } = useToast()
+  const keychain = useKeychain()
   // Upload mode: 'file' for file upload, 'note' for text input
   const [uploadMode, setUploadMode] = useState<UploadMode>('file')
   const [file, setFile] = useState<File | null>(null)
@@ -51,9 +53,10 @@ function UploadPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [encryptMetadata, setEncryptMetadata] = useState(false)
+  const [saveToKeychain, setSaveToKeychain] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [progress, setProgress] = useState<UploadProgress | null>(null)
-  const [result, setResult] = useState<{ url: string; expiresAt: number } | null>(null)
+  const [result, setResult] = useState<{ url: string; expiresAt: number; pasteId?: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
 
@@ -212,9 +215,32 @@ function UploadPage() {
         setProgress,
       )
 
+      // Extract paste ID from the shareable URL (format: /p/{id}#key)
+      const urlMatch = uploadResult.shareableUrl.match(/\/p\/([^#]+)/)
+      const pasteId = urlMatch?.[1]
+
+      // Save to keychain if requested and available
+      if (saveToKeychain && keychain.isAvailable && pasteId) {
+        const keychainResult = await keychain.save({
+          id: pasteId,
+          password: password,
+          label: uploadFile.name,
+          url: uploadResult.shareableUrl,
+          createdAt: Date.now(),
+          expiresAt: uploadResult.expiresAt,
+        }, { overwrite: true })
+
+        if (keychainResult.success) {
+          showToast('Password saved to keychain!', 'success')
+        } else if (!keychainResult.userCancelled) {
+          showToast('Could not save password to keychain', 'warning')
+        }
+      }
+
       setResult({
         url: uploadResult.shareableUrl,
         expiresAt: uploadResult.expiresAt,
+        pasteId,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
@@ -230,6 +256,9 @@ function UploadPage() {
     passwordsMatch,
     uploadMode,
     noteContent.length,
+    saveToKeychain,
+    keychain,
+    showToast,
   ])
 
   const copyToClipboard = useCallback(async () => {
@@ -284,6 +313,7 @@ function UploadPage() {
               setNoteTitle('')
               setPassword('')
               setConfirmPassword('')
+              setSaveToKeychain(false)
             }}
           >
             {uploadMode === 'file' ? 'Upload Another File' : 'Create Another Note'}
@@ -477,6 +507,23 @@ function UploadPage() {
               Encrypt filename and metadata
             </label>
           </div>
+
+          {keychain.isAvailable && (
+            <div className="form-group checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={saveToKeychain}
+                  onChange={(e) => setSaveToKeychain(e.target.checked)}
+                  disabled={isUploading}
+                />
+                Save password to {keychain.providerName || 'keychain'}
+              </label>
+              <p className="checkbox-hint">
+                Saves the password securely so you can auto-fill it later
+              </p>
+            </div>
+          )}
 
           {error && <div className="error-message">{error}</div>}
 
