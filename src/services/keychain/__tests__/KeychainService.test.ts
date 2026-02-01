@@ -10,10 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { KeychainService } from '../KeychainService'
 import type {
   KeychainEntry,
-  KeychainEntryMetadata,
-  KeychainOperationResult,
   KeychainProvider,
-  KeychainProviderCapabilities,
   KeychainRetrieveOptions,
   KeychainSaveOptions,
 } from '../types'
