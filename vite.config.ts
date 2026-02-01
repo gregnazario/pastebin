@@ -1,10 +1,46 @@
-import { defineConfig } from 'vite'
+import { copyFileSync, existsSync, mkdirSync } from 'fs'
+import { dirname, resolve } from 'path'
+import { fileURLToPath, URL } from 'url'
 import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import { nitro } from 'nitro/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
-import { fileURLToPath, URL } from 'url'
+import { defineConfig } from 'vite'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+/**
+ * Copy clay.wasm to the output directory after Nitro build.
+ *
+ * The @shelby-protocol/clay-codes package loads clay.wasm at runtime using
+ * paths relative to the bundled JS file. Nitro bundles the JS but doesn't
+ * copy the WASM file, so we need to do it manually.
+ *
+ * See CLAUDE.md for more details.
+ */
+function copyClayWasm() {
+  const source = resolve(__dirname, 'node_modules/@shelby-protocol/clay-codes/dist/clay.wasm')
+  const destinations = [
+    resolve(__dirname, '.output/server/_chunks/_libs/@shelby-protocol/clay.wasm'),
+    resolve(__dirname, '.output/server/_chunks/_libs/dist/clay.wasm'),
+  ]
+
+  if (!existsSync(source)) {
+    console.warn('[copy-wasm] Source clay.wasm not found:', source)
+    return
+  }
+
+  for (const dest of destinations) {
+    try {
+      mkdirSync(dirname(dest), { recursive: true })
+      copyFileSync(source, dest)
+      console.log('[copy-wasm] Copied clay.wasm to:', dest)
+    } catch (error) {
+      console.error('[copy-wasm] Failed to copy to:', dest, error)
+    }
+  }
+}
 
 const config = defineConfig(({ mode }) => ({
   define: {
@@ -24,7 +60,15 @@ const config = defineConfig(({ mode }) => ({
     }),
     tanstackStart(),
     // Nitro enables deployment to Vercel, Netlify, Cloudflare, etc.
-    nitro(),
+    // WASM files are copied via hooks - see copyClayWasm() and CLAUDE.md
+    nitro({
+      hooks: {
+        // Copy clay.wasm after Nitro finishes building
+        compiled: () => {
+          copyClayWasm()
+        },
+      },
+    }),
     viteReact(),
     // Note: Compression (gzip/brotli) should be handled at deployment level
     // (Vercel, Cloudflare, Nginx automatically compress responses)
