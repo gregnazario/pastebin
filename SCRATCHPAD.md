@@ -2,7 +2,7 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-01-26)
+## Current State (2026-02-01)
 
 ### Project Status
 - **Phase**: Phase 5 - Testing & Benchmarking (Advanced)
@@ -40,6 +40,7 @@ Frontend (React) → Encryption Layer → Storage (Shelby)
 
 ### Features Implemented
 - 📤 **Upload**: File selection, password validation, encryption, progress
+- 📝 **Note Input**: Direct text/note editing with mode selector toggle
 - 🔐 **Encryption**: Post-quantum Kyber + AES-GCM hybrid
 - 🔗 **Links**: Shareable URLs with private key in fragment
 - 📥 **Download**: Password entry, decryption, automatic download
@@ -86,4 +87,4 @@ bun run typecheck # Type checking
 
 ---
 
-*Last updated: 2026-01-26*
+*Last updated: 2026-02-01*
