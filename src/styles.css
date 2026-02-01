@@ -154,6 +154,8 @@ code {
   color: var(--header-text);
   padding: 15px 20px;
   transition: background-color 0.3s ease;
+  position: relative;
+  z-index: 100;
 }
 
 .header-content {
@@ -169,23 +171,42 @@ code {
   font-weight: bold;
   color: var(--header-text);
   text-decoration: none;
+  z-index: 101;
 }
 
-nav {
+/* Desktop Navigation */
+.desktop-nav {
   display: flex;
   gap: 20px;
   align-items: center;
 }
 
-nav a {
+.desktop-nav a {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   transition: color 0.2s;
 }
 
-nav a:hover,
-nav a[data-status="active"] {
+.desktop-nav a:hover,
+.desktop-nav a[data-status="active"] {
   color: white;
+}
+
+/* GitHub Link */
+.github-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.2s;
+}
+
+.github-link:hover {
+  color: white;
+}
+
+.github-link svg {
+  flex-shrink: 0;
 }
 
 /* Theme Toggle Button */
@@ -198,10 +219,119 @@ nav a[data-status="active"] {
   border-radius: 6px;
   transition: background-color 0.2s;
   line-height: 1;
+  color: var(--header-text);
 }
 
 .theme-toggle:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Navigation Controls */
+.mobile-nav-controls {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  z-index: 101;
+}
+
+.hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  color: var(--header-text);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Navigation Overlay */
+.mobile-nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: default;
+  z-index: 98;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Mobile Navigation Menu */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: -280px;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-primary);
+  flex-direction: column;
+  padding: 80px 24px 24px;
+  gap: 8px;
+  z-index: 99;
+  transition: right 0.3s ease;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-nav.open {
+  right: 0;
+}
+
+.mobile-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.mobile-nav a:hover,
+.mobile-nav a[data-status="active"] {
+  background: var(--bg-secondary);
+}
+
+.mobile-nav .github-link {
+  color: var(--text-primary);
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-nav-controls {
+    display: flex;
+  }
+
+  .mobile-nav {
+    display: flex;
+  }
+
+  .mobile-nav-overlay {
+    display: block;
+  }
 }
 
 main {

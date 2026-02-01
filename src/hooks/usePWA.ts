@@ -41,6 +41,9 @@ export function usePWA(): PWAState {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
 
   useEffect(() => {
+    // Skip on server
+    if (typeof window === 'undefined') return
+
     // Check if running in standalone mode (installed PWA)
     const checkInstalled = () => {
       const isStandalone =
