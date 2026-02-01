@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router'
 import { useCallback, useEffect, useState } from 'react'
+import { LogoIcon, LockIcon, MoonIcon, SunIcon } from '../components/Icons'
 import { PWAPrompt } from '../components/PWAPrompt'
 import { ToastProvider } from '../components/Toast'
 import '../styles.css'
@@ -239,7 +240,8 @@ function RootLayout() {
         <header className="app-header">
           <div className="header-content">
             <Link to="/" className="logo" onClick={closeMobileMenu}>
-              🔐 Secure Pastebin
+              <LogoIcon size="1.4em" className="logo-icon" />
+              Secure Pastebin
             </Link>
 
             {/* Desktop navigation */}
@@ -264,7 +266,7 @@ function RootLayout() {
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                {isDark ? '☀️' : '🌙'}
+                {isDark ? <SunIcon size={20} /> : <MoonIcon size={20} />}
               </button>
             </nav>
 
@@ -276,7 +278,7 @@ function RootLayout() {
                 onClick={toggle}
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                {isDark ? '☀️' : '🌙'}
+                {isDark ? <SunIcon size={20} /> : <MoonIcon size={20} />}
               </button>
               <button
                 type="button"
@@ -335,7 +337,9 @@ function RootLayout() {
               <Link to="/upload">Upload</Link>
               <Link to="/docs">How It Works</Link>
             </div>
-            <p className="footer-tagline">🔐 Built with post-quantum encryption</p>
+            <p className="footer-tagline">
+              <LockIcon size="1em" className="footer-icon" /> Built with post-quantum encryption
+            </p>
             <p className="footer-copyright">Protected by ML-KEM + AES-256-GCM</p>
           </div>
         </footer>

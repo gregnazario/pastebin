@@ -1,5 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useMemo, useState } from 'react'
+import {
+  ClipboardIcon,
+  DiceIcon,
+  DownloadIcon,
+  EyeIcon,
+  EyeOffIcon,
+  FileIcon,
+  FolderIcon,
+} from '../components/Icons'
 import { useToast } from '../components/Toast'
 import type { UploadProgress } from '../services/FileEncryptionService'
 import { PasswordValidator } from '../services/validation/PasswordValidator'
@@ -214,7 +223,9 @@ function UploadPage() {
               />
               {file ? (
                 <div className="drop-zone-content">
-                  <span className="file-icon">📄</span>
+                  <span className="file-icon">
+                    <FileIcon size={48} />
+                  </span>
                   <p className="file-name">{file.name}</p>
                   <p className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                   <button
@@ -228,7 +239,9 @@ function UploadPage() {
                 </div>
               ) : (
                 <label htmlFor="file-input" className="drop-zone-content">
-                  <span className="drop-icon">{isDragOver ? '📥' : '📁'}</span>
+                  <span className="drop-icon">
+                    {isDragOver ? <DownloadIcon size={48} /> : <FolderIcon size={48} />}
+                  </span>
                   <p className="drop-text">
                     {isDragOver ? 'Drop file here' : 'Drag & drop a file here'}
                   </p>
@@ -257,7 +270,7 @@ function UploadPage() {
                   className="toggle-password"
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
                 </button>
               </div>
               <div className="password-actions">
@@ -268,7 +281,7 @@ function UploadPage() {
                   disabled={isUploading}
                   title="Generate a strong password"
                 >
-                  🎲 Generate
+                  <DiceIcon size={16} /> Generate
                 </button>
                 {password && (
                   <button
@@ -277,7 +290,7 @@ function UploadPage() {
                     className="copy-password-btn"
                     title="Copy password to clipboard"
                   >
-                    📋 Copy
+                    <ClipboardIcon size={16} /> Copy
                   </button>
                 )}
               </div>
