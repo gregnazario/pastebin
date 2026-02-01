@@ -164,3 +164,34 @@ Each entry should include:
   - `src/routes/upload.tsx` - Added mode state, note editor UI, and upload logic
   - `src/styles.css` - Added styles for mode selector and note editor
 - **Outcome**: Users can now directly type and edit notes in the browser instead of uploading files
+
+**Keychain Password Providers Feature**
+- **Prompt**: "Add ability to add password to keychain (iOS, Windows, fedora, etc). Leave it available to plug in other providers"
+- **Action**:
+  - Created design documentation for keychain password providers
+  - Implemented pluggable keychain provider architecture:
+    - `KeychainProvider` interface with save/retrieve/delete/list operations
+    - `WebCredentialProvider` - Browser Credential Management API integration
+    - `SecureStorageProvider` - Encrypted IndexedDB fallback with AES-256-GCM
+    - Native provider stubs: iOS, macOS, Windows, Linux (libsecret), Android
+  - Built `KeychainService` singleton with:
+    - Automatic provider detection and selection
+    - Priority-based provider registration
+    - Event system for UI notifications
+    - Graceful fallback chain
+  - Created `useKeychain` React hook for UI integration
+  - Updated Upload page with "Save password to keychain" checkbox
+  - Updated View page with "Fill from keychain" functionality
+  - Added comprehensive unit tests (25 tests passing)
+  - Added CSS styles for keychain UI elements
+- **Files Created**:
+  - `src/services/keychain/types.ts` - Types and interfaces
+  - `src/services/keychain/KeychainService.ts` - Central service
+  - `src/services/keychain/providers/WebCredentialProvider.ts`
+  - `src/services/keychain/providers/SecureStorageProvider.ts`
+  - `src/services/keychain/providers/NativeBridgeProvider.ts` - Native platform stubs
+  - `src/services/keychain/index.ts` - Module exports
+  - `src/hooks/useKeychain.ts` - React hook
+  - `design-docs/keychain-password-providers.md` - Design documentation
+  - `src/services/keychain/__tests__/KeychainService.test.ts` - Unit tests
+- **Outcome**: Keychain integration complete with pluggable provider architecture

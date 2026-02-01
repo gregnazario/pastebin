@@ -75,6 +75,16 @@ Frontend (React) → Encryption Layer → Storage (Shelby)
 - Security audit
 - Deployment configuration
 
+### Recently Added (2026-02-01)
+- **Keychain Password Providers**: Pluggable system for storing passwords in platform-specific keychains
+  - `WebCredentialProvider`: Browser Credential Management API
+  - `SecureStorageProvider`: Encrypted IndexedDB fallback
+  - Native provider stubs: iOS, macOS, Windows, Linux, Android
+  - `KeychainService`: Central service with provider detection
+  - `useKeychain` React hook for UI integration
+  - Upload page: Option to save password to keychain
+  - View page: Option to retrieve password from keychain
+
 ### Commands
 ```bash
 # Development
