@@ -189,8 +189,10 @@ export function ClipboardIcon({ size = defaultProps.size, className, style, ...p
       strokeLinejoin="round"
       aria-hidden={props['aria-hidden'] ?? true}
     >
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      {/* Clipboard board */}
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      {/* Clipboard clip */}
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
     </svg>
   )
 }
@@ -558,7 +560,7 @@ export function ChainIcon({ size = defaultProps.size, className, style, ...props
 
 /**
  * Wave/Welcome Icon
- * For onboarding welcome
+ * For onboarding welcome - a friendly waving hand
  */
 export function WaveIcon({ size = defaultProps.size, className, style, ...props }: IconProps) {
   return (
@@ -575,12 +577,15 @@ export function WaveIcon({ size = defaultProps.size, className, style, ...props 
       strokeLinejoin="round"
       aria-hidden={props['aria-hidden'] ?? true}
     >
-      <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-      <path d="M8.93 13.02A5 5 0 0 1 14 8v0" />
-      <path d="M18 11c0-.72-.1-1.41-.27-2.06" />
-      <path d="M14 11v3a3 3 0 0 0 6 0v-1" />
-      <path d="M8 15v-1a5 5 0 0 0-2-4" />
-      <path d="M4 15v1a7 7 0 0 0 14 0v-3" />
+      {/* Palm and fingers */}
+      <path d="M18 11V6a2 2 0 0 0-4 0" />
+      <path d="M14 10V4a2 2 0 0 0-4 0v6" />
+      <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8 2 2 0 1 1 4 0" />
+      {/* Wave lines */}
+      <path d="M2 10h.01" />
+      <path d="M2 7h.01" />
+      <path d="M2 13h.01" />
     </svg>
   )
 }
@@ -691,6 +696,89 @@ export function QuantumIcon({ size = defaultProps.size, className, style, ...pro
       <ellipse cx="12" cy="12" rx="10" ry="4" />
       <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" />
       <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" />
+    </svg>
+  )
+}
+
+/**
+ * History/Clock Icon
+ * For viewing paste history
+ */
+export function HistoryIcon({ size = defaultProps.size, className, style, ...props }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      style={style}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden={props['aria-hidden'] ?? true}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12,6 12,12 16,14" />
+    </svg>
+  )
+}
+
+/**
+ * Trash/Delete Icon
+ * For removing items
+ */
+export function TrashIcon({ size = defaultProps.size, className, style, ...props }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      style={style}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden={props['aria-hidden'] ?? true}
+    >
+      <polyline points="3,6 5,6 21,6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  )
+}
+
+/**
+ * External Link Icon
+ * For opening links in new tabs
+ */
+export function ExternalLinkIcon({
+  size = defaultProps.size,
+  className,
+  style,
+  ...props
+}: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={className}
+      style={style}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden={props['aria-hidden'] ?? true}
+    >
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15,3 21,3 21,9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
     </svg>
   )
 }
