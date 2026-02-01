@@ -81,7 +81,11 @@ function sanitizeError(error: unknown, operation: 'encrypt' | 'decrypt'): string
         : 'Encryption failed: key derivation error'
     }
 
-    if (lowerMessage.includes('payload') || lowerMessage.includes('buffer') || lowerMessage.includes('invalid')) {
+    if (
+      lowerMessage.includes('payload') ||
+      lowerMessage.includes('buffer') ||
+      lowerMessage.includes('invalid')
+    ) {
       return operation === 'decrypt'
         ? 'Decryption failed: corrupted or invalid data'
         : 'Encryption failed: data processing error'
@@ -119,7 +123,9 @@ function sendProgress(id: string, stage: string, percent: number, message: strin
 /**
  * Handle encryption request
  */
-async function handleEncrypt(request: Extract<CryptoWorkerRequest, { type: 'ENCRYPT' }>): Promise<void> {
+async function handleEncrypt(
+  request: Extract<CryptoWorkerRequest, { type: 'ENCRYPT' }>,
+): Promise<void> {
   const { id, data, password, metadata, encryptMetadata } = request
 
   try {
@@ -163,7 +169,9 @@ async function handleEncrypt(request: Extract<CryptoWorkerRequest, { type: 'ENCR
 /**
  * Handle decryption request
  */
-async function handleDecrypt(request: Extract<CryptoWorkerRequest, { type: 'DECRYPT' }>): Promise<void> {
+async function handleDecrypt(
+  request: Extract<CryptoWorkerRequest, { type: 'DECRYPT' }>,
+): Promise<void> {
   const { id, encryptedData, password, kyberPrivateKey } = request
 
   try {

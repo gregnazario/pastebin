@@ -109,7 +109,8 @@ function isValidIpAddress(ip: string): boolean {
   // IPv4 pattern
   const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/
   // IPv6 pattern (simplified)
-  const ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^([0-9a-fA-F]{1,4}:)*:([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$/
+  const ipv6Pattern =
+    /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^([0-9a-fA-F]{1,4}:)*:([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$/
 
   if (ipv4Pattern.test(ip)) {
     // Validate each octet is <= 255

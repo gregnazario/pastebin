@@ -28,7 +28,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "frame-ancestors 'none'", // Only works via HTTP header, not meta tag!
     "base-uri 'self'",
     "form-action 'self'",
-    "upgrade-insecure-requests",
+    'upgrade-insecure-requests',
   ].join('; '),
 
   // Prevent MIME type sniffing
@@ -60,7 +60,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 
   // Prevent caching of sensitive data
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-  'Pragma': 'no-cache',
+  Pragma: 'no-cache',
 }
 
 /**

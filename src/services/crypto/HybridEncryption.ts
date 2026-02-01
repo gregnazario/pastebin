@@ -155,10 +155,7 @@ export class HybridEncryptionService {
       let metadata: FileMetadata
       try {
         if (payload.metadataEncrypted) {
-          metadataKey = await HybridEncryptionService.deriveMetadataKey(
-            derivedKey,
-            payload.salt,
-          )
+          metadataKey = await HybridEncryptionService.deriveMetadataKey(derivedKey, payload.salt)
           const metadataData = await AESService.decryptCombined(payload.metadata, metadataKey)
           const metadataJson = new TextDecoder().decode(metadataData)
           metadata = JSON.parse(metadataJson)
@@ -340,7 +337,9 @@ export class HybridEncryptionService {
 
     // Validate version
     if (version !== HybridEncryptionService.VERSION) {
-      throw new Error(`Unsupported payload version: ${version} (expected ${HybridEncryptionService.VERSION})`)
+      throw new Error(
+        `Unsupported payload version: ${version} (expected ${HybridEncryptionService.VERSION})`,
+      )
     }
 
     // Flags
@@ -389,9 +388,7 @@ export class HybridEncryptionService {
 
     // Verify we consumed the entire buffer (no trailing garbage)
     if (offset !== buffer.length) {
-      throw new Error(
-        `Invalid payload: ${buffer.length - offset} unexpected trailing bytes`,
-      )
+      throw new Error(`Invalid payload: ${buffer.length - offset} unexpected trailing bytes`)
     }
 
     return {

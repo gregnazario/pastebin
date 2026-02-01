@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { UploadProgress } from '../../services/FileEncryptionService'
 import type { FileMetadata } from '../../types'
 
@@ -11,6 +11,84 @@ function isValidFileId(id: string): boolean {
   const pattern = /^pastebin-\d+-[\w._-]+-[a-f0-9]+$/
   return pattern.test(id) && id.length <= 500
 }
+
+/**
+ * Check if a file is previewable as text
+ */
+function isTextFile(mimeType: string, fileName: string): boolean {
+  const textMimeTypes = [
+    'text/plain',
+    'text/html',
+    'text/css',
+    'text/javascript',
+    'text/markdown',
+    'text/xml',
+    'text/csv',
+    'application/json',
+    'application/javascript',
+    'application/xml',
+    'application/x-yaml',
+    'application/yaml',
+  ]
+
+  const textExtensions = [
+    '.txt',
+    '.md',
+    '.json',
+    '.js',
+    '.ts',
+    '.jsx',
+    '.tsx',
+    '.css',
+    '.html',
+    '.xml',
+    '.yaml',
+    '.yml',
+    '.csv',
+    '.py',
+    '.rb',
+    '.go',
+    '.rs',
+    '.java',
+    '.c',
+    '.cpp',
+    '.h',
+    '.sh',
+    '.bash',
+    '.zsh',
+    '.fish',
+    '.ps1',
+    '.sql',
+    '.graphql',
+    '.toml',
+    '.ini',
+    '.conf',
+    '.cfg',
+    '.env',
+    '.gitignore',
+    '.dockerfile',
+    '.makefile',
+  ]
+
+  const lowerName = fileName.toLowerCase()
+  return (
+    textMimeTypes.some((t) => mimeType.startsWith(t)) ||
+    textExtensions.some((ext) => lowerName.endsWith(ext))
+  )
+}
+
+/**
+ * Check if a file is previewable as an image
+ */
+function isImageFile(mimeType: string): boolean {
+  return mimeType.startsWith('image/') && !mimeType.includes('svg')
+}
+
+/** Maximum size for text preview (500KB) */
+const MAX_TEXT_PREVIEW_SIZE = 500 * 1024
+
+/** Maximum size for image preview (10MB) */
+const MAX_IMAGE_PREVIEW_SIZE = 10 * 1024 * 1024
 
 export const Route = createFileRoute('/p/$id')({
   component: ViewPage,
@@ -28,6 +106,59 @@ function ViewPage() {
     metadata: FileMetadata
   } | null>(null)
   const [showSecurityWarning, setShowSecurityWarning] = useState(true)
+  const [showPreview, setShowPreview] = useState(false)
+
+  // Determine if the file can be previewed
+  const previewInfo = useMemo(() => {
+    if (!decryptedFile) return null
+
+    const { metadata, data } = decryptedFile
+    const isText = isTextFile(metadata.mimeType, metadata.name)
+    const isImage = isImageFile(metadata.mimeType)
+
+    if (isText && data.length <= MAX_TEXT_PREVIEW_SIZE) {
+      return { type: 'text' as const, canPreview: true }
+    }
+    if (isImage && data.length <= MAX_IMAGE_PREVIEW_SIZE) {
+      return { type: 'image' as const, canPreview: true }
+    }
+    if (isText && data.length > MAX_TEXT_PREVIEW_SIZE) {
+      return { type: 'text' as const, canPreview: false, reason: 'File too large to preview' }
+    }
+    if (isImage && data.length > MAX_IMAGE_PREVIEW_SIZE) {
+      return { type: 'image' as const, canPreview: false, reason: 'Image too large to preview' }
+    }
+    return null
+  }, [decryptedFile])
+
+  // Generate preview content
+  const previewContent = useMemo(() => {
+    if (!decryptedFile || !previewInfo?.canPreview || !showPreview) return null
+
+    const { data, metadata } = decryptedFile
+
+    if (previewInfo.type === 'text') {
+      const decoder = new TextDecoder('utf-8')
+      return decoder.decode(data)
+    }
+
+    if (previewInfo.type === 'image') {
+      // Create a new Uint8Array to ensure proper BlobPart compatibility
+      const blob = new Blob([new Uint8Array(data)], { type: metadata.mimeType })
+      return URL.createObjectURL(blob)
+    }
+
+    return null
+  }, [decryptedFile, previewInfo, showPreview])
+
+  // Clean up blob URLs
+  useEffect(() => {
+    return () => {
+      if (previewContent && previewInfo?.type === 'image') {
+        URL.revokeObjectURL(previewContent)
+      }
+    }
+  }, [previewContent, previewInfo?.type])
 
   // Validate file ID format
   const isIdValid = isValidFileId(id)
@@ -83,8 +214,8 @@ function ViewPage() {
         <div className="error-box">
           <h2>Invalid File Link</h2>
           <p>
-            The file link appears to be malformed or invalid. Please check that you have the
-            correct link.
+            The file link appears to be malformed or invalid. Please check that you have the correct
+            link.
           </p>
         </div>
       </div>
@@ -123,9 +254,7 @@ function ViewPage() {
               ×
             </button>
           </div>
-          <p>
-            This link contains a decryption key in the URL fragment. For security:
-          </p>
+          <p>This link contains a decryption key in the URL fragment. For security:</p>
           <ul>
             <li>Clear your browser history after accessing this file</li>
             <li>Use private/incognito mode for sensitive files</li>
@@ -148,6 +277,44 @@ function ViewPage() {
               <strong>Type:</strong> {decryptedFile.metadata.mimeType}
             </p>
           </div>
+
+          {/* Preview toggle */}
+          {previewInfo && (
+            <div className="preview-section">
+              {previewInfo.canPreview ? (
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="preview-toggle-btn"
+                >
+                  {showPreview
+                    ? '🙈 Hide Preview'
+                    : `👁️ Preview ${previewInfo.type === 'image' ? 'Image' : 'File'}`}
+                </button>
+              ) : (
+                <p className="preview-unavailable">{previewInfo.reason}</p>
+              )}
+
+              {/* Preview content */}
+              {showPreview && previewContent && (
+                <div className="preview-container">
+                  {previewInfo.type === 'text' && (
+                    <pre className="text-preview">
+                      <code>{previewContent}</code>
+                    </pre>
+                  )}
+                  {previewInfo.type === 'image' && (
+                    <img
+                      src={previewContent}
+                      alt={decryptedFile.metadata.name}
+                      className="image-preview"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <button type="button" onClick={handleDownload} className="download-button">
             Download File
           </button>

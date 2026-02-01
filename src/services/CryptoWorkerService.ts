@@ -7,9 +7,7 @@
 import type { FileMetadata } from '../types'
 import type { CryptoWorkerRequest, CryptoWorkerResponse } from '../workers/crypto.worker'
 
-export interface CryptoProgressCallback {
-  (stage: string, percent: number, message: string): void
-}
+export type CryptoProgressCallback = (stage: string, percent: number, message: string) => void
 
 export interface EncryptionResult {
   serializedPayload: Uint8Array
