@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AlertIcon, CheckIcon, EyeIcon, EyeOffIcon } from '../../components/Icons'
 import type { UploadProgress } from '../../services/FileEncryptionService'
 import type { FileMetadata } from '../../types'
 
@@ -244,7 +245,9 @@ function ViewPage() {
       {showSecurityWarning && !decryptedFile && (
         <div className="security-warning">
           <div className="warning-header">
-            <span>⚠️ Security Notice</span>
+            <span>
+              <AlertIcon size="1em" /> Security Notice
+            </span>
             <button
               type="button"
               onClick={() => setShowSecurityWarning(false)}
@@ -265,7 +268,9 @@ function ViewPage() {
 
       {decryptedFile ? (
         <div className="success">
-          <h2>✅ Decryption Successful!</h2>
+          <h2>
+            <CheckIcon size="1em" /> Decryption Successful!
+          </h2>
           <div className="file-details">
             <p>
               <strong>Filename:</strong> {decryptedFile.metadata.name}
@@ -287,9 +292,15 @@ function ViewPage() {
                   onClick={() => setShowPreview(!showPreview)}
                   className="preview-toggle-btn"
                 >
-                  {showPreview
-                    ? '🙈 Hide Preview'
-                    : `👁️ Preview ${previewInfo.type === 'image' ? 'Image' : 'File'}`}
+                  {showPreview ? (
+                    <>
+                      <EyeOffIcon size={16} /> Hide Preview
+                    </>
+                  ) : (
+                    <>
+                      <EyeIcon size={16} /> Preview {previewInfo.type === 'image' ? 'Image' : 'File'}
+                    </>
+                  )}
                 </button>
               ) : (
                 <p className="preview-unavailable">{previewInfo.reason}</p>
@@ -344,7 +355,7 @@ function ViewPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="toggle-password"
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
               </button>
             </div>
           </div>
