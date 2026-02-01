@@ -148,3 +148,19 @@ Each entry should include:
 - **Dependencies Added**: @noble/hashes
 - **Files Created**: SECURITY_FIXES.md, SECURITY_REPORT.md
 - **Outcome**: All security issues addressed, codebase hardened for production
+
+### 2026-02-01
+**Direct Note Input Feature**
+- **Prompt**: "add a selector that lets you just upload and edit a note instead of uploading a file"
+- **Action**:
+  - Added mode selector toggle between "File" and "Note" upload modes
+  - Implemented note editor with optional title field and content textarea
+  - Notes are converted to .txt files before encryption and upload
+  - Added character count and approximate file size display
+  - Updated page title and button text based on active mode
+  - Added responsive CSS styles for mode selector and note editor
+  - Content is cleared when switching modes to prevent data leakage
+- **Files Modified**: 
+  - `src/routes/upload.tsx` - Added mode state, note editor UI, and upload logic
+  - `src/styles.css` - Added styles for mode selector and note editor
+- **Outcome**: Users can now directly type and edit notes in the browser instead of uploading files
