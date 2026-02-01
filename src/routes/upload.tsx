@@ -224,16 +224,14 @@ function UploadPage() {
               ? noteContent.slice(0, 100) + (noteContent.length > 100 ? '...' : '')
               : undefined
 
-          // Store URL without the key fragment for security
-          // The key is only in the shareable URL, not stored in history
-          const urlWithoutKey = uploadResult.shareableUrl.split('#')[0]
-
+          // Store full URL including decryption key
+          // The key alone isn't enough - password is still required to decrypt
           const historyEntry = createPasteHistoryEntry({
             fileId: uploadResult.fileId,
             fileName: uploadFile.name,
             fileSize: uploadFile.size,
             mimeType: uploadFile.type || 'application/octet-stream',
-            url: urlWithoutKey,
+            url: uploadResult.shareableUrl,
             expiresAt: uploadResult.expiresAt,
             encryptedMetadata: encryptMetadata,
             contentType: uploadMode,

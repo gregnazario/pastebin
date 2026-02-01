@@ -113,7 +113,7 @@ function PasteHistoryItem({
               type="button"
               className="history-action-btn"
               onClick={() => onCopyLink(entry.url)}
-              title="Copy link (without decryption key)"
+              title="Copy shareable link"
             >
               <ClipboardIcon size={16} />
             </button>
@@ -213,7 +213,7 @@ export function PasteHistory({
     async (url: string) => {
       try {
         await navigator.clipboard.writeText(url)
-        showToast('Link copied! Note: Decryption key is not included for security.', 'info', 4000)
+        showToast('Link copied! Password still required to decrypt.', 'success')
       } catch {
         showToast('Failed to copy link', 'error')
       }
