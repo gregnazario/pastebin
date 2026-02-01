@@ -1,9 +1,18 @@
 import { gcm } from '@noble/ciphers/aes.js'
 import { randomBytes } from '@noble/ciphers/utils.js'
 
+/**
+ * AES-GCM encryption result
+ * Note: When using @noble/ciphers, the authentication tag (16 bytes) is appended
+ * to the ciphertext. The `tag` field is kept for interface compatibility but
+ * the actual tag is the last 16 bytes of `ciphertext`.
+ */
 export interface AESEncryptionResult {
+  /** Ciphertext with authentication tag appended (last 16 bytes are the tag) */
   ciphertext: Uint8Array
+  /** 12-byte nonce/IV used for encryption */
   nonce: Uint8Array
+  /** Authentication tag - empty when using @noble/ciphers (tag is in ciphertext) */
   tag: Uint8Array
 }
 
@@ -41,10 +50,15 @@ export class AESService {
       // Encrypt the data
       const ciphertext = cipher.encrypt(data)
 
+      // Note on GCM authentication tag:
+      // @noble/ciphers appends the 16-byte authentication tag to the ciphertext.
+      // For manual tag extraction: tag = ciphertext.slice(-16), data = ciphertext.slice(0, -16)
+      // The tag field is empty here for interface compatibility; the actual tag is
+      // automatically verified during decryption by @noble/ciphers.
       return {
         ciphertext,
         nonce,
-        tag: new Uint8Array(0), // Tag is included in ciphertext for @noble/ciphers
+        tag: new Uint8Array(0),
       }
     } catch (error) {
       throw new Error(

@@ -7,6 +7,32 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Secure Pastebin - Post-Quantum Encrypted File Sharing' },
       { name: 'description', content: 'Share files securely with post-quantum encryption' },
+      // Security headers
+      {
+        httpEquiv: 'Content-Security-Policy',
+        content: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline'", // unsafe-inline needed for inline styles/scripts
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob:",
+          "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz",
+          "frame-ancestors 'none'", // Prevent clickjacking
+          "base-uri 'self'",
+          "form-action 'self'",
+        ].join('; '),
+      },
+      { httpEquiv: 'X-Content-Type-Options', content: 'nosniff' },
+      { httpEquiv: 'X-Frame-Options', content: 'DENY' },
+      { httpEquiv: 'X-XSS-Protection', content: '1; mode=block' },
+      { httpEquiv: 'Referrer-Policy', content: 'strict-origin-when-cross-origin' },
+      {
+        httpEquiv: 'Strict-Transport-Security',
+        content: 'max-age=31536000; includeSubDomains; preload',
+      },
+      {
+        httpEquiv: 'Permissions-Policy',
+        content: 'geolocation=(), microphone=(), camera=()',
+      },
     ],
     links: [{ rel: 'icon', href: '/favicon.ico' }],
   }),

@@ -3,6 +3,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { FileEncryptionService, type UploadProgress } from '../../services/FileEncryptionService'
 import type { FileMetadata } from '../../types'
 
+/**
+ * Validate file ID format to prevent injection attacks
+ * File IDs should match: pastebin-timestamp-sanitized_filename-randomsuffix
+ */
+function isValidFileId(id: string): boolean {
+  const pattern = /^pastebin-\d+-[\w._-]+-[a-f0-9]+$/
+  return pattern.test(id) && id.length <= 500
+}
+
 export const Route = createFileRoute('/p/$id')({
   component: ViewPage,
 })
@@ -18,6 +27,10 @@ function ViewPage() {
     data: Uint8Array
     metadata: FileMetadata
   } | null>(null)
+  const [showSecurityWarning, setShowSecurityWarning] = useState(true)
+
+  // Validate file ID format
+  const isIdValid = isValidFileId(id)
 
   // Get private key from URL fragment
   const [privateKey, setPrivateKey] = useState<string | null>(null)
@@ -59,6 +72,22 @@ function ViewPage() {
     FileEncryptionService.triggerDownload(blob, decryptedFile.metadata.name)
   }, [decryptedFile])
 
+  // Show error for invalid file ID format
+  if (!isIdValid) {
+    return (
+      <div className="view-page">
+        <div className="error-box">
+          <h2>Invalid File Link</h2>
+          <p>
+            The file link appears to be malformed or invalid. Please check that you have the
+            correct link.
+          </p>
+        </div>
+        <style>{styles}</style>
+      </div>
+    )
+  }
+
   if (!privateKey) {
     return (
       <div className="view-page">
@@ -77,6 +106,31 @@ function ViewPage() {
   return (
     <div className="view-page">
       <h1>Download File</h1>
+
+      {/* Security warning about browser history */}
+      {showSecurityWarning && !decryptedFile && (
+        <div className="security-warning">
+          <div className="warning-header">
+            <span>⚠️ Security Notice</span>
+            <button
+              type="button"
+              onClick={() => setShowSecurityWarning(false)}
+              className="dismiss-warning"
+              aria-label="Dismiss warning"
+            >
+              ×
+            </button>
+          </div>
+          <p>
+            This link contains a decryption key in the URL fragment. For security:
+          </p>
+          <ul>
+            <li>Clear your browser history after accessing this file</li>
+            <li>Use private/incognito mode for sensitive files</li>
+            <li>Don't share screenshots of this page</li>
+          </ul>
+        </div>
+      )}
 
       {decryptedFile ? (
         <div className="success">
@@ -161,6 +215,50 @@ const styles = `
   .view-page h1 {
     text-align: center;
     margin-bottom: 30px;
+  }
+
+  .security-warning {
+    background: #fff8e6;
+    border: 1px solid #f0c36d;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .warning-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: #8a6914;
+    margin-bottom: 8px;
+  }
+
+  .dismiss-warning {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #8a6914;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .security-warning p {
+    margin: 0 0 8px 0;
+    color: #5d4a0a;
+    font-size: 14px;
+  }
+
+  .security-warning ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #5d4a0a;
+    font-size: 13px;
+  }
+
+  .security-warning li {
+    margin: 4px 0;
   }
 
   .error-box {

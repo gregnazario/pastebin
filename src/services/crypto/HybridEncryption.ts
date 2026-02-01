@@ -1,3 +1,5 @@
+import { hkdf } from '@noble/hashes/hkdf.js'
+import { sha256 } from '@noble/hashes/sha2.js'
 import type { FileMetadata } from '../../types'
 import { AESService } from './AESService'
 import { KeyDerivationService } from './KeyDerivation'
@@ -24,7 +26,6 @@ export interface EncryptionKeys {
 
 export class HybridEncryptionService {
   private static readonly VERSION = 1
-  private static readonly METADATA_KEY_INDEX = 1 // Use different key index for metadata
 
   /**
    * Encrypt data using hybrid Kyber + AES-GCM encryption
@@ -134,17 +135,21 @@ export class HybridEncryptionService {
 
       // Step 5: Handle metadata
       let metadata: FileMetadata
-      if (payload.metadataEncrypted) {
-        const metadataKey = await HybridEncryptionService.deriveMetadataKey(
-          derivedKey,
-          payload.salt,
-        )
-        const metadataData = await AESService.decryptCombined(payload.metadata, metadataKey)
-        const metadataJson = new TextDecoder().decode(metadataData)
-        metadata = JSON.parse(metadataJson)
-      } else {
-        const metadataJson = new TextDecoder().decode(payload.metadata)
-        metadata = JSON.parse(metadataJson)
+      try {
+        if (payload.metadataEncrypted) {
+          const metadataKey = await HybridEncryptionService.deriveMetadataKey(
+            derivedKey,
+            payload.salt,
+          )
+          const metadataData = await AESService.decryptCombined(payload.metadata, metadataKey)
+          const metadataJson = new TextDecoder().decode(metadataData)
+          metadata = JSON.parse(metadataJson)
+        } else {
+          const metadataJson = new TextDecoder().decode(payload.metadata)
+          metadata = JSON.parse(metadataJson)
+        }
+      } catch {
+        throw new Error('Failed to parse metadata: invalid or corrupted data')
       }
 
       return { data, metadata }
@@ -156,7 +161,8 @@ export class HybridEncryptionService {
   }
 
   /**
-   * Combine password-derived key and Kyber-derived key
+   * Combine password-derived key and Kyber-derived key using HKDF
+   * This provides cryptographically secure key combination with domain separation
    * @param derivedKey - Key derived from password
    * @param kyberKey - Key from Kyber
    * @returns Combined key for AES
@@ -165,37 +171,35 @@ export class HybridEncryptionService {
     derivedKey: Uint8Array,
     kyberKey: Uint8Array,
   ): Promise<Uint8Array> {
-    // XOR the keys together for a simple combination
-    // In production, consider using HKDF for key derivation
-    const combined = new Uint8Array(32)
-    for (let i = 0; i < 32; i++) {
-      combined[i] = derivedKey[i % derivedKey.length] ^ kyberKey[i % kyberKey.length]
-    }
+    // Concatenate both keys as input keying material (IKM)
+    const inputMaterial = new Uint8Array(derivedKey.length + kyberKey.length)
+    inputMaterial.set(derivedKey, 0)
+    inputMaterial.set(kyberKey, derivedKey.length)
+
+    // Use HKDF with SHA-256 to derive a secure combined key
+    // - salt: random bytes for additional security (using empty for deterministic derivation)
+    // - info: context bytes for domain separation
+    const info = new TextEncoder().encode('pastebin-hybrid-key-v1')
+    const combined = hkdf(sha256, inputMaterial, new Uint8Array(32), info, 32)
     return combined
   }
 
   /**
-   * Derive a separate key for metadata encryption
+   * Derive a separate key for metadata encryption using HKDF
+   * Uses domain separation to ensure metadata key is cryptographically independent
    * @param mainKey - The main derived key
-   * @param salt - The salt used
+   * @param salt - The salt used for additional entropy
    * @returns Metadata encryption key
    */
   private static async deriveMetadataKey(
     mainKey: Uint8Array,
     salt: Uint8Array,
   ): Promise<Uint8Array> {
-    // Use a different context to derive metadata key
-    const metadataSalt = new Uint8Array(salt.length)
-    for (let i = 0; i < salt.length; i++) {
-      metadataSalt[i] = salt[i] ^ HybridEncryptionService.METADATA_KEY_INDEX
-    }
-
-    // Simple derivation - in production use HKDF
-    const combined = new Uint8Array(32)
-    for (let i = 0; i < 32; i++) {
-      combined[i] = mainKey[i % mainKey.length] ^ metadataSalt[i % metadataSalt.length]
-    }
-    return combined
+    // Use HKDF with a distinct context string for metadata encryption
+    // This provides proper domain separation from the main encryption key
+    const info = new TextEncoder().encode('pastebin-metadata-key-v1')
+    const metadataKey = hkdf(sha256, mainKey, salt, info, 32)
+    return metadataKey
   }
 
   /**
