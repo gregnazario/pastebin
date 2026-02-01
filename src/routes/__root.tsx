@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router'
 import { useCallback, useEffect, useState } from 'react'
+import { PWAPrompt } from '../components/PWAPrompt'
 import { ToastProvider } from '../components/Toast'
 import '../styles.css'
 
@@ -52,7 +53,18 @@ export const Route = createRootRoute({
           'pastebin, encryption, post-quantum, kyber, ml-kem, aes-256, secure file sharing, privacy, argon2',
       },
       { name: 'robots', content: 'index, follow' },
+
+      // PWA & Mobile
       { name: 'theme-color', content: '#2c3e50' },
+      { name: 'theme-color', content: '#1a1a2e', media: '(prefers-color-scheme: dark)' },
+      { name: 'mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+      { name: 'apple-mobile-web-app-title', content: 'Secure Pastebin' },
+      { name: 'application-name', content: 'Secure Pastebin' },
+      { name: 'msapplication-TileColor', content: '#2c3e50' },
+      { name: 'msapplication-tap-highlight', content: 'no' },
+      { name: 'format-detection', content: 'telephone=no' },
 
       // NOTE: Security headers (CSP, X-Frame-Options, HSTS, etc.) are now set via
       // HTTP response headers in src/server.ts for better security.
@@ -181,6 +193,7 @@ function RootLayout() {
             <p className="footer-copyright">Protected by ML-KEM + AES-256-GCM</p>
           </div>
         </footer>
+        <PWAPrompt />
         <Scripts />
       </body>
     </html>

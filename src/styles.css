@@ -1569,8 +1569,314 @@ main {
   background: var(--accent-hover);
 }
 
-/* Mobile responsiveness for onboarding */
+/* ==========================================================================
+   Mobile & Responsive Design
+   ========================================================================== */
+
+/* Touch-friendly targets (minimum 44x44px for accessibility) */
+button,
+.upload-button,
+.decrypt-button,
+.download-button,
+a[class] {
+  min-height: 44px;
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Improve touch scrolling */
+body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area insets for notched devices */
+.app-header {
+  padding-top: max(15px, env(safe-area-inset-top));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+
+.app-footer {
+  padding-bottom: max(30px, env(safe-area-inset-bottom));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+
+main {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Tablet breakpoint (768px) */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .tagline {
+    font-size: 1.1rem;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .docs-page h1 {
+    font-size: 1.75rem;
+  }
+  
+  .docs-section h2 {
+    font-size: 1.3rem;
+  }
+  
+  .security-grid,
+  .privacy-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .flow-diagram {
+    padding: 10px;
+    margin: 20px -10px;
+    border-radius: 0;
+  }
+  
+  .encryption-animation {
+    min-height: 300px;
+  }
+  
+  .specs-table td {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+  
+  .specs-table td:first-child {
+    width: 50%;
+  }
+}
+
+/* Mobile breakpoint (480px) */
 @media (max-width: 480px) {
+  /* Header mobile */
+  .app-header {
+    padding: 12px 16px;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  
+  .header-content {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .logo {
+    font-size: 1.1rem;
+  }
+  
+  nav {
+    gap: 12px;
+    font-size: 0.9rem;
+  }
+  
+  nav a {
+    padding: 8px 4px;
+  }
+  
+  .theme-toggle {
+    padding: 8px;
+  }
+  
+  /* Home page mobile */
+  .home-page {
+    padding: 24px 16px;
+  }
+  
+  .hero h1 {
+    font-size: 1.75rem;
+    margin-bottom: 8px;
+  }
+  
+  .tagline {
+    font-size: 1rem;
+    margin-bottom: 24px;
+  }
+  
+  .feature {
+    padding: 16px;
+  }
+  
+  .feature h3 {
+    font-size: 1rem;
+  }
+  
+  .home-page .upload-button {
+    padding: 14px 32px;
+    font-size: 1rem;
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Upload page mobile */
+  .upload-page {
+    padding: 24px 16px;
+  }
+  
+  .upload-page h1 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .drop-zone {
+    padding: 24px 16px;
+  }
+  
+  .drop-icon,
+  .file-icon {
+    font-size: 36px;
+  }
+  
+  .drop-text {
+    font-size: 14px;
+  }
+  
+  .password-actions {
+    flex-direction: column;
+  }
+  
+  .generate-password-btn,
+  .copy-password-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .upload-page .upload-button {
+    padding: 16px;
+    font-size: 1rem;
+  }
+  
+  .url-container {
+    flex-direction: column;
+  }
+  
+  .url-container input {
+    font-size: 12px;
+  }
+  
+  .url-container button {
+    width: 100%;
+  }
+  
+  /* View page mobile */
+  .view-page {
+    padding: 24px 16px;
+  }
+  
+  .view-page h1 {
+    font-size: 1.5rem;
+  }
+  
+  .file-details {
+    padding: 16px;
+  }
+  
+  .preview-container {
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0;
+  }
+  
+  .text-preview {
+    font-size: 11px;
+    max-height: 300px;
+  }
+  
+  /* Docs page mobile */
+  .docs-page {
+    padding: 24px 16px;
+  }
+  
+  .docs-page h1 {
+    font-size: 1.5rem;
+  }
+  
+  .docs-intro {
+    font-size: 1rem;
+  }
+  
+  .docs-section {
+    margin-bottom: 32px;
+  }
+  
+  .docs-section h2 {
+    font-size: 1.2rem;
+    padding-bottom: 8px;
+  }
+  
+  .process-steps {
+    padding-left: 20px;
+  }
+  
+  .process-steps li {
+    font-size: 0.95rem;
+  }
+  
+  .collapsible-header {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+  
+  .collapsible-content {
+    padding: 14px;
+  }
+  
+  .security-card,
+  .privacy-card {
+    padding: 16px;
+  }
+  
+  .security-card h3,
+  .privacy-card h3 {
+    font-size: 1rem;
+  }
+  
+  .warning-box {
+    padding: 14px 16px;
+  }
+  
+  /* Footer mobile */
+  .app-footer {
+    padding: 24px 16px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+  
+  .footer-links {
+    gap: 16px;
+  }
+  
+  .footer-tagline {
+    font-size: 0.9rem;
+  }
+  
+  .footer-copyright {
+    font-size: 0.8rem;
+  }
+  
+  /* Toast mobile */
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    max-width: none;
+  }
+  
+  .toast {
+    padding: 12px 14px;
+  }
+  
+  /* Onboarding mobile */
   .onboarding-modal {
     padding: 24px;
     margin: 10px;
@@ -1595,5 +1901,214 @@ main {
   .onboarding-skip,
   .onboarding-next {
     width: 100%;
+  }
+}
+
+/* Small mobile (360px and below) */
+@media (max-width: 360px) {
+  .header-content {
+    justify-content: center;
+  }
+  
+  .logo {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  
+  nav {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .hero h1 {
+    font-size: 1.5rem;
+  }
+  
+  .docs-page h1 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Landscape mode on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .onboarding-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .onboarding-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+  
+  .onboarding-title {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+  
+  .onboarding-description {
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  
+  .onboarding-progress {
+    margin-bottom: 12px;
+  }
+}
+
+/* PWA standalone mode adjustments */
+@media (display-mode: standalone) {
+  /* Remove any browser UI compensation */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000;
+    --text-primary: #000;
+    --text-secondary: #333;
+  }
+  
+  [data-theme="dark"] {
+    --border-color: #fff;
+    --text-primary: #fff;
+    --text-secondary: #ccc;
+  }
+  
+  button,
+  .upload-button,
+  .decrypt-button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ==========================================================================
+   PWA Install & Update Banners
+   ========================================================================== */
+
+.pwa-banner,
+.pwa-update-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  padding: 16px 20px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 1200;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.3s ease-out;
+}
+
+.pwa-update-banner {
+  background: var(--bg-info-light);
+  border-top-color: var(--info-border);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.pwa-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pwa-banner-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.pwa-banner-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pwa-banner-text strong {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.pwa-banner-text span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pwa-banner-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pwa-banner-dismiss {
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.pwa-banner-dismiss:hover {
+  color: var(--text-primary);
+}
+
+.pwa-banner-install {
+  padding: 10px 20px;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pwa-banner-install:hover {
+  background: var(--accent-hover);
+}
+
+@media (max-width: 480px) {
+  .pwa-banner,
+  .pwa-update-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .pwa-banner-actions {
+    justify-content: flex-end;
+  }
+
+  .pwa-banner-text strong {
+    font-size: 14px;
+  }
+
+  .pwa-banner-text span {
+    font-size: 12px;
   }
 }
