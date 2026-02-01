@@ -68,4 +68,25 @@ When code changes are made, run these commands (when available):
 - Type checking: `npm run typecheck` or equivalent
 - Tests: `npm test` or equivalent
 
-*Last updated: 2026-01-23*
+## Critical Build Configuration
+
+### WASM File Handling for Shelby SDK
+
+The `@shelby-protocol/clay-codes` package contains a `clay.wasm` file that must be available at runtime. The Nitro bundler must be configured to externalize this package to prevent the WASM file from being separated from the JS code during bundling.
+
+**DO NOT REMOVE** the `externals` configuration in `vite.config.ts`:
+
+```typescript
+nitro({
+  externals: {
+    external: ['@shelby-protocol/clay-codes'],
+  },
+})
+```
+
+Without this configuration, Vercel deployments will fail with:
+```
+Unable to locate clay.wasm. Tried: /var/task/_chunks/_libs/@shelby-protocol/clay.wasm, /var/task/_chunks/_libs/dist/clay.wasm
+```
+
+*Last updated: 2026-02-01*
