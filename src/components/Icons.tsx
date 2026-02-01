@@ -699,12 +699,6 @@ export function QuantumIcon({ size = defaultProps.size, className, style, ...pro
  * Icon wrapper component for consistent sizing with text
  * Renders an icon inline with text at the same size
  */
-export function InlineIcon({
-  children,
-  className,
-}: {
-  children: ReactNode
-  className?: string
-}) {
+export function InlineIcon({ children, className }: { children: ReactNode; className?: string }) {
   return <span className={`inline-icon ${className || ''}`}>{children}</span>
 }

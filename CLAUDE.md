@@ -63,9 +63,35 @@ This file contains the development rules and guidelines for this project.
 
 ## Commands to Run
 
-When code changes are made, run these commands (when available):
-- Linting: `npm run lint` or equivalent
-- Type checking: `npm run typecheck` or equivalent
-- Tests: `npm test` or equivalent
+**Always use `bun` instead of `npm` for all package management and script execution.**
 
-*Last updated: 2026-01-23*
+When code changes are made, run these commands (when available):
+- Linting: `bun run lint`
+- Type checking: `bun run typecheck`
+- Tests: `bun test`
+- Build: `bun run build`
+- Dev server: `bun run dev`
+
+## Critical Build Configuration
+
+### WASM File Handling for Shelby SDK
+
+The `@shelby-protocol/clay-codes` package contains a `clay.wasm` file that must be available at runtime. When Nitro bundles the server code, the JS is placed in the output directory but the WASM file is not automatically copied.
+
+**DO NOT REMOVE** the `copyClayWasmPlugin()` Vite plugin in `vite.config.ts`:
+
+```typescript
+// In plugins array:
+copyClayWasmPlugin(),
+```
+
+This plugin uses Vite's `closeBundle` hook to copy `clay.wasm` after the build completes. It must be a separate Vite plugin (not Nitro hooks) to avoid overwriting Nitro's preset hooks which generate required Vercel config files.
+
+The plugin handles both local builds (`.output/server/`) and Vercel builds (`.vercel/output/functions/__server.func/`).
+
+Without this plugin, deployments will fail with:
+```
+Unable to locate clay.wasm. Tried: /var/task/_chunks/_libs/@shelby-protocol/clay.wasm, /var/task/_chunks/_libs/dist/clay.wasm
+```
+
+*Last updated: 2026-02-01*

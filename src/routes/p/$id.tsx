@@ -298,7 +298,8 @@ function ViewPage() {
                     </>
                   ) : (
                     <>
-                      <EyeIcon size={16} /> Preview {previewInfo.type === 'image' ? 'Image' : 'File'}
+                      <EyeIcon size={16} /> Preview{' '}
+                      {previewInfo.type === 'image' ? 'Image' : 'File'}
                     </>
                   )}
                 </button>

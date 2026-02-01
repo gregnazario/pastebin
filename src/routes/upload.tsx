@@ -205,7 +205,12 @@ function UploadPage() {
       // Dynamic import - only load crypto libraries when actually uploading
       const { FileEncryptionService } = await import('../services/FileEncryptionService')
       const service = new FileEncryptionService()
-      const uploadResult = await service.uploadFile(uploadFile, password, encryptMetadata, setProgress)
+      const uploadResult = await service.uploadFile(
+        uploadFile,
+        password,
+        encryptMetadata,
+        setProgress,
+      )
 
       setResult({
         url: uploadResult.shareableUrl,
@@ -217,7 +222,15 @@ function UploadPage() {
       setIsUploading(false)
       setProgress(null)
     }
-  }, [getUploadFile, password, encryptMetadata, passwordValidation.isValid, passwordsMatch, uploadMode, noteContent.length])
+  }, [
+    getUploadFile,
+    password,
+    encryptMetadata,
+    passwordValidation.isValid,
+    passwordsMatch,
+    uploadMode,
+    noteContent.length,
+  ])
 
   const copyToClipboard = useCallback(async () => {
     if (result?.url) {
@@ -375,7 +388,8 @@ function UploadPage() {
                 />
                 <div className="note-info">
                   <span className="note-size">
-                    {noteContent.length.toLocaleString()} / {MAX_NOTE_SIZE.toLocaleString()} characters
+                    {noteContent.length.toLocaleString()} / {MAX_NOTE_SIZE.toLocaleString()}{' '}
+                    characters
                   </span>
                   {noteContent.length > 0 && (
                     <span className="note-size-kb">
@@ -476,10 +490,20 @@ function UploadPage() {
           <button
             type="button"
             onClick={handleUpload}
-            disabled={!hasContent || !passwordValidation.isValid || !passwordsMatch || isUploading || (uploadMode === 'note' && !isNoteValid)}
+            disabled={
+              !hasContent ||
+              !passwordValidation.isValid ||
+              !passwordsMatch ||
+              isUploading ||
+              (uploadMode === 'note' && !isNoteValid)
+            }
             className="upload-button"
           >
-            {isUploading ? 'Encrypting...' : uploadMode === 'file' ? 'Encrypt & Upload' : 'Encrypt & Save Note'}
+            {isUploading
+              ? 'Encrypting...'
+              : uploadMode === 'file'
+                ? 'Encrypt & Upload'
+                : 'Encrypt & Save Note'}
           </button>
         </div>
       )}

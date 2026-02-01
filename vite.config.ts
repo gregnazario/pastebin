@@ -1,10 +1,67 @@
-import { defineConfig } from 'vite'
+import { copyFileSync, existsSync, mkdirSync } from 'fs'
+import { dirname, resolve } from 'path'
+import { fileURLToPath, URL } from 'url'
 import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import { nitro } from 'nitro/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
-import { fileURLToPath, URL } from 'url'
+import { defineConfig, type Plugin } from 'vite'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+/**
+ * Vite plugin to copy clay.wasm to the output directory after build.
+ *
+ * The @shelby-protocol/clay-codes package loads clay.wasm at runtime using
+ * paths relative to the bundled JS file. Nitro bundles the JS but doesn't
+ * copy the WASM file, so we need to do it manually.
+ *
+ * This uses Vite's closeBundle hook to run after all builds complete,
+ * avoiding conflicts with Nitro's preset hooks.
+ *
+ * See CLAUDE.md for more details.
+ */
+function copyClayWasmPlugin(): Plugin {
+  return {
+    name: 'copy-clay-wasm',
+    apply: 'build',
+    closeBundle() {
+      const source = resolve(__dirname, 'node_modules/@shelby-protocol/clay-codes/dist/clay.wasm')
+
+      // Vercel uses .vercel/output, local builds use .output
+      const isVercel = !!process.env.VERCEL
+
+      // For Vercel, copy to __server.func where the actual server code lives
+      const destinations = isVercel
+        ? [
+            resolve(__dirname, '.vercel/output/functions/__server.func/_chunks/_libs/@shelby-protocol/clay.wasm'),
+            resolve(__dirname, '.vercel/output/functions/__server.func/_chunks/_libs/dist/clay.wasm'),
+          ]
+        : [
+            resolve(__dirname, '.output/server/_chunks/_libs/@shelby-protocol/clay.wasm'),
+            resolve(__dirname, '.output/server/_chunks/_libs/dist/clay.wasm'),
+          ]
+
+      if (!existsSync(source)) {
+        console.warn('[copy-wasm] Source clay.wasm not found:', source)
+        return
+      }
+
+      console.log('[copy-wasm] Building for:', isVercel ? 'Vercel' : 'local')
+
+      for (const dest of destinations) {
+        try {
+          mkdirSync(dirname(dest), { recursive: true })
+          copyFileSync(source, dest)
+          console.log('[copy-wasm] Copied clay.wasm to:', dest)
+        } catch (error) {
+          console.error('[copy-wasm] Failed to copy to:', dest, error)
+        }
+      }
+    },
+  }
+}
 
 const config = defineConfig(({ mode }) => ({
   define: {
@@ -24,8 +81,13 @@ const config = defineConfig(({ mode }) => ({
     }),
     tanstackStart(),
     // Nitro enables deployment to Vercel, Netlify, Cloudflare, etc.
-    nitro(),
+    nitro({
+      // Use Vercel preset when VERCEL env var is set (auto-set by Vercel)
+      preset: process.env.VERCEL ? 'vercel' : undefined,
+    }),
     viteReact(),
+    // Copy clay.wasm after build - see CLAUDE.md for details
+    copyClayWasmPlugin(),
     // Note: Compression (gzip/brotli) should be handled at deployment level
     // (Vercel, Cloudflare, Nginx automatically compress responses)
   ],
