@@ -46,6 +46,7 @@ Frontend (React) → Encryption Layer → Storage (Shelby)
 - 📥 **Download**: Password entry, decryption, automatic download
 - 🎨 **UI**: Progress bars, error handling, success states
 - 📋 **Clipboard**: One-click link copying
+- 📜 **History**: Browser-based paste history with generic persistence layer
 
 ### Environment
 - Working Directory: `/Users/greg/git/pastebin`

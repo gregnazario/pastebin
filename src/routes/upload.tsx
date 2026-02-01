@@ -11,6 +11,8 @@ import {
   NoteIcon,
 } from '../components/Icons'
 import { useToast } from '../components/Toast'
+import { createPasteHistoryEntry } from '../hooks/usePasteHistory'
+import { getBrowserHistoryStorage } from '../services/history'
 import type { UploadProgress } from '../services/FileEncryptionService'
 import { PasswordValidator } from '../services/validation/PasswordValidator'
 
@@ -212,6 +214,39 @@ function UploadPage() {
         setProgress,
       )
 
+      // Save to browser history
+      try {
+        const historyStorage = getBrowserHistoryStorage()
+        if (historyStorage.isAvailable()) {
+          // Get preview for notes (first 100 characters)
+          const preview =
+            uploadMode === 'note' && noteContent.length > 0
+              ? noteContent.slice(0, 100) + (noteContent.length > 100 ? '...' : '')
+              : undefined
+
+          // Store URL without the key fragment for security
+          // The key is only in the shareable URL, not stored in history
+          const urlWithoutKey = uploadResult.shareableUrl.split('#')[0]
+
+          const historyEntry = createPasteHistoryEntry({
+            fileId: uploadResult.fileId,
+            fileName: uploadFile.name,
+            fileSize: uploadFile.size,
+            mimeType: uploadFile.type || 'application/octet-stream',
+            url: urlWithoutKey,
+            expiresAt: uploadResult.expiresAt,
+            encryptedMetadata: encryptMetadata,
+            contentType: uploadMode,
+            preview: encryptMetadata ? undefined : preview,
+          })
+
+          await historyStorage.add(historyEntry)
+        }
+      } catch (historyError) {
+        // Don't fail the upload if history save fails
+        console.warn('Failed to save to history:', historyError)
+      }
+
       setResult({
         url: uploadResult.shareableUrl,
         expiresAt: uploadResult.expiresAt,
@@ -229,7 +264,7 @@ function UploadPage() {
     passwordValidation.isValid,
     passwordsMatch,
     uploadMode,
-    noteContent.length,
+    noteContent,
   ])
 
   const copyToClipboard = useCallback(async () => {

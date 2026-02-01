@@ -2503,3 +2503,358 @@ main {
     font-size: 12px;
   }
 }
+
+/* ==========================================================================
+   Paste History
+   ========================================================================== */
+
+.history-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-color);
+}
+
+.paste-history {
+  max-width: 100%;
+}
+
+.paste-history.compact .history-header h2 {
+  font-size: 1.2rem;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.history-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-header-actions .confirm-text {
+  font-size: 14px;
+  color: var(--error-text);
+}
+
+.history-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.history-clear-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.history-clear-btn.confirm {
+  background: var(--error-text);
+  border-color: var(--error-text);
+  color: white;
+}
+
+.history-clear-btn.confirm:hover {
+  background: var(--error-border);
+}
+
+.history-clear-btn.cancel {
+  background: var(--bg-secondary);
+}
+
+/* History List */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* History Item */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.history-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+}
+
+.history-item.expired {
+  opacity: 0.6;
+}
+
+.history-item.expired:hover {
+  border-color: var(--border-color);
+}
+
+.history-item-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-item-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.history-item-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.history-item-name .encrypted-name {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.history-item-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.history-item-separator {
+  opacity: 0.5;
+}
+
+.history-item-expired {
+  color: var(--error-text);
+  font-weight: 500;
+}
+
+.history-item-preview {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  background: var(--bg-secondary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  max-width: 100%;
+}
+
+.history-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.history-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  text-decoration: none;
+}
+
+.history-action-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.history-action-btn.history-action-delete:hover {
+  background: var(--bg-error-light);
+  color: var(--error-text);
+}
+
+/* Empty and Loading States */
+.history-empty,
+.history-unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px dashed var(--border-color);
+}
+
+.history-empty svg,
+.history-unavailable svg {
+  opacity: 0.5;
+  margin-bottom: 12px;
+}
+
+.history-empty p,
+.history-unavailable p {
+  margin: 0 0 4px 0;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.history-empty span,
+.history-unavailable span {
+  font-size: 14px;
+}
+
+.history-loading {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Load More Button */
+.history-load-more {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.load-more-btn {
+  padding: 10px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.load-more-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* History Footer */
+.history-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.history-count {
+  font-weight: 500;
+}
+
+.history-note {
+  font-style: italic;
+}
+
+/* Compact Mode */
+.paste-history.compact .history-empty,
+.paste-history.compact .history-unavailable {
+  padding: 24px 16px;
+}
+
+.paste-history.compact .history-item {
+  padding: 10px 12px;
+}
+
+.paste-history.compact .history-item-preview {
+  display: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .history-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-section {
+    margin-top: 32px;
+    padding-top: 24px;
+  }
+
+  .history-item {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .history-item-icon {
+    display: none;
+  }
+
+  .history-item-meta {
+    font-size: 11px;
+  }
+
+  .history-item-preview {
+    display: none;
+  }
+
+  .history-action-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .history-footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

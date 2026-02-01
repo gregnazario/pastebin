@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ChainIcon, KeyIcon, QuantumIcon } from '../components/Icons'
 import { Onboarding } from '../components/Onboarding'
+import { PasteHistory } from '../components/PasteHistory'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -40,6 +41,10 @@ function HomePage() {
         <Link to="/upload" className="upload-button">
           Upload a File
         </Link>
+      </div>
+
+      <div className="history-section">
+        <PasteHistory maxItems={5} showClearAll={false} compact />
       </div>
     </div>
   )

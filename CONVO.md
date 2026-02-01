@@ -164,3 +164,28 @@ Each entry should include:
   - `src/routes/upload.tsx` - Added mode state, note editor UI, and upload logic
   - `src/styles.css` - Added styles for mode selector and note editor
 - **Outcome**: Users can now directly type and edit notes in the browser instead of uploading files
+
+**Browser History Persistence Feature**
+- **Prompt**: "Can you add browser based history for now? And make it generic so we could add a different persistence layer for previous pastes."
+- **Action**:
+  - Created generic `PasteHistoryStorage` interface for extensible persistence
+  - Implemented `BrowserHistoryStorage` class using localStorage
+  - Created `usePasteHistory` React hook for easy state management
+  - Added `PasteHistory` component with UI for viewing/managing history
+  - Integrated history saving into upload flow (stores after successful upload)
+  - Added history section to home page showing recent pastes
+  - Security: URL stored without decryption key (key never persisted)
+  - Features: pagination, multi-tab sync, automatic expired entry cleanup
+- **Files Created**:
+  - `src/services/history/types.ts` - Type definitions and interfaces
+  - `src/services/history/BrowserHistoryStorage.ts` - localStorage implementation
+  - `src/services/history/index.ts` - Module exports
+  - `src/hooks/usePasteHistory.ts` - React hook with helper functions
+  - `src/components/PasteHistory.tsx` - History list UI component
+- **Files Modified**:
+  - `src/components/Icons.tsx` - Added HistoryIcon, TrashIcon, ExternalLinkIcon
+  - `src/routes/upload.tsx` - Integrated history saving on successful upload
+  - `src/routes/index.tsx` - Added history section to home page
+  - `src/styles.css` - Added styles for history UI
+- **Architecture**: Generic interface allows future implementations (IndexedDB, server-side, etc.)
+- **Outcome**: Paste history persisted in browser with clean, extensible architecture
