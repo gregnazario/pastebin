@@ -197,7 +197,7 @@ function CloseIcon() {
   )
 }
 
-const GITHUB_REPO_URL = 'https://github.com/gregshen0925/pastebin' // Update with actual repo URL
+const GITHUB_REPO_URL = 'https://github.com/gregnazario/pastebin' // Update with actual repo URL
 
 function RootLayout() {
   const { isDark, toggle } = useDarkMode()
