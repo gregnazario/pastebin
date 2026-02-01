@@ -21,15 +21,27 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
  */
 function copyClayWasm() {
   const source = resolve(__dirname, 'node_modules/@shelby-protocol/clay-codes/dist/clay.wasm')
-  const destinations = [
-    resolve(__dirname, '.output/server/_chunks/_libs/@shelby-protocol/clay.wasm'),
-    resolve(__dirname, '.output/server/_chunks/_libs/dist/clay.wasm'),
-  ]
+
+  // Vercel uses .vercel/output, local builds use .output
+  const isVercel = !!process.env.VERCEL
+
+  // For Vercel, copy to __server.func where the actual server code lives
+  const destinations = isVercel
+    ? [
+        resolve(__dirname, '.vercel/output/functions/__server.func/_chunks/_libs/@shelby-protocol/clay.wasm'),
+        resolve(__dirname, '.vercel/output/functions/__server.func/_chunks/_libs/dist/clay.wasm'),
+      ]
+    : [
+        resolve(__dirname, '.output/server/_chunks/_libs/@shelby-protocol/clay.wasm'),
+        resolve(__dirname, '.output/server/_chunks/_libs/dist/clay.wasm'),
+      ]
 
   if (!existsSync(source)) {
     console.warn('[copy-wasm] Source clay.wasm not found:', source)
     return
   }
+
+  console.log('[copy-wasm] Building for:', isVercel ? 'Vercel' : 'local')
 
   for (const dest of destinations) {
     try {
@@ -62,6 +74,8 @@ const config = defineConfig(({ mode }) => ({
     // Nitro enables deployment to Vercel, Netlify, Cloudflare, etc.
     // WASM files are copied via hooks - see copyClayWasm() and CLAUDE.md
     nitro({
+      // Use Vercel preset when VERCEL env var is set (auto-set by Vercel)
+      preset: process.env.VERCEL ? 'vercel' : undefined,
       hooks: {
         // Copy clay.wasm after Nitro finishes building
         compiled: () => {
