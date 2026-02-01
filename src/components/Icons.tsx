@@ -560,7 +560,7 @@ export function ChainIcon({ size = defaultProps.size, className, style, ...props
 
 /**
  * Wave/Welcome Icon
- * For onboarding welcome
+ * For onboarding welcome - a friendly waving hand
  */
 export function WaveIcon({ size = defaultProps.size, className, style, ...props }: IconProps) {
   return (
@@ -577,12 +577,15 @@ export function WaveIcon({ size = defaultProps.size, className, style, ...props 
       strokeLinejoin="round"
       aria-hidden={props['aria-hidden'] ?? true}
     >
-      <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-      <path d="M8.93 13.02A5 5 0 0 1 14 8v0" />
-      <path d="M18 11c0-.72-.1-1.41-.27-2.06" />
-      <path d="M14 11v3a3 3 0 0 0 6 0v-1" />
-      <path d="M8 15v-1a5 5 0 0 0-2-4" />
-      <path d="M4 15v1a7 7 0 0 0 14 0v-3" />
+      {/* Palm and fingers */}
+      <path d="M18 11V6a2 2 0 0 0-4 0" />
+      <path d="M14 10V4a2 2 0 0 0-4 0v6" />
+      <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8 2 2 0 1 1 4 0" />
+      {/* Wave lines */}
+      <path d="M2 10h.01" />
+      <path d="M2 7h.01" />
+      <path d="M2 13h.01" />
     </svg>
   )
 }
