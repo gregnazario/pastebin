@@ -42,8 +42,17 @@ export class KyberService {
    * Encapsulate a shared secret using a public key
    * @param publicKey - The recipient's public key
    * @returns Promise with shared secret and ciphertext
+   * @throws Error if public key is invalid
    */
   static async encapsulate(publicKey: Uint8Array): Promise<KyberEncapsulationResult> {
+    // Validate public key size before use
+    if (!KyberService.validatePublicKey(publicKey)) {
+      const sizes = KyberService.getSizes()
+      throw new Error(
+        `Invalid public key: expected ${sizes.publicKeySize} bytes, got ${publicKey.length}`,
+      )
+    }
+
     try {
       // Generate random seed for encapsulation
       const seed = crypto.getRandomValues(new Uint8Array(32))
@@ -67,8 +76,25 @@ export class KyberService {
    * @param ciphertext - The encapsulated ciphertext
    * @param privateKey - The recipient's private key
    * @returns Promise with shared secret
+   * @throws Error if ciphertext or private key is invalid
    */
   static async decapsulate(ciphertext: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+    const sizes = KyberService.getSizes()
+
+    // Validate ciphertext size
+    if (!KyberService.validateCiphertext(ciphertext)) {
+      throw new Error(
+        `Invalid ciphertext: expected ${sizes.ciphertextSize} bytes, got ${ciphertext.length}`,
+      )
+    }
+
+    // Validate private key size
+    if (!KyberService.validatePrivateKey(privateKey)) {
+      throw new Error(
+        `Invalid private key: expected ${sizes.privateKeySize} bytes, got ${privateKey.length}`,
+      )
+    }
+
     try {
       const sharedSecret = KyberService.kyber.decapsulate(ciphertext, privateKey)
       return sharedSecret
