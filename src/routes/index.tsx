@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { Onboarding } from '../components/Onboarding'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -7,6 +8,7 @@ export const Route = createFileRoute('/')({
 function HomePage() {
   return (
     <div className="home-page">
+      <Onboarding />
       <div className="hero">
         <h1>Secure Pastebin</h1>
         <p className="tagline">Share files securely with post-quantum encryption</p>
