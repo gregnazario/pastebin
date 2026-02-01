@@ -14,21 +14,60 @@ import { createServerEntry } from '@tanstack/react-start/server-entry'
  * Security headers configuration
  * These are applied to all responses for defense-in-depth
  */
+
+/**
+ * Detect if we're running in development mode
+ * Uses multiple methods for reliability across different environments
+ */
+function detectDevMode(): boolean {
+  // Check build-time constant (if available)
+  try {
+    // @ts-expect-error - __BUILD_MODE__ is defined at build time
+    if (typeof __BUILD_MODE__ !== 'undefined') {
+      // @ts-expect-error - __BUILD_MODE__ is defined at build time
+      return __BUILD_MODE__ === 'development'
+    }
+  } catch {
+    // Constant not available
+  }
+  
+  // Fallback to NODE_ENV
+  return process.env.NODE_ENV !== 'production'
+}
+
+const isDev = detectDevMode()
+
 /**
  * Build CSP based on environment
- * In development, we need to allow inline scripts for Vite HMR
- * In production, we use strict CSP for security
+ * 
+ * NOTE: TanStack Start and React SSR require inline scripts for hydration.
+ * We use 'unsafe-inline' for scripts to support this. For maximum security,
+ * a nonce-based approach would be needed, but that requires framework support.
+ * 
+ * In development, we also allow eval and WebSocket for Vite HMR.
  */
-function buildCSP(isDev: boolean): string {
+function buildCSP(devMode: boolean): string {
+  // Base script-src allows inline scripts needed for React hydration
+  // In production, this is the minimum required for SSR frameworks
+  const scriptSrc = devMode 
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'"
+  
+  const styleSrc = devMode
+    ? "style-src 'self' 'unsafe-inline'"
+    : "style-src 'self' 'unsafe-inline'"
+  
+  const connectSrc = devMode
+    ? "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz ws://localhost:* http://localhost:*"
+    : "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz"
+
   return [
     "default-src 'self'",
-    isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self'",
-    isDev ? "style-src 'self' 'unsafe-inline'" : "style-src 'self'",
+    scriptSrc,
+    styleSrc,
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    isDev
-      ? "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz ws://localhost:* http://localhost:*"
-      : "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz",
+    connectSrc,
     "worker-src 'self' blob:",
     "frame-ancestors 'none'", // Only works via HTTP header, not meta tag!
     "base-uri 'self'",
@@ -36,14 +75,6 @@ function buildCSP(isDev: boolean): string {
     'upgrade-insecure-requests',
   ].join('; ')
 }
-
-/**
- * Build mode constant defined at build time via Vite config
- * - 'development' during `vite dev`
- * - 'production' during `vite build`
- */
-declare const __BUILD_MODE__: string
-const isDev = __BUILD_MODE__ === 'development'
 
 const SECURITY_HEADERS: Record<string, string> = {
   // Content Security Policy - controls which resources can be loaded
