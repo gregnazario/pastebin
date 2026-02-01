@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { nitro } from 'nitro/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import { fileURLToPath, URL } from 'url'
@@ -18,6 +19,8 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tanstackStart(),
+    // Nitro enables deployment to Vercel, Netlify, Cloudflare, etc.
+    nitro(),
     viteReact(),
     // Note: Compression (gzip/brotli) should be handled at deployment level
     // (Vercel, Cloudflare, Nginx automatically compress responses)
