@@ -105,10 +105,13 @@ export class FileEncryptionService {
       })
 
       // Call server function
+      // When encryptMetadata is true, use a generic placeholder filename to avoid
+      // exposing the real filename in the URL. The actual filename is already
+      // encrypted in the payload and will be revealed after decryption.
       const uploadResult = await uploadBlob({
         data: {
           data: Array.from(serializedPayload),
-          filename: file.name,
+          filename: encryptMetadata ? 'encrypted' : file.name,
         },
       })
 
