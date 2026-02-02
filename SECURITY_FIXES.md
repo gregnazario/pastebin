@@ -1,6 +1,6 @@
 # Security Fixes
 
-This document tracks security issues and their fixes for the SecurePaste project.
+This document tracks security issues and their fixes for the pastebin project.
 
 ---
 
