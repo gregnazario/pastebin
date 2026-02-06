@@ -11,34 +11,34 @@ function HomePage() {
   return (
     <div className="home-page">
       <Onboarding />
-      <div className="hero">
-        <h1>Secure Pastebin</h1>
+      <section className="hero" aria-labelledby="hero-heading">
+        <h1 id="hero-heading">Secure Pastebin</h1>
         <p className="tagline">Share files securely with post-quantum encryption</p>
 
-        <div className="features">
-          <div className="feature">
-            <h3>
-              <QuantumIcon size="1.2em" className="feature-icon" /> Post-Quantum Security
-            </h3>
+        <ul className="features" aria-label="Key features">
+          <li className="feature">
+            <h2>
+              <QuantumIcon size="1.2em" className="feature-icon" aria-hidden /> Post-Quantum Security
+            </h2>
             <p>
               ML-KEM (Kyber) + AES-256-GCM hybrid encryption protects against future quantum attacks
             </p>
-          </div>
-          <div className="feature">
-            <h3>
-              <KeyIcon size="1.2em" className="feature-icon" /> Password Protected
-            </h3>
+          </li>
+          <li className="feature">
+            <h2>
+              <KeyIcon size="1.2em" className="feature-icon" aria-hidden /> Password Protected
+            </h2>
             <p>Argon2id key derivation ensures strong password-based protection</p>
-          </div>
-          <div className="feature">
-            <h3>
-              <ChainIcon size="1.2em" className="feature-icon" /> Decentralized Storage
-            </h3>
-            <p>Files stored on Shelby Protocol - censorship-resistant and reliable</p>
-          </div>
-        </div>
+          </li>
+          <li className="feature">
+            <h2>
+              <ChainIcon size="1.2em" className="feature-icon" aria-hidden /> Decentralized Storage
+            </h2>
+            <p>Files stored on Shelby Protocol — censorship-resistant and reliable</p>
+          </li>
+        </ul>
 
-        <Link to="/upload" className="upload-button">
+        <Link to="/upload" className="upload-button" aria-label="Upload a file — encrypt and share securely">
           Upload a File
         </Link>
       </div>
@@ -46,6 +46,7 @@ function HomePage() {
       <div className="history-section">
         <PasteHistory maxItems={5} showClearAll={false} compact />
       </div>
+      </section>
     </div>
   )
 }

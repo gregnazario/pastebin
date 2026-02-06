@@ -7,3 +7,8 @@ Disallow: /p/
 
 # Sitemap
 Sitemap: https://pastebin.sed.fyi/sitemap.xml
+
+# LLM-readable documentation
+# See https://llmstxt.org/ for the llms.txt standard
+# llms.txt: https://pastebin.sed.fyi/llms.txt
+# llms-full.txt: https://pastebin.sed.fyi/llms-full.txt

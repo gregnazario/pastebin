@@ -1,0 +1,162 @@
+# Secure Pastebin — Full Documentation
+
+> Post-quantum encrypted file sharing. Share files securely with ML-KEM (Kyber) + AES-256-GCM hybrid encryption.
+
+## About
+
+Secure Pastebin is an open-source, privacy-first file sharing service. All encryption and decryption happens entirely in the user's browser using Web Workers for performance. The server never has access to plaintext files, passwords, or decryption keys.
+
+The project is built with:
+- **Framework**: TanStack Start (React SSR) with TanStack Router
+- **Build Tool**: Vite
+- **Runtime**: Nitro (deployable to Vercel, Node.js, etc.)
+- **Language**: TypeScript
+- **Crypto Libraries**: @noble/post-quantum (ML-KEM), @noble/ciphers (AES-256-GCM), @noble/hashes (Argon2id)
+- **Storage**: Shelby Protocol SDK (decentralized, on-chain storage via Aptos blockchain)
+
+---
+
+## Pages
+
+### Home Page (/)
+The landing page introduces the service and its three core value propositions:
+1. **Post-Quantum Security** — ML-KEM (Kyber) + AES-256-GCM hybrid encryption
+2. **Password Protected** — Argon2id key derivation for strong password-based protection
+3. **Decentralized Storage** — Files stored on Shelby Protocol for censorship resistance
+
+### Upload Page (/upload)
+Users can upload files or create text notes with the following features:
+- **File Mode**: Drag-and-drop or click-to-browse file selection (max 100MB)
+- **Note Mode**: Write text content directly (max ~10MB)
+- **Password**: Required, with strength validation (12+ characters recommended)
+- **Password Generator**: Built-in secure random password generation
+- **Metadata Encryption**: Optional toggle to encrypt filename and file metadata
+- After upload, a shareable URL is generated with the decryption key in the URL fragment
+
+### Documentation Page (/docs)
+Comprehensive technical documentation covering:
+- **How It Works**: Step-by-step encryption flow with animated diagram
+- **Security Model**: Zero-knowledge architecture, what's protected and against what threats
+- **Why Post-Quantum**: Explanation of "harvest now, decrypt later" threats
+- **Privacy Guarantees**: Transparency about what the service can and cannot see
+- **Technical Specifications**: Detailed cryptographic parameters
+- **FAQ**: Common questions about password recovery, storage duration, security claims
+
+### View/Download Page (/p/:id)
+When a recipient opens a shared link:
+1. Security warning about browser history and the decryption key in the URL
+2. Password entry form
+3. Client-side decryption
+4. File preview (text and image files)
+5. Download button
+
+---
+
+## Encryption Flow
+
+1. **File Selection**: User selects a file or enters text note content
+2. **Password Entry**: User enters a strong password (validated client-side)
+3. **Key Derivation**: Password → Argon2id (64MB, 3 iterations) → derived key
+4. **Key Generation**: ML-KEM-768 key pair generated; shared secret encapsulated
+5. **Key Combination**: Derived key + ML-KEM shared secret → final AES-256 key
+6. **Encryption**: File encrypted with AES-256-GCM (96-bit random nonce)
+7. **Upload**: Only the encrypted blob + ML-KEM ciphertext uploaded to Shelby Protocol
+8. **URL Generation**: Share URL contains file ID + ML-KEM private key in URL fragment (#)
+9. **Decryption**: Recipient enters password, browser decrypts locally
+
+---
+
+## Technical Specifications
+
+| Parameter | Value |
+|---|---|
+| Key Encapsulation | ML-KEM-768 (Kyber) — NIST FIPS 203 |
+| Symmetric Cipher | AES-256-GCM |
+| Nonce Length | 12 bytes (96 bits) |
+| Key Derivation | Argon2id |
+| Argon2id Memory | 64 MB |
+| Argon2id Iterations | 3 |
+| Argon2id Parallelism | 1 |
+| Salt Length | 32 bytes |
+| Maximum File Size | 100 MB |
+| Maximum Note Size | ~10 MB (10,485,760 characters) |
+| Link Validity | 24 hours |
+| Storage Backend | Shelby Protocol (decentralized, Aptos blockchain) |
+| Encryption Location | Client-side (browser, Web Worker) |
+
+---
+
+## Security Model
+
+### Zero Knowledge Architecture
+- All encryption/decryption happens in the browser
+- The server only sees encrypted blobs
+- Passwords are never transmitted
+- ML-KEM private keys are stored in URL fragments (RFC 3986: never sent in HTTP requests)
+
+### What's Protected
+- File contents — always encrypted
+- File name — optionally encrypted (metadata encryption toggle)
+- Password — never transmitted to any server
+- Decryption key — stays in URL fragment, never in HTTP requests
+
+### Protected Against
+- **Server breaches**: Encrypted data is useless without the password + private key
+- **Man-in-the-middle attacks**: Key never appears in HTTP request body or headers
+- **Future quantum computers**: ML-KEM is NIST's post-quantum standard
+- **Brute force attacks**: Argon2id is memory-hard (64MB per attempt)
+
+### What the Service Can See
+- Encrypted blob size
+- Upload timestamp
+- IP addresses (standard server logs)
+- File expiration date
+
+### What the Service Cannot See
+- File contents
+- File name (if metadata encryption enabled)
+- Password
+- Decryption key
+- Who accessed a specific file
+
+---
+
+## Privacy & Security Features
+
+- **Content Security Policy (CSP)**: Strict CSP headers prevent XSS
+- **X-Frame-Options**: DENY — prevents clickjacking
+- **HSTS**: Strict-Transport-Security enforced
+- **Rate Limiting**: Server-side rate limiting on API endpoints
+- **Input Validation**: File IDs, filenames, and passwords are validated
+- **No Tracking**: No analytics or tracking scripts
+
+---
+
+## Frequently Asked Questions
+
+**What if I forget my password?**
+Your file cannot be recovered. This is by design — if the service could recover files without the password, so could an attacker. Use a password manager.
+
+**How long are files stored?**
+24 hours by default. After this period, the encrypted blob is automatically deleted.
+
+**Is this really secure?**
+Yes, given a strong password. The encryption uses industry-standard AES-256-GCM combined with post-quantum ML-KEM. Potential risks: weak passwords, malware on your device, sharing links insecurely.
+
+**What is post-quantum encryption?**
+Encryption using mathematical problems that quantum computers cannot solve efficiently. ML-KEM is based on lattice problems, believed hard for both classical and quantum computers.
+
+**Can I use this for sensitive documents?**
+Suitable for sharing sensitive documents with strong protection. For extremely sensitive data subject to regulatory requirements (HIPAA, classified, etc.), consult security professionals.
+
+**Is the source code available?**
+Yes, fully open source at https://github.com/gregnazario/pastebin
+
+---
+
+## Source Code & Contributing
+
+- **Repository**: https://github.com/gregnazario/pastebin
+- **License**: Open source
+- **Stack**: TypeScript, React, TanStack Start, Vite, Nitro
+- **Package Manager**: Bun

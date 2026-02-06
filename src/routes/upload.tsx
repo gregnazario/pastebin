@@ -298,16 +298,19 @@ function UploadPage() {
       <h1>{uploadMode === 'file' ? 'Upload a File' : 'Create a Note'}</h1>
 
       {result ? (
-        <div className="result">
-          <h2>✅ Upload Complete!</h2>
+        <section className="result" aria-labelledby="upload-complete-heading">
+          <h2 id="upload-complete-heading">
+            <span aria-hidden="true">✅</span> Upload Complete!
+          </h2>
           <p>Share this link (includes encryption key in URL fragment):</p>
           <div className="url-container">
-            <input type="text" readOnly value={result.url} />
-            <button type="button" onClick={copyToClipboard}>
+            <label htmlFor="share-url" className="sr-only">Shareable link</label>
+            <input id="share-url" type="text" readOnly value={result.url} aria-describedby="expires-info" />
+            <button type="button" onClick={copyToClipboard} aria-label="Copy shareable link to clipboard">
               Copy
             </button>
           </div>
-          <p className="expires">Expires: {new Date(result.expiresAt).toLocaleDateString()}</p>
+          <p className="expires" id="expires-info">Expires: {new Date(result.expiresAt).toLocaleDateString()}</p>
           <button
             type="button"
             onClick={() => {
@@ -321,28 +324,39 @@ function UploadPage() {
           >
             {uploadMode === 'file' ? 'Upload Another File' : 'Create Another Note'}
           </button>
-        </div>
+        </section>
       ) : (
-        <div className="upload-form">
-          {/* Mode Selector */}
-          <div className="mode-selector">
+        <form
+          className="upload-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleUpload()
+          }}
+          aria-label={uploadMode === 'file' ? 'File upload form' : 'Note creation form'}
+          noValidate
+        >
+          {/* Mode selector: toggle between file upload and note creation */}
+          <fieldset className="mode-selector" aria-label="Upload mode">
+            <legend className="sr-only">Choose upload mode</legend>
             <button
               type="button"
               className={`mode-btn ${uploadMode === 'file' ? 'active' : ''}`}
               onClick={() => handleModeSwitch('file')}
               disabled={isUploading}
+              aria-pressed={uploadMode === 'file'}
             >
-              <FolderIcon size={16} /> File
+              <FolderIcon size={16} aria-hidden /> File
             </button>
             <button
               type="button"
               className={`mode-btn ${uploadMode === 'note' ? 'active' : ''}`}
               onClick={() => handleModeSwitch('note')}
               disabled={isUploading}
+              aria-pressed={uploadMode === 'note'}
             >
-              <NoteIcon size={16} /> Note
+              <NoteIcon size={16} aria-hidden /> Note
             </button>
-          </div>
+          </fieldset>
 
           {uploadMode === 'file' ? (
             /* File Upload Mode */
@@ -355,7 +369,7 @@ function UploadPage() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 role="region"
-                aria-label="File drop zone"
+                aria-label="File drop zone — drag and drop a file here or click to browse"
               >
                 <input
                   id="file-input"
@@ -363,10 +377,11 @@ function UploadPage() {
                   onChange={handleFileChange}
                   disabled={isUploading}
                   className="file-input-hidden"
+                  aria-describedby="file-size-limit"
                 />
                 {file ? (
                   <div className="drop-zone-content">
-                    <span className="file-icon">
+                    <span className="file-icon" aria-hidden="true">
                       <FileIcon size={48} />
                     </span>
                     <p className="file-name">{file.name}</p>
@@ -382,14 +397,14 @@ function UploadPage() {
                   </div>
                 ) : (
                   <label htmlFor="file-input" className="drop-zone-content">
-                    <span className="drop-icon">
+                    <span className="drop-icon" aria-hidden="true">
                       {isDragOver ? <DownloadIcon size={48} /> : <FolderIcon size={48} />}
                     </span>
                     <p className="drop-text">
                       {isDragOver ? 'Drop file here' : 'Drag & drop a file here'}
                     </p>
                     <p className="drop-subtext">or click to browse</p>
-                    <p className="drop-limit">Maximum size: {MAX_FILE_SIZE_MB}MB</p>
+                    <p className="drop-limit" id="file-size-limit">Maximum size: {MAX_FILE_SIZE_MB}MB</p>
                   </label>
                 )}
               </div>
@@ -406,6 +421,7 @@ function UploadPage() {
                   onChange={(e) => setNoteTitle(e.target.value)}
                   placeholder="my-note.txt"
                   disabled={isUploading}
+                  autoComplete="off"
                 />
               </div>
               <div className="form-group">
@@ -418,8 +434,10 @@ function UploadPage() {
                   disabled={isUploading}
                   rows={10}
                   className="note-textarea"
+                  aria-describedby="note-char-count"
+                  aria-required="true"
                 />
-                <div className="note-info">
+                <div className="note-info" id="note-char-count" aria-live="polite">
                   <span className="note-size">
                     {noteContent.length.toLocaleString()} / {MAX_NOTE_SIZE.toLocaleString()}{' '}
                     characters
@@ -445,11 +463,18 @@ function UploadPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter a strong password"
                   disabled={isUploading}
+                  aria-required="true"
+                  aria-invalid={password ? !passwordValidation.isValid : undefined}
+                  aria-describedby={
+                    password && !passwordValidation.isValid ? 'password-errors' : undefined
+                  }
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="toggle-password"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
@@ -461,24 +486,26 @@ function UploadPage() {
                   onClick={handleGeneratePassword}
                   className="generate-password-btn"
                   disabled={isUploading}
+                  aria-label="Generate a strong random password"
                   title="Generate a strong password"
                 >
-                  <DiceIcon size={16} /> Generate
+                  <DiceIcon size={16} aria-hidden /> Generate
                 </button>
                 {password && (
                   <button
                     type="button"
                     onClick={copyPassword}
                     className="copy-password-btn"
+                    aria-label="Copy password to clipboard"
                     title="Copy password to clipboard"
                   >
-                    <ClipboardIcon size={16} /> Copy
+                    <ClipboardIcon size={16} aria-hidden /> Copy
                   </button>
                 )}
               </div>
             </div>
             {password && !passwordValidation.isValid && (
-              <ul className="password-errors">
+              <ul className="password-errors" id="password-errors" role="alert" aria-label="Password requirements not met">
                 {passwordValidation.errors.map((err, i) => (
                   <li key={i}>{err}</li>
                 ))}
@@ -495,8 +522,18 @@ function UploadPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
               disabled={isUploading}
+              aria-required="true"
+              aria-invalid={confirmPassword ? !passwordsMatch : undefined}
+              aria-describedby={
+                confirmPassword && !passwordsMatch ? 'password-mismatch-error' : undefined
+              }
+              autoComplete="new-password"
             />
-            {confirmPassword && !passwordsMatch && <p className="error">Passwords do not match</p>}
+            {confirmPassword && !passwordsMatch && (
+              <p className="error" id="password-mismatch-error" role="alert">
+                Passwords do not match
+              </p>
+            )}
           </div>
 
           <div className="form-group checkbox">
@@ -511,18 +548,29 @@ function UploadPage() {
             </label>
           </div>
 
-          {error && <div className="error-message">{error}</div>}
-
-          {progress && (
-            <div className="progress">
-              <div className="progress-bar" style={{ width: `${progress.progress}%` }} />
-              <p>{progress.message}</p>
+          {error && (
+            <div className="error-message" role="alert" aria-live="assertive">
+              {error}
             </div>
           )}
 
+          {progress && (
+            <output className="progress" aria-label="Upload progress">
+              <div
+                className="progress-bar"
+                style={{ width: `${progress.progress}%` }}
+                role="progressbar"
+                aria-valuenow={Math.round(progress.progress)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${Math.round(progress.progress)}% complete`}
+              />
+              <p aria-live="polite">{progress.message}</p>
+            </output>
+          )}
+
           <button
-            type="button"
-            onClick={handleUpload}
+            type="submit"
             disabled={
               !hasContent ||
               !passwordValidation.isValid ||
@@ -531,6 +579,7 @@ function UploadPage() {
               (uploadMode === 'note' && !isNoteValid)
             }
             className="upload-button"
+            aria-busy={isUploading}
           >
             {isUploading
               ? 'Encrypting...'
@@ -538,7 +587,7 @@ function UploadPage() {
                 ? 'Encrypt & Upload'
                 : 'Encrypt & Save Note'}
           </button>
-        </div>
+        </form>
       )}
     </div>
   )

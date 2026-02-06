@@ -211,9 +211,9 @@ function ViewPage() {
   // Show error for invalid file ID format
   if (!isIdValid) {
     return (
-      <div className="view-page">
+      <div className="view-page" role="alert">
         <div className="error-box">
-          <h2>Invalid File Link</h2>
+          <h1>Invalid File Link</h1>
           <p>
             The file link appears to be malformed or invalid. Please check that you have the correct
             link.
@@ -225,9 +225,9 @@ function ViewPage() {
 
   if (!privateKey) {
     return (
-      <div className="view-page">
+      <div className="view-page" role="alert">
         <div className="error-box">
-          <h2>Missing Decryption Key</h2>
+          <h1>Missing Decryption Key</h1>
           <p>
             The decryption key is missing from the URL. Make sure you're using the complete
             shareable link that includes the key after the # symbol.
@@ -243,16 +243,16 @@ function ViewPage() {
 
       {/* Security warning about browser history */}
       {showSecurityWarning && !decryptedFile && (
-        <div className="security-warning">
+        <aside className="security-warning" role="alert" aria-label="Security notice">
           <div className="warning-header">
             <span>
-              <AlertIcon size="1em" /> Security Notice
+              <AlertIcon size="1em" aria-hidden /> Security Notice
             </span>
             <button
               type="button"
               onClick={() => setShowSecurityWarning(false)}
               className="dismiss-warning"
-              aria-label="Dismiss warning"
+              aria-label="Dismiss security warning"
             >
               ×
             </button>
@@ -263,24 +263,29 @@ function ViewPage() {
             <li>Use private/incognito mode for sensitive files</li>
             <li>Don't share screenshots of this page</li>
           </ul>
-        </div>
+        </aside>
       )}
 
       {decryptedFile ? (
-        <div className="success">
-          <h2>
-            <CheckIcon size="1em" /> Decryption Successful!
+        <section className="success" aria-labelledby="decrypt-success-heading">
+          <h2 id="decrypt-success-heading">
+            <CheckIcon size="1em" aria-hidden /> Decryption Successful!
           </h2>
           <div className="file-details">
-            <p>
-              <strong>Filename:</strong> {decryptedFile.metadata.name}
-            </p>
-            <p>
-              <strong>Size:</strong> {(decryptedFile.metadata.size / 1024).toFixed(2)} KB
-            </p>
-            <p>
-              <strong>Type:</strong> {decryptedFile.metadata.mimeType}
-            </p>
+            <dl>
+              <div>
+                <dt><strong>Filename:</strong></dt>
+                <dd>{decryptedFile.metadata.name}</dd>
+              </div>
+              <div>
+                <dt><strong>Size:</strong></dt>
+                <dd>{(decryptedFile.metadata.size / 1024).toFixed(2)} KB</dd>
+              </div>
+              <div>
+                <dt><strong>Type:</strong></dt>
+                <dd>{decryptedFile.metadata.mimeType}</dd>
+              </div>
+            </dl>
           </div>
 
           {/* Preview toggle */}
@@ -291,14 +296,16 @@ function ViewPage() {
                   type="button"
                   onClick={() => setShowPreview(!showPreview)}
                   className="preview-toggle-btn"
+                  aria-expanded={showPreview}
+                  aria-controls="file-preview"
                 >
                   {showPreview ? (
                     <>
-                      <EyeOffIcon size={16} /> Hide Preview
+                      <EyeOffIcon size={16} aria-hidden /> Hide Preview
                     </>
                   ) : (
                     <>
-                      <EyeIcon size={16} /> Preview{' '}
+                      <EyeIcon size={16} aria-hidden /> Preview{' '}
                       {previewInfo.type === 'image' ? 'Image' : 'File'}
                     </>
                   )}
@@ -309,7 +316,7 @@ function ViewPage() {
 
               {/* Preview content */}
               {showPreview && previewContent && (
-                <div className="preview-container">
+                <section className="preview-container" id="file-preview" aria-label="File preview">
                   {previewInfo.type === 'text' && (
                     <pre className="text-preview">
                       <code>{previewContent}</code>
@@ -318,11 +325,11 @@ function ViewPage() {
                   {previewInfo.type === 'image' && (
                     <img
                       src={previewContent}
-                      alt={decryptedFile.metadata.name}
+                      alt={`Preview of ${decryptedFile.metadata.name}`}
                       className="image-preview"
                     />
                   )}
-                </div>
+                </section>
               )}
             </div>
           )}
@@ -330,9 +337,17 @@ function ViewPage() {
           <button type="button" onClick={handleDownload} className="download-button">
             Download File
           </button>
-        </div>
+        </section>
       ) : (
-        <div className="decrypt-form">
+        <form
+          className="decrypt-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (password) handleDecrypt()
+          }}
+          aria-label="File decryption form"
+          noValidate
+        >
           <p>Enter the password to decrypt this file:</p>
 
           <div className="form-group">
@@ -345,40 +360,51 @@ function ViewPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
                 disabled={isLoading}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && password) {
-                    handleDecrypt()
-                  }
-                }}
+                aria-required="true"
+                aria-describedby={error ? 'decrypt-error' : undefined}
+                autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="toggle-password"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
               </button>
             </div>
           </div>
 
-          {error && <div className="error-message">{error}</div>}
-
-          {progress && (
-            <div className="progress">
-              <div className="progress-bar" style={{ width: `${progress.progress}%` }} />
-              <p>{progress.message}</p>
+          {error && (
+            <div className="error-message" id="decrypt-error" role="alert" aria-live="assertive">
+              {error}
             </div>
           )}
 
+          {progress && (
+            <output className="progress" aria-label="Decryption progress">
+              <div
+                className="progress-bar"
+                style={{ width: `${progress.progress}%` }}
+                role="progressbar"
+                aria-valuenow={Math.round(progress.progress)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${Math.round(progress.progress)}% complete`}
+              />
+              <p aria-live="polite">{progress.message}</p>
+            </output>
+          )}
+
           <button
-            type="button"
-            onClick={handleDecrypt}
+            type="submit"
             disabled={!password || isLoading}
             className="decrypt-button"
+            aria-busy={isLoading}
           >
             {isLoading ? 'Decrypting...' : 'Decrypt File'}
           </button>
-        </div>
+        </form>
       )}
     </div>
   )

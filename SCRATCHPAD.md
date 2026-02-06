@@ -68,10 +68,40 @@ Frontend (React) → Encryption Layer → Storage (Shelby)
 - ⚠️ Unit tests blocked by crypto library compatibility issues
 - 📝 Documented testing challenges and solutions
 
+### Phase 6: LLM-Friendliness & Full Accessibility (2026-02-06)
+- ✅ Created `llms.txt` and `llms-full.txt` for AI crawler discoverability
+- ✅ Created `sitemap.xml` (was referenced in robots.txt but missing)
+- ✅ Updated `robots.txt` with LLM documentation references
+- ✅ Added JSON-LD structured data (WebApplication, WebSite, FAQPage schemas)
+- ✅ Added canonical URL link
+- ✅ Added skip navigation link for keyboard/screen reader users
+- ✅ Added visible `:focus-visible` styles for all interactive elements
+- ✅ Added `.sr-only` utility class for screen-reader-only content
+- ✅ Fixed heading hierarchy (h1 → h2 on home page features)
+- ✅ Converted upload form to proper `<form>` with `onSubmit`
+- ✅ Added `aria-describedby` for error associations on all form fields
+- ✅ Added `aria-invalid` states on password fields
+- ✅ Added `role="progressbar"` with aria-valuenow/min/max on progress bars
+- ✅ Used `<output>` element for progress containers (semantic status)
+- ✅ Added `aria-busy` on submit buttons during upload/decrypt
+- ✅ Added `role="alert"` on error messages for screen reader announcements
+- ✅ Converted decrypt form to proper `<form>` with `onSubmit`
+- ✅ Used `<dl>` for file details instead of `<p>` for semantic structure
+- ✅ Added `aria-expanded` and `aria-controls` on preview toggle
+- ✅ Improved collapsible sections with `aria-controls` and `aria-labelledby`
+- ✅ Made specs tables accessible with `<th scope="row">` and visually-hidden `<thead>`
+- ✅ Added `aria-label` on all `<nav>` elements (Main, Mobile, Footer)
+- ✅ Added `aria-controls` on mobile hamburger button
+- ✅ Added `aria-hidden` on mobile nav overlay, proper focus management
+- ✅ Improved onboarding modal with focus trap, focus restore, and `aria-describedby`
+- ✅ Used `<fieldset>` for mode selector with visually-hidden `<legend>`
+- ✅ Used semantic `<ul>/<li>` for feature cards on home page
+- ✅ Added high-contrast mode support (already existed)
+- ✅ Added prefers-reduced-motion support (already existed)
+- ✅ All lint checks pass, all type checks pass, build succeeds
+
 ### Next Steps
-- Install Playwright: `bun add -d @playwright/test`
-- Run E2E tests: `bun test:e2e`
-- Fix any failing E2E tests
+- Browser compatibility testing
 - Performance optimization
 - Security audit
 - Deployment configuration
@@ -88,4 +118,4 @@ bun run typecheck # Type checking
 
 ---
 
-*Last updated: 2026-02-01*
+*Last updated: 2026-02-06*
