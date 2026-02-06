@@ -92,6 +92,9 @@ const config = defineConfig(({ mode }) => ({
     // (Vercel, Cloudflare, Nginx automatically compress responses)
   ],
   build: {
+    // Target modern browsers that support ES2022 features needed by crypto libraries
+    // Chrome 92+, Firefox 91+, Safari 15.4+, Edge 92+
+    target: ['es2022', 'chrome92', 'firefox91', 'safari15.4', 'edge92'],
     // SECURITY: Disable source maps in production to prevent source code exposure
     // Source maps reveal implementation details, file structure, and original code,
     // making reverse engineering easier and potentially exposing security logic.

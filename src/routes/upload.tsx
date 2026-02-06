@@ -31,14 +31,27 @@ export const Route = createFileRoute('/upload')({
 })
 
 /**
- * Generate a cryptographically secure random password
- * Uses characters that are easy to distinguish and type
+ * Generate a cryptographically secure random password.
+ * Uses rejection sampling to avoid modulo bias in character selection.
+ * Characters are chosen to be easy to distinguish and type (no l/1/I/0/O ambiguity).
  */
 function generateSecurePassword(length = 20): string {
   const charset = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%^&*'
-  const array = new Uint32Array(length)
-  crypto.getRandomValues(array)
-  return Array.from(array, (num) => charset[num % charset.length]).join('')
+  const charsetLen = charset.length
+  // Calculate the largest multiple of charsetLen that fits in a Uint32
+  // to implement rejection sampling and eliminate modulo bias
+  const maxValid = Math.floor(0xffffffff / charsetLen) * charsetLen
+  const result: string[] = []
+  while (result.length < length) {
+    const array = new Uint32Array(length - result.length)
+    crypto.getRandomValues(array)
+    for (const num of array) {
+      if (num < maxValid && result.length < length) {
+        result.push(charset[num % charsetLen])
+      }
+    }
+  }
+  return result.join('')
 }
 
 function UploadPage() {

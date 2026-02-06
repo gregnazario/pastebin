@@ -101,7 +101,31 @@ function getStructuredData() {
   }
 }
 
+/**
+ * Custom 404 page component for unmatched routes
+ */
+function NotFoundPage() {
+  return (
+    <div className="not-found-page">
+      <h1>Page Not Found</h1>
+      <p>The page you're looking for doesn't exist or may have been moved.</p>
+      <div className="not-found-actions">
+        <Link to="/" className="not-found-link">
+          Go Home
+        </Link>
+        <Link to="/upload" className="not-found-link">
+          Upload a File
+        </Link>
+        <Link to="/docs" className="not-found-link">
+          Read Docs
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 export const Route = createRootRoute({
+  notFoundComponent: NotFoundPage,
   head: () => ({
     meta: [
       { charSet: 'utf-8' },

@@ -41,11 +41,10 @@ function HomePage() {
         <Link to="/upload" className="upload-button" aria-label="Upload a file — encrypt and share securely">
           Upload a File
         </Link>
-      </div>
+      </section>
 
-      <div className="history-section">
+      <section className="history-section" aria-label="Recent uploads">
         <PasteHistory maxItems={5} showClearAll={false} compact />
-      </div>
       </section>
     </div>
   )

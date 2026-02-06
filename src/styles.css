@@ -678,6 +678,61 @@ main {
 }
 
 /* ==========================================================================
+   404 Not Found Page
+   ========================================================================== */
+
+.not-found-page {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.not-found-page h1 {
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.not-found-page p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin-bottom: 32px;
+}
+
+.not-found-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.not-found-link {
+  padding: 12px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.not-found-link:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+}
+
+.not-found-link:first-child {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.not-found-link:first-child:hover {
+  background: var(--accent-hover);
+}
+
+/* ==========================================================================
    Upload Page
    ========================================================================== */
 

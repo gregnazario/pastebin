@@ -1,0 +1,10 @@
+# Browser support targets for Secure Pastebin
+# Requires modern browsers with ES2022 support, Web Workers, and SubtleCrypto
+# Minimum versions: Chrome 92+, Firefox 91+, Safari 15.4+, Edge 92+
+
+> 0.5%
+last 2 versions
+Firefox ESR
+not dead
+not ie 11
+not op_mini all

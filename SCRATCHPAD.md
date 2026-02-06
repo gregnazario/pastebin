@@ -100,11 +100,45 @@ Frontend (React) → Encryption Layer → Storage (Shelby)
 - ✅ Added prefers-reduced-motion support (already existed)
 - ✅ All lint checks pass, all type checks pass, build succeeds
 
+### Phase 7: Browser Compat, Performance, Security Audit, Deployment (2026-02-06)
+
+#### Browser Compatibility
+- ✅ Added `.browserslistrc` with explicit browser targets
+- ✅ Added `build.target` in Vite config (Chrome 92+, Firefox 91+, Safari 15.4+, Edge 92+)
+- ✅ Verified CSS features (Grid, custom properties, env()) are supported by targets
+- ✅ Noble crypto libraries use pure JS (no SubtleCrypto dependency issues)
+
+#### Performance Optimization
+- ✅ Improved Service Worker with versioned caching (CACHE_VERSION)
+- ✅ Added stale-while-revalidate strategy for static assets
+- ✅ Added cache size limiting (MAX_DYNAMIC_CACHE_ENTRIES = 50)
+- ✅ Added cache expiration logic in SW
+- ✅ Excluded `/p/*` paste pages from caching (encrypted data)
+- ✅ Added `llms.txt` and `sitemap.xml` to precache list
+- ✅ Verified code splitting: crypto, blockchain, react-vendor, router chunks
+- ✅ Verified lazy loading: FileEncryptionService dynamically imported
+- ✅ Verified route preloading on hover intent (100ms delay)
+
+#### Security Audit
+- ✅ Fixed HKDF zero-filled salt → now uses Argon2id salt
+- ✅ Fixed password generator modulo bias → rejection sampling
+- ✅ Added Argon2id parameter bounds validation in deriveKeyCustom
+- ✅ Documented accepted risks (CSP unsafe-inline, in-memory rate limiting)
+- ✅ Updated SECURITY_FIXES.md with all findings
+
+#### Deployment Configuration
+- ✅ Added custom 404 page with navigation links
+- ✅ Verified Vercel config, WASM handling, Nitro preset
+- ✅ Verified env var validation (SHELBY_API_KEY, SHELBY_PRIVATE_KEY)
+- ✅ Verified CI/CD pipeline (lint, typecheck, build in GitHub Actions)
+- ✅ Verified security headers (CSP, HSTS, X-Frame-Options, etc.)
+
 ### Next Steps
-- Browser compatibility testing
-- Performance optimization
-- Security audit
-- Deployment configuration
+- Add error tracking integration (Sentry or similar)
+- Add monitoring/APM integration
+- Expose `/health` HTTP endpoint (currently server function only)
+- Use Redis for distributed rate limiting (if scaling to multiple instances)
+- Add Web Vitals tracking with `web-vitals` package
 
 ### Commands
 ```bash
