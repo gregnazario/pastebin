@@ -164,6 +164,35 @@ Each entry should include:
     - `gradle -p native/android :feature:upload:test :feature:view:test :core:crypto:test` ⚠️ blocked by missing Android SDK config (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: Actual native UI screens are now wired to upload/decrypt services on both platforms, with explicit non-production crypto adapter for development flow execution.
 
+**Production Native Crypto Adapter Replacement (Option 1)**
+- **Prompt**: "1" (replace development crypto adapters with production-compatible implementations)
+- **Action**:
+  - Implemented production Apple crypto adapter:
+    - `ProductionNativeCryptoEngine` in `native/apple/Sources/CoreCrypto/ProductionNativeCryptoEngine.swift`
+    - ML-KEM-768 via SwiftKyber (`Kyber.K768`)
+    - Argon2id (4 iterations, 256MB, parallelism 4) via vendored C Argon2 bindings
+    - HKDF-SHA256 (`pastebin-hybrid-key-v1`, `pastebin-metadata-key-v1`)
+    - AES-256-GCM combined format and payload v1 serializer/deserializer parity
+  - Implemented production Android crypto adapter:
+    - `ProductionNativeCryptoEngine` in `native/android/core/crypto/.../ProductionNativeCryptoEngine.kt`
+    - ML-KEM-768 + Argon2id + HKDF-SHA256 + AES-256-GCM with matching payload v1 contract
+    - Added `bcprov-jdk18on:1.81` dependency in `:core:crypto`
+  - Switched Android app wiring from development adapter to production adapter in:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - Added/updated crypto tests:
+    - Swift roundtrip and web conformance-vector decryption tests
+    - Kotlin roundtrip and web conformance-vector decryption tests
+  - Added vendored Argon2 C source subset under `native/apple/Vendor/Argon2` to avoid linker conflicts from upstream `genkat.c` (`main` symbol).
+  - Updated native README security notes to mark production engine as default.
+- **Validation**:
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `swift test` in `native/apple` ✅ (includes web conformance-vector decrypt test)
+  - `gradle -p native/android :core:crypto:test` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Native Apple and Android crypto layers are now production-capable and aligned to the web payload/algorithm contract, replacing development-only flow adapters for active app wiring.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

@@ -5,9 +5,45 @@ This file maintains the current state of the project for smooth conversation han
 ## Current State (2026-02-07)
 
 ### Active Task
-- **Phase**: Pre-implementation planning for native clients.
-- **Current Task**: Create production roadmap and architecture docs for fully native Swift (iOS/iPadOS/macOS) and Kotlin (Android) apps.
-- **Stretch Scope**: Windows native client planning path documented.
+- **Phase**: Phase 2 foundation hardening (native crypto parity delivery).
+- **Current Task**: Replace development crypto adapters with production-compatible native engines while preserving upload/decrypt feature interfaces.
+
+### Production Crypto Progress (2026-02-07, latest update)
+- ✅ Apple production crypto engine implemented:
+  - `native/apple/Sources/CoreCrypto/ProductionNativeCryptoEngine.swift`
+  - ML-KEM-768 (SwiftKyber), Argon2id (C Argon2), HKDF-SHA256, AES-256-GCM
+  - Payload v1 binary serialization/deserialization parity with web
+- ✅ Android production crypto engine implemented:
+  - `native/android/core/crypto/src/main/kotlin/com/securepastebin/core/crypto/ProductionNativeCryptoEngine.kt`
+  - ML-KEM-768 + Argon2id + HKDF-SHA256 + AES-256-GCM with parity payload parser
+- ✅ Android app wiring switched to production engine:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Swift and Kotlin crypto tests updated:
+  - roundtrip encryption/decryption
+  - web conformance-vector decryption compatibility
+- ✅ Apple conformance test passes against shared web vector:
+  - `native/apple/Tests/CoreCryptoTests/CryptoConformanceVectorTests.swift`
+- ✅ Added vendored Argon2 C subset for Apple build stability:
+  - `native/apple/Vendor/Argon2/*`
+  - excludes `genkat.c` to prevent duplicate `_main` linker conflict
+
+### Current Verification Snapshot
+- ✅ `bun run lint`
+- ✅ `bun run typecheck`
+- ✅ `bun test`
+- ✅ `bun run build`
+- ✅ `swift test` in `native/apple`
+- ⚠️ `gradle -p native/android :core:crypto:test` blocked by missing SDK configuration (`ANDROID_HOME`/`sdk.dir`)
+- ✅ Supplemental Kotlin syntax check for `:core:crypto` sources using `kotlinc` + BouncyCastle classpath
+
+### Immediate Next Step
+- Continue Phase 2 UI/domain parity:
+  - wire native file picker flows (Apple + Android)
+  - expand preview support beyond text
+  - begin local history persistence integration in active screens
+
+### Historical Snapshot
+- Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 
 ### New Planning Artifacts (2026-02-07)
 - ✅ Added roadmap: `plans/native-swift-kotlin-roadmap.md`
