@@ -1,0 +1,49 @@
+# Secure Pastebin
+
+> Post-quantum encrypted file sharing. Share files securely with ML-KEM (Kyber) + AES-256-GCM hybrid encryption.
+
+Secure Pastebin is an open-source, privacy-first file sharing service that uses post-quantum cryptography to protect your files against both current and future threats, including quantum computers.
+
+## Key Features
+
+- **Post-Quantum Encryption**: Uses ML-KEM-768 (Kyber) + AES-256-GCM hybrid encryption
+- **Client-Side Encryption**: All encryption/decryption happens in the browser — server never sees plaintext
+- **Password Protection**: Argon2id key derivation with memory-hard protection against brute force
+- **Decentralized Storage**: Files stored on Shelby Protocol for censorship resistance
+- **Zero Knowledge**: Decryption keys are embedded in URL fragments (#) which are never sent to servers
+- **File & Note Sharing**: Upload files or create encrypted text notes
+- **Optional Metadata Encryption**: Encrypt filenames and file metadata
+
+## Pages
+
+- [Home](https://pastebin.sed.fyi/): Overview and feature highlights
+- [Upload](https://pastebin.sed.fyi/upload): Upload and encrypt a file or create an encrypted note
+- [Docs](https://pastebin.sed.fyi/docs): Technical documentation, security model, and FAQ
+
+## Technical Specifications
+
+- **Key Encapsulation**: ML-KEM-768 (Kyber) — NIST post-quantum standard
+- **Symmetric Cipher**: AES-256-GCM with 96-bit nonce
+- **Key Derivation**: Argon2id (64MB memory, 3 iterations, parallelism 1)
+- **Salt Length**: 32 bytes, cryptographically random
+- **Maximum File Size**: 100 MB
+- **Link Validity**: 24 hours
+- **Storage Backend**: Shelby Protocol (decentralized)
+
+## Security Model
+
+The security model is built on **zero knowledge** principles:
+
+- File contents are always encrypted before upload
+- Your password never leaves your device
+- The decryption key lives in the URL fragment (after #), which per RFC 3986 is never sent in HTTP requests
+- Even if servers are fully compromised, files remain secure
+- Protected against: server breaches, man-in-the-middle attacks, future quantum computers, brute force attacks
+
+## Detailed Info
+
+For the full LLM-readable documentation, see: [llms-full.txt](https://pastebin.sed.fyi/llms-full.txt)
+
+## Source Code
+
+Open source at: https://github.com/gregnazario/pastebin

@@ -146,6 +146,111 @@ code {
 }
 
 /* ==========================================================================
+   Skip Navigation Link (Accessibility)
+   ========================================================================== */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 0 0 8px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 10000;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Focus Styles (Accessibility)
+   Visible focus indicators for keyboard navigation (WCAG 2.1 AA)
+   ========================================================================== */
+
+/* Default focus outline for all focusable elements */
+:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Remove default outline when using mouse (focus-visible handles keyboard) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Focus styles for buttons */
+button:focus-visible,
+.upload-button:focus-visible,
+.decrypt-button:focus-visible,
+.download-button:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px var(--bg-primary);
+}
+
+/* Focus styles for form inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 0;
+  border-color: var(--accent-primary);
+}
+
+/* Focus styles for links */
+a:focus-visible {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Focus styles in header (light outline on dark bg) */
+.app-header a:focus-visible,
+.app-header button:focus-visible {
+  outline-color: #ffffff;
+}
+
+/* Focus styles in dark theme */
+[data-theme="dark"] :focus-visible {
+  outline-color: #64b5f6;
+}
+
+[data-theme="dark"] .app-header a:focus-visible,
+[data-theme="dark"] .app-header button:focus-visible {
+  outline-color: #ffffff;
+}
+
+/* Main content area — remove focus ring when tabbed to via skip link */
+#main-content:focus {
+  outline: none;
+}
+
+/* ==========================================================================
+   Screen reader only utility class
+   ========================================================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ==========================================================================
    Header & Navigation
    ========================================================================== */
 
@@ -207,12 +312,14 @@ code {
   flex-shrink: 0;
 }
 
+.feature h2,
 .feature h3 {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.feature h2 svg,
 .feature h3 svg {
   flex-shrink: 0;
 }
@@ -529,6 +636,8 @@ main {
   gap: 30px;
   margin-bottom: 40px;
   text-align: left;
+  list-style: none;
+  padding: 0;
 }
 
 .feature {
@@ -539,6 +648,7 @@ main {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
+.feature h2,
 .feature h3 {
   margin-top: 0;
   font-size: 1.1rem;
@@ -564,6 +674,61 @@ main {
 }
 
 .home-page .upload-button:hover {
+  background: var(--accent-hover);
+}
+
+/* ==========================================================================
+   404 Not Found Page
+   ========================================================================== */
+
+.not-found-page {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.not-found-page h1 {
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.not-found-page p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin-bottom: 32px;
+}
+
+.not-found-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.not-found-link {
+  padding: 12px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.not-found-link:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+}
+
+.not-found-link:first-child {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.not-found-link:first-child:hover {
   background: var(--accent-hover);
 }
 
@@ -798,6 +963,7 @@ main {
    Mode Selector (File/Note toggle)
    ========================================================================== */
 
+fieldset.mode-selector,
 .mode-selector {
   display: flex;
   gap: 8px;
@@ -918,6 +1084,11 @@ main {
   border-radius: 6px;
   color: var(--error-text);
   margin-bottom: 20px;
+}
+
+/* Reset output element to behave like a div (used for accessible progress) */
+output.progress {
+  display: block;
 }
 
 .progress {
@@ -1156,6 +1327,27 @@ main {
 
 .file-details strong {
   color: var(--text-primary);
+}
+
+/* Definition list for file details (accessible layout) */
+.file-details dl {
+  margin: 0;
+}
+
+.file-details dl > div {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+  color: var(--text-secondary);
+}
+
+.file-details dt {
+  flex-shrink: 0;
+}
+
+.file-details dd {
+  margin: 0;
+  word-break: break-all;
 }
 
 /* ==========================================================================
@@ -1453,11 +1645,14 @@ main {
   border-collapse: collapse;
 }
 
-.specs-table td {
+.specs-table td,
+.specs-table th {
   padding: 12px;
   border-bottom: 1px solid var(--border-light, #eee);
+  text-align: left;
 }
 
+.specs-table th[scope="row"],
 .specs-table td:first-child {
   font-weight: 500;
   color: var(--text-primary, #333);
@@ -2078,6 +2273,7 @@ main {
     padding: 16px;
   }
   
+  .feature h2,
   .feature h3 {
     font-size: 1rem;
   }

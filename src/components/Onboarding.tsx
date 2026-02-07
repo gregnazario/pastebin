@@ -1,15 +1,18 @@
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { LinkIcon, LockIcon, ShieldIcon, WaveIcon } from './Icons'
 
 const ONBOARDING_KEY = 'secure-pastebin-onboarding-seen'
 
 /**
- * Onboarding component that shows first-time users key features
+ * Onboarding component that shows first-time users key features.
+ * Implements proper focus trap and ARIA dialog pattern for accessibility.
  */
 export function Onboarding() {
   const [isVisible, setIsVisible] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const modalRef = useRef<HTMLDivElement>(null)
+  const previousActiveElement = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     // Check if user has already seen onboarding
@@ -20,6 +23,57 @@ export function Onboarding() {
       return () => clearTimeout(timer)
     }
   }, [])
+
+  // Focus management: trap focus inside modal and restore on close
+  useEffect(() => {
+    if (isVisible) {
+      // Save the currently focused element to restore later
+      previousActiveElement.current = document.activeElement as HTMLElement
+
+      // Focus the modal after a brief delay to let it render
+      const timer = setTimeout(() => {
+        modalRef.current?.focus()
+      }, 50)
+
+      return () => clearTimeout(timer)
+    }
+
+    // Restore focus when modal closes
+    if (previousActiveElement.current) {
+      previousActiveElement.current.focus()
+      previousActiveElement.current = null
+    }
+  }, [isVisible])
+
+  // Focus trap: keep tab cycling inside the modal
+  useEffect(() => {
+    if (!isVisible) return
+
+    const handleFocusTrap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !modalRef.current) return
+
+      const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      )
+      const firstFocusable = focusableElements[0]
+      const lastFocusable = focusableElements[focusableElements.length - 1]
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault()
+          lastFocusable?.focus()
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault()
+          firstFocusable?.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleFocusTrap)
+    return () => document.removeEventListener('keydown', handleFocusTrap)
+  }, [isVisible])
 
   const dismiss = useCallback(() => {
     localStorage.setItem(ONBOARDING_KEY, 'true')
@@ -55,12 +109,15 @@ export function Onboarding() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-title"
+      aria-describedby="onboarding-description"
     >
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: Modal content div needs click/key handlers to prevent event propagation to overlay */}
       <div
+        ref={modalRef}
         className="onboarding-modal"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
-        role="document"
+        tabIndex={-1}
       >
         <button
           type="button"
@@ -71,17 +128,20 @@ export function Onboarding() {
           ×
         </button>
 
-        <div className="onboarding-icon">{step.icon}</div>
+        <div className="onboarding-icon" aria-hidden="true">{step.icon}</div>
         <h2 id="onboarding-title" className="onboarding-title">
           {step.title}
         </h2>
-        <p className="onboarding-description">{step.description}</p>
+        <p id="onboarding-description" className="onboarding-description">{step.description}</p>
 
-        <div className="onboarding-progress">
-          {steps.map((_, index) => (
+        {/* biome-ignore lint/a11y/useSemanticElements: Progress dots are decorative indicators, not a form group */}
+        <div className="onboarding-progress" role="group" aria-label={`Step ${currentStep + 1} of ${steps.length}`}>
+          {steps.map((s, index) => (
             <span
               key={index}
               className={`onboarding-dot ${index === currentStep ? 'active' : ''}`}
+              aria-label={`Step ${index + 1}: ${s.title}${index === currentStep ? ' (current)' : ''}`}
+              role="img"
             />
           ))}
         </div>

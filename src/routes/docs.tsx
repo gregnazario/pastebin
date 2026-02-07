@@ -13,8 +13,12 @@ export const Route = createFileRoute('/docs')({
   component: DocsPage,
 })
 
+/** Unique ID counter for collapsible sections */
+let collapsibleIdCounter = 0
+
 /**
- * Collapsible section component for technical details
+ * Collapsible section component for technical details.
+ * Uses proper ARIA disclosure pattern for accessibility.
  */
 function CollapsibleSection({
   title,
@@ -26,19 +30,31 @@ function CollapsibleSection({
   defaultOpen?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const [panelId] = useState(() => `collapsible-panel-${++collapsibleIdCounter}`)
+  const [buttonId] = useState(() => `collapsible-btn-${collapsibleIdCounter}`)
 
   return (
     <div className="collapsible-section">
       <button
         type="button"
+        id={buttonId}
         className="collapsible-header"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
+        aria-controls={panelId}
       >
         <span>{title}</span>
-        <span className="collapsible-icon">{isOpen ? '−' : '+'}</span>
+        <span className="collapsible-icon" aria-hidden="true">{isOpen ? '−' : '+'}</span>
       </button>
-      {isOpen && <div className="collapsible-content">{children}</div>}
+      {isOpen && (
+        <section
+          id={panelId}
+          className="collapsible-content"
+          aria-labelledby={buttonId}
+        >
+          {children}
+        </section>
+      )}
     </div>
   )
 }
@@ -374,38 +390,44 @@ function DocsPage() {
         <h2>Technical Specifications</h2>
 
         <CollapsibleSection title="Cryptographic Parameters" defaultOpen>
-          <table className="specs-table">
+          <table className="specs-table" aria-label="Cryptographic parameters">
+            <thead className="sr-only">
+              <tr>
+                <th scope="col">Parameter</th>
+                <th scope="col">Value</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
-                <td>Key Encapsulation</td>
+                <th scope="row">Key Encapsulation</th>
                 <td>ML-KEM-768 (Kyber)</td>
               </tr>
               <tr>
-                <td>Symmetric Cipher</td>
+                <th scope="row">Symmetric Cipher</th>
                 <td>AES-256-GCM</td>
               </tr>
               <tr>
-                <td>Key Derivation</td>
+                <th scope="row">Key Derivation</th>
                 <td>Argon2id</td>
               </tr>
               <tr>
-                <td>Argon2id Memory</td>
+                <th scope="row">Argon2id Memory</th>
                 <td>64 MB</td>
               </tr>
               <tr>
-                <td>Argon2id Iterations</td>
+                <th scope="row">Argon2id Iterations</th>
                 <td>3</td>
               </tr>
               <tr>
-                <td>Argon2id Parallelism</td>
+                <th scope="row">Argon2id Parallelism</th>
                 <td>1</td>
               </tr>
               <tr>
-                <td>Salt Length</td>
+                <th scope="row">Salt Length</th>
                 <td>32 bytes</td>
               </tr>
               <tr>
-                <td>Nonce Length</td>
+                <th scope="row">Nonce Length</th>
                 <td>12 bytes (96 bits)</td>
               </tr>
             </tbody>
@@ -413,22 +435,28 @@ function DocsPage() {
         </CollapsibleSection>
 
         <CollapsibleSection title="Storage & Limits">
-          <table className="specs-table">
+          <table className="specs-table" aria-label="Storage and limits">
+            <thead className="sr-only">
+              <tr>
+                <th scope="col">Parameter</th>
+                <th scope="col">Value</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
-                <td>Maximum File Size</td>
+                <th scope="row">Maximum File Size</th>
                 <td>100 MB</td>
               </tr>
               <tr>
-                <td>Storage Backend</td>
+                <th scope="row">Storage Backend</th>
                 <td>Shelby Protocol (decentralized)</td>
               </tr>
               <tr>
-                <td>Link Validity</td>
+                <th scope="row">Link Validity</th>
                 <td>24 hours (configurable)</td>
               </tr>
               <tr>
-                <td>Encryption Location</td>
+                <th scope="row">Encryption Location</th>
                 <td>Client-side (browser)</td>
               </tr>
             </tbody>

@@ -67,12 +67,13 @@ export class KeyDerivationService {
   }
 
   /**
-   * Derive a key with custom parameters
+   * Derive a key with custom parameters.
+   * Validates all parameters are within safe bounds to prevent misuse.
    * @param password - The password to derive from
-   * @param salt - The salt to use
-   * @param iterations - Number of iterations
-   * @param memory - Memory usage in KB
-   * @param parallelism - Degree of parallelism
+   * @param salt - The salt to use (must be at least 16 bytes)
+   * @param iterations - Number of iterations (1-100)
+   * @param memory - Memory usage in KB (16KB - 4GB)
+   * @param parallelism - Degree of parallelism (1-16)
    * @returns Promise with derived key
    */
   static async deriveKeyCustom(
@@ -82,6 +83,20 @@ export class KeyDerivationService {
     memory: number,
     parallelism: number,
   ): Promise<Uint8Array> {
+    // Validate parameters to prevent misuse or DoS
+    if (salt.length < 16) {
+      throw new Error('Key derivation failed: salt must be at least 16 bytes')
+    }
+    if (!Number.isInteger(iterations) || iterations < 1 || iterations > 100) {
+      throw new Error('Key derivation failed: iterations must be between 1 and 100')
+    }
+    if (!Number.isInteger(memory) || memory < 16 || memory > 4 * 1024 * 1024) {
+      throw new Error('Key derivation failed: memory must be between 16 KB and 4 GB')
+    }
+    if (!Number.isInteger(parallelism) || parallelism < 1 || parallelism > 16) {
+      throw new Error('Key derivation failed: parallelism must be between 1 and 16')
+    }
+
     try {
       const hashHex = await argon2id({
         password,

@@ -68,13 +68,77 @@ Frontend (React) → Encryption Layer → Storage (Shelby)
 - ⚠️ Unit tests blocked by crypto library compatibility issues
 - 📝 Documented testing challenges and solutions
 
+### Phase 6: LLM-Friendliness & Full Accessibility (2026-02-06)
+- ✅ Created `llms.txt` and `llms-full.txt` for AI crawler discoverability
+- ✅ Created `sitemap.xml` (was referenced in robots.txt but missing)
+- ✅ Updated `robots.txt` with LLM documentation references
+- ✅ Added JSON-LD structured data (WebApplication, WebSite, FAQPage schemas)
+- ✅ Added canonical URL link
+- ✅ Added skip navigation link for keyboard/screen reader users
+- ✅ Added visible `:focus-visible` styles for all interactive elements
+- ✅ Added `.sr-only` utility class for screen-reader-only content
+- ✅ Fixed heading hierarchy (h1 → h2 on home page features)
+- ✅ Converted upload form to proper `<form>` with `onSubmit`
+- ✅ Added `aria-describedby` for error associations on all form fields
+- ✅ Added `aria-invalid` states on password fields
+- ✅ Added `role="progressbar"` with aria-valuenow/min/max on progress bars
+- ✅ Used `<output>` element for progress containers (semantic status)
+- ✅ Added `aria-busy` on submit buttons during upload/decrypt
+- ✅ Added `role="alert"` on error messages for screen reader announcements
+- ✅ Converted decrypt form to proper `<form>` with `onSubmit`
+- ✅ Used `<dl>` for file details instead of `<p>` for semantic structure
+- ✅ Added `aria-expanded` and `aria-controls` on preview toggle
+- ✅ Improved collapsible sections with `aria-controls` and `aria-labelledby`
+- ✅ Made specs tables accessible with `<th scope="row">` and visually-hidden `<thead>`
+- ✅ Added `aria-label` on all `<nav>` elements (Main, Mobile, Footer)
+- ✅ Added `aria-controls` on mobile hamburger button
+- ✅ Added `aria-hidden` on mobile nav overlay, proper focus management
+- ✅ Improved onboarding modal with focus trap, focus restore, and `aria-describedby`
+- ✅ Used `<fieldset>` for mode selector with visually-hidden `<legend>`
+- ✅ Used semantic `<ul>/<li>` for feature cards on home page
+- ✅ Added high-contrast mode support (already existed)
+- ✅ Added prefers-reduced-motion support (already existed)
+- ✅ All lint checks pass, all type checks pass, build succeeds
+
+### Phase 7: Browser Compat, Performance, Security Audit, Deployment (2026-02-06)
+
+#### Browser Compatibility
+- ✅ Added `.browserslistrc` with explicit browser targets
+- ✅ Added `build.target` in Vite config (Chrome 92+, Firefox 91+, Safari 15.4+, Edge 92+)
+- ✅ Verified CSS features (Grid, custom properties, env()) are supported by targets
+- ✅ Noble crypto libraries use pure JS (no SubtleCrypto dependency issues)
+
+#### Performance Optimization
+- ✅ Improved Service Worker with versioned caching (CACHE_VERSION)
+- ✅ Added stale-while-revalidate strategy for static assets
+- ✅ Added cache size limiting (MAX_DYNAMIC_CACHE_ENTRIES = 50)
+- ✅ Added cache expiration logic in SW
+- ✅ Excluded `/p/*` paste pages from caching (encrypted data)
+- ✅ Added `llms.txt` and `sitemap.xml` to precache list
+- ✅ Verified code splitting: crypto, blockchain, react-vendor, router chunks
+- ✅ Verified lazy loading: FileEncryptionService dynamically imported
+- ✅ Verified route preloading on hover intent (100ms delay)
+
+#### Security Audit
+- ✅ Fixed HKDF zero-filled salt → now uses Argon2id salt
+- ✅ Fixed password generator modulo bias → rejection sampling
+- ✅ Added Argon2id parameter bounds validation in deriveKeyCustom
+- ✅ Documented accepted risks (CSP unsafe-inline, in-memory rate limiting)
+- ✅ Updated SECURITY_FIXES.md with all findings
+
+#### Deployment Configuration
+- ✅ Added custom 404 page with navigation links
+- ✅ Verified Vercel config, WASM handling, Nitro preset
+- ✅ Verified env var validation (SHELBY_API_KEY, SHELBY_PRIVATE_KEY)
+- ✅ Verified CI/CD pipeline (lint, typecheck, build in GitHub Actions)
+- ✅ Verified security headers (CSP, HSTS, X-Frame-Options, etc.)
+
 ### Next Steps
-- Install Playwright: `bun add -d @playwright/test`
-- Run E2E tests: `bun test:e2e`
-- Fix any failing E2E tests
-- Performance optimization
-- Security audit
-- Deployment configuration
+- Add error tracking integration (Sentry or similar)
+- Add monitoring/APM integration
+- Expose `/health` HTTP endpoint (currently server function only)
+- Use Redis for distributed rate limiting (if scaling to multiple instances)
+- Add Web Vitals tracking with `web-vitals` package
 
 ### Commands
 ```bash
@@ -88,4 +152,4 @@ bun run typecheck # Type checking
 
 ---
 
-*Last updated: 2026-02-01*
+*Last updated: 2026-02-06*

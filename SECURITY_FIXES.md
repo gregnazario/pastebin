@@ -4,6 +4,32 @@ This document tracks security issues and their fixes for the pastebin project.
 
 ---
 
+## [2026-02-06] Security Audit Fixes
+
+### Issue 1: HKDF Using Zero-Filled Salt
+- **Severity**: High
+- **Description**: The `combineKeys()` method in `HybridEncryption.ts` used `new Uint8Array(32)` (all zeros) as the HKDF salt, reducing the entropy of the key combination step.
+- **Fix**: Now passes the Argon2id salt (cryptographically random 32 bytes) to HKDF, providing proper entropy mixing.
+- **File**: `src/services/crypto/HybridEncryption.ts`
+
+### Issue 2: Password Generator Modulo Bias
+- **Severity**: Medium
+- **Description**: The `generateSecurePassword()` function used `num % charset.length` to select characters from `crypto.getRandomValues()` output, introducing slight statistical bias toward earlier characters in the charset.
+- **Fix**: Implemented rejection sampling — values that would cause bias are discarded and re-sampled. Uses `Math.floor(0xFFFFFFFF / charsetLen) * charsetLen` as the rejection threshold.
+- **File**: `src/routes/upload.tsx`
+
+### Issue 3: Argon2id Parameter Validation Missing
+- **Severity**: Medium
+- **Description**: The `deriveKeyCustom()` method accepted arbitrary parameters without bounds checking, potentially allowing misuse (e.g., zero iterations, excessive memory).
+- **Fix**: Added parameter validation: salt >= 16 bytes, iterations 1-100, memory 16KB-4GB, parallelism 1-16.
+- **File**: `src/services/crypto/KeyDerivation.ts`
+
+### Note: Known Accepted Risks
+- **CSP `unsafe-inline`**: Required for React SSR hydration. Nonce-based CSP would require framework-level support.
+- **In-memory rate limiting**: Won't scale across multiple serverless instances. Accepted for current deployment scale; Redis recommended if scaling.
+
+---
+
 ## [2026-02-02] Encrypted Filename Exposure in URL
 
 ### Issue

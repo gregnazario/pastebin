@@ -64,7 +64,7 @@ export class HybridEncryptionService {
 
       // Step 4: Combine derived key and Kyber shared secret for AES key
       // This provides defense in depth - both password and Kyber key are needed
-      combinedKey = await HybridEncryptionService.combineKeys(derivedKey, sharedSecret)
+      combinedKey = await HybridEncryptionService.combineKeys(derivedKey, sharedSecret, salt)
 
       // Step 5: Encrypt the actual data
       const aesCiphertext = await AESService.encryptCombined(data, combinedKey)
@@ -146,7 +146,7 @@ export class HybridEncryptionService {
       sharedSecret = await KyberService.decapsulate(payload.kyberCiphertext, kyberPrivateKey)
 
       // Step 3: Combine derived key and shared secret to get the same AES key
-      combinedKey = await HybridEncryptionService.combineKeys(derivedKey, sharedSecret)
+      combinedKey = await HybridEncryptionService.combineKeys(derivedKey, sharedSecret, payload.salt)
 
       // Step 4: Decrypt the data
       const data = await AESService.decryptCombined(payload.aesCiphertext, combinedKey)
@@ -183,11 +183,13 @@ export class HybridEncryptionService {
    * This provides cryptographically secure key combination with domain separation
    * @param derivedKey - Key derived from password
    * @param kyberKey - Key from Kyber
+   * @param salt - The Argon2id salt, used as HKDF salt for proper entropy mixing
    * @returns Combined key for AES
    */
   private static async combineKeys(
     derivedKey: Uint8Array,
     kyberKey: Uint8Array,
+    salt: Uint8Array,
   ): Promise<Uint8Array> {
     // Concatenate both keys as input keying material (IKM)
     const inputMaterial = new Uint8Array(derivedKey.length + kyberKey.length)
@@ -195,10 +197,10 @@ export class HybridEncryptionService {
     inputMaterial.set(kyberKey, derivedKey.length)
 
     // Use HKDF with SHA-256 to derive a secure combined key
-    // - salt: random bytes for additional security (using empty for deterministic derivation)
+    // - salt: the Argon2id salt provides proper entropy (not a zero-filled array)
     // - info: context bytes for domain separation
     const info = new TextEncoder().encode('pastebin-hybrid-key-v1')
-    const combined = hkdf(sha256, inputMaterial, new Uint8Array(32), info, 32)
+    const combined = hkdf(sha256, inputMaterial, salt, info, 32)
     return combined
   }
 

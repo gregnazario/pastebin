@@ -1,10 +1,25 @@
 /**
  * Service Worker for Secure Pastebin PWA
- * Provides offline support and asset caching
+ * Provides offline support, asset caching, and update management.
+ *
+ * Cache strategy:
+ * - Navigation (HTML): Network-first, fallback to cache
+ * - Static assets (JS/CSS/images/fonts): Stale-while-revalidate
+ * - API requests: Network-only (never cache encrypted data)
+ *
+ * Versioning: Bump CACHE_VERSION when deploying new versions.
+ * Old caches are automatically cleaned up on activation.
  */
 
-const CACHE_NAME = 'secure-pastebin-v1';
-const STATIC_CACHE_NAME = 'secure-pastebin-static-v1';
+const CACHE_VERSION = 2;
+const CACHE_NAME = `secure-pastebin-v${CACHE_VERSION}`;
+const STATIC_CACHE_NAME = `secure-pastebin-static-v${CACHE_VERSION}`;
+
+/** Maximum age for cached static assets (7 days) */
+const MAX_CACHE_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Maximum number of entries in the dynamic cache */
+const MAX_DYNAMIC_CACHE_ENTRIES = 50;
 
 // Assets to cache immediately on install
 const PRECACHE_ASSETS = [
@@ -17,6 +32,8 @@ const PRECACHE_ASSETS = [
   '/logo512.png',
   '/favicon.ico',
   '/apple-touch-icon.png',
+  '/llms.txt',
+  '/sitemap.xml',
 ];
 
 // Install event - cache static assets
@@ -41,7 +58,12 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
-            .filter((name) => name !== CACHE_NAME && name !== STATIC_CACHE_NAME)
+            .filter((name) => {
+              // Delete any cache that doesn't match current version
+              return name.startsWith('secure-pastebin-') &&
+                     name !== CACHE_NAME &&
+                     name !== STATIC_CACHE_NAME;
+            })
             .map((name) => {
               console.log('[SW] Deleting old cache:', name);
               return caches.delete(name);
@@ -52,7 +74,23 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network first for HTML, cache first for assets
+/**
+ * Trim a cache to a maximum number of entries (LRU eviction).
+ * Removes oldest entries when the cache exceeds maxEntries.
+ */
+async function trimCache(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxEntries) {
+    // Delete oldest entries (first in the list)
+    const deleteCount = keys.length - maxEntries;
+    await Promise.all(
+      keys.slice(0, deleteCount).map((key) => cache.delete(key))
+    );
+  }
+}
+
+// Fetch event - network first for HTML, stale-while-revalidate for assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -62,8 +100,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip cross-origin requests (except for Shelby API which we don't cache)
+  // Skip cross-origin requests
   if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Never cache paste pages (/p/*) — they contain encrypted data
+  if (url.pathname.startsWith('/p/')) {
     return;
   }
 
@@ -87,7 +130,7 @@ self.addEventListener('fetch', (event) => {
             if (cachedResponse) {
               return cachedResponse;
             }
-            // Return offline page if available
+            // Return home page as offline fallback
             return caches.match('/');
           });
         })
@@ -95,7 +138,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For static assets (JS, CSS, images) - cache first, fallback to network
+  // For static assets (JS, CSS, images, fonts) - stale-while-revalidate
   if (
     request.destination === 'script' ||
     request.destination === 'style' ||
@@ -104,42 +147,36 @@ self.addEventListener('fetch', (event) => {
   ) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          // Return cached version and update cache in background
-          fetch(request).then((response) => {
+        // Always fetch a fresh copy in the background
+        const fetchPromise = fetch(request)
+          .then((response) => {
             if (response.ok) {
+              const responseClone = response.clone();
               caches.open(STATIC_CACHE_NAME).then((cache) => {
-                cache.put(request, response);
+                cache.put(request, responseClone);
+                // Trim cache to prevent unbounded growth
+                trimCache(STATIC_CACHE_NAME, MAX_DYNAMIC_CACHE_ENTRIES);
               });
             }
-          }).catch(() => {});
-          return cachedResponse;
-        }
+            return response;
+          })
+          .catch(() => {
+            // If fetch fails and we have no cache, return undefined
+            return cachedResponse;
+          });
 
-        // Not in cache, fetch from network
-        return fetch(request).then((response) => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        });
+        // Return cached version immediately if available, otherwise wait for fetch
+        return cachedResponse || fetchPromise;
       })
     );
     return;
   }
 
-  // For other requests - network first
+  // For other requests - network first, no caching
   event.respondWith(
     fetch(request)
-      .then((response) => {
-        return response;
-      })
-      .catch(() => {
-        return caches.match(request);
-      })
+      .then((response) => response)
+      .catch(() => caches.match(request))
   );
 });
 

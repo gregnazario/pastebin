@@ -11,7 +11,121 @@ const SITE_DESCRIPTION =
   'Share files securely with post-quantum encryption. Uses ML-KEM (Kyber) + AES-256-GCM hybrid encryption to protect against future quantum attacks.'
 const SITE_URL = 'https://pastebin.sed.fyi' // Update with actual domain
 
+/**
+ * JSON-LD structured data for SEO and LLM discoverability.
+ * Includes WebApplication schema and Organization info.
+ */
+function getStructuredData() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebApplication',
+        name: 'Secure Pastebin',
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        applicationCategory: 'SecurityApplication',
+        operatingSystem: 'Any',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+        featureList: [
+          'Post-quantum encryption (ML-KEM-768 / Kyber)',
+          'AES-256-GCM symmetric encryption',
+          'Argon2id password-based key derivation',
+          'Client-side encryption — server never sees plaintext',
+          'Decentralized storage via Shelby Protocol',
+          'Zero-knowledge architecture',
+          'File and text note sharing',
+          'Optional metadata encryption',
+        ],
+        screenshot: `${SITE_URL}/og-image.png`,
+        softwareVersion: '1.0',
+        author: {
+          '@type': 'Organization',
+          name: 'Secure Pastebin',
+          url: SITE_URL,
+        },
+      },
+      {
+        '@type': 'WebSite',
+        name: 'Secure Pastebin',
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${SITE_URL}/docs`,
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'What if I forget my password?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Unfortunately, if you forget your password, your file cannot be recovered. This is by design — if we could recover your file without the password, so could an attacker. We recommend using a password manager to store important passwords.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'How long are files stored?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Files are stored for 24 hours by default. After this period, the encrypted blob is automatically deleted from the Shelby network.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Is this really secure?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Yes, as long as you use a strong password. The encryption uses industry-standard algorithms (AES-256-GCM) combined with post-quantum protection (ML-KEM). All encryption happens in your browser — we never have access to your unencrypted data or passwords.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'What is post-quantum encryption?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Post-quantum encryption uses mathematical problems that quantum computers cannot solve efficiently. We use ML-KEM (Kyber), which is based on lattice problems believed to be hard for both classical and quantum computers.',
+            },
+          },
+        ],
+      },
+    ],
+  }
+}
+
+/**
+ * Custom 404 page component for unmatched routes
+ */
+function NotFoundPage() {
+  return (
+    <div className="not-found-page">
+      <h1>Page Not Found</h1>
+      <p>The page you're looking for doesn't exist or may have been moved.</p>
+      <div className="not-found-actions">
+        <Link to="/" className="not-found-link">
+          Go Home
+        </Link>
+        <Link to="/upload" className="not-found-link">
+          Upload a File
+        </Link>
+        <Link to="/docs" className="not-found-link">
+          Read Docs
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 export const Route = createRootRoute({
+  notFoundComponent: NotFoundPage,
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -82,6 +196,8 @@ export const Route = createRootRoute({
       { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
       // PWA manifest
       { rel: 'manifest', href: '/manifest.json' },
+      // Canonical URL
+      { rel: 'canonical', href: SITE_URL },
       // Preconnect to Shelby API for faster uploads/downloads
       { rel: 'preconnect', href: 'https://api.shelby.xyz' },
       { rel: 'dns-prefetch', href: 'https://api.shelby.xyz' },
@@ -235,17 +351,28 @@ function RootLayout() {
     <html lang="en">
       <head>
         <HeadContent />
+        {/* JSON-LD structured data for SEO and LLM discoverability */}
+        <script
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data is safe static content
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(getStructuredData()) }}
+        />
       </head>
       <body>
+        {/* Skip navigation link for keyboard and screen reader users */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+
         <header className="app-header">
           <div className="header-content">
-            <Link to="/" className="logo" onClick={closeMobileMenu}>
+            <Link to="/" className="logo" onClick={closeMobileMenu} aria-label="Secure Pastebin — Home">
               <LogoIcon size="1.4em" className="logo-icon" />
               Secure Pastebin
             </Link>
 
             {/* Desktop navigation */}
-            <nav className="desktop-nav">
+            <nav className="desktop-nav" aria-label="Main navigation">
               <Link to="/">Home</Link>
               <Link to="/upload">Upload</Link>
               <Link to="/docs">Docs</Link>
@@ -254,7 +381,7 @@ function RootLayout() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="github-link"
-                aria-label="View source on GitHub"
+                aria-label="View source on GitHub (opens in new tab)"
                 title="View source on GitHub"
               >
                 <GitHubIcon />
@@ -284,8 +411,9 @@ function RootLayout() {
                 type="button"
                 className="hamburger-btn"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-nav-menu"
               >
                 {mobileMenuOpen ? <CloseIcon /> : <HamburgerIcon />}
               </button>
@@ -298,12 +426,18 @@ function RootLayout() {
               type="button"
               className="mobile-nav-overlay"
               onClick={closeMobileMenu}
-              aria-label="Close menu"
+              aria-label="Close navigation menu"
+              tabIndex={-1}
             />
           )}
 
           {/* Mobile navigation menu */}
-          <nav className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
+          <nav
+            id="mobile-nav-menu"
+            className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}
+            aria-label="Mobile navigation"
+            aria-hidden={!mobileMenuOpen}
+          >
             <Link to="/" onClick={closeMobileMenu}>
               Home
             </Link>
@@ -319,6 +453,7 @@ function RootLayout() {
               rel="noopener noreferrer"
               className="github-link"
               onClick={closeMobileMenu}
+              aria-label="View source on GitHub (opens in new tab)"
             >
               <GitHubIcon />
               <span>GitHub</span>
@@ -326,19 +461,19 @@ function RootLayout() {
           </nav>
         </header>
         <ToastProvider>
-          <main>
+          <main id="main-content" tabIndex={-1}>
             <Outlet />
           </main>
         </ToastProvider>
         <footer className="app-footer">
           <div className="footer-content">
-            <div className="footer-links">
+            <nav className="footer-links" aria-label="Footer navigation">
               <Link to="/">Home</Link>
               <Link to="/upload">Upload</Link>
               <Link to="/docs">How It Works</Link>
-            </div>
+            </nav>
             <p className="footer-tagline">
-              <LockIcon size="1em" className="footer-icon" /> Built with post-quantum encryption
+              <LockIcon size="1em" className="footer-icon" aria-hidden /> Built with post-quantum encryption
             </p>
             <p className="footer-copyright">Protected by ML-KEM + AES-256-GCM</p>
           </div>

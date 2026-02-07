@@ -106,7 +106,8 @@ const SECURITY_HEADERS: Record<string, string> = {
     'accelerometer=()',
   ].join(', '),
 
-  // Prevent caching of sensitive data
+  // Prevent caching of HTML pages and API responses (encrypted data should not be cached)
+  // Note: Static assets (JS/CSS/images) are served by the CDN/platform with proper cache headers
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
   Pragma: 'no-cache',
 }
