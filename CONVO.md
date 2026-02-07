@@ -332,6 +332,37 @@ Each entry should include:
   - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: Native history list/delete/expiry-filter surfaces are now implemented (Apple feature module + Android app tab), closing another core parity gap with the web experience.
 
+**Native History Open/Share Row Actions**
+- **Prompt**: "1" (execute next step: wire share/open actions directly from history entries)
+- **Action**:
+  - Apple:
+    - Added history share-link generation in `FeatureHistory` (base URL + `/p/{id}` path).
+    - Added per-row `Open` (`Link`) and `Share` (`ShareLink`) actions in `HistoryFlowView` when share URLs are configured.
+    - Added unit test coverage for share-link generation and path encoding behavior.
+  - Android:
+    - Added history share-link generation in `feature:history` (base URL + `/p/{id}` path).
+    - Wired `HistoryFeature` in app shell with `shareBaseUrl`.
+    - Added per-row `Open` (intent `ACTION_VIEW`) and `Share` (intent `ACTION_SEND`) actions in Compose History tab.
+    - Added unit test coverage for share-link generation and path encoding behavior.
+  - Updated Apple/Android README docs to include history row open/share actions.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - `native/apple/README.md`
+  - `native/android/feature/history/src/main/kotlin/com/securepastebin/feature/history/HistoryFeature.kt`
+  - `native/android/feature/history/src/test/kotlin/com/securepastebin/feature/history/HistoryFeatureTest.kt`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: History rows now provide direct open/share actions on both native platforms using generated share links, reducing copy/paste friction for follow-up access and sharing.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

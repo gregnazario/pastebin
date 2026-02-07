@@ -143,6 +143,35 @@ This file maintains the current state of the project for smooth conversation han
   - add share/open actions directly from history entries
   - begin v1 cloud sync adapters (iCloud + Google Drive)
 
+### History Row Action Progress (2026-02-07, latest update)
+- ✅ Apple history rows now support link actions in `FeatureHistory`:
+  - generated share URL (`/p/{id}`) support from configurable base URL
+  - `Open` via SwiftUI `Link`
+  - `Share` via SwiftUI `ShareLink`
+  - implementation: `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+- ✅ Android history rows now support link actions:
+  - generated share URL (`/p/{id}`) support from configured `shareBaseUrl`
+  - `Open` via `Intent.ACTION_VIEW`
+  - `Share` via `Intent.ACTION_SEND`
+  - implementation:
+    - `native/android/feature/history/.../HistoryFeature.kt`
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Added share-link generation tests:
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - `native/android/feature/history/src/test/.../HistoryFeatureTest.kt`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android Gradle validation remains blocked by missing SDK config:
+  - `gradle :feature:history:testDebugUnitTest`
+  - `gradle :app:compileDebugKotlin`
+
+### Updated Immediate Next Step
+- Continue parity hardening for native clients:
+  - integrate Apple history view into concrete app host shell/navigation
+  - extend history row actions with deep-link handoff into native decrypt screen
+  - begin v1 cloud sync adapters (iCloud + Google Drive)
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 

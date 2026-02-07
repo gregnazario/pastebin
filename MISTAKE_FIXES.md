@@ -31,3 +31,14 @@ This document tracks implementation mistakes discovered during development and t
   - Stored export document state on `DecryptFlowViewModel`.
   - Wired `fileExporter` to `isPresented`, optional document binding, content type, and completion handler.
 - **Result**: Apple native decrypt action compiles and runs with passing `swift test`.
+
+## [2026-02-07] Native History Link Encoding Issue
+
+### Issue 1: Apple history URL builder double-encoded IDs with spaces
+- **Context**: New history-row open/share tests expected `/p/file%20abc`, but produced `/p/file%2520abc`.
+- **Root Cause**: ID was manually percent-encoded before assigning to `URLComponents.path`, then encoded again by `URLComponents`.
+- **Fix**:
+  - Stopped pre-encoding the ID.
+  - Assigned raw ID into `URLComponents.path` so encoding happens once.
+  - Added/kept a regression test in `FeatureHistoryTests`.
+- **Result**: Share URL generation is correct and `swift test` passes.
