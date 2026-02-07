@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.securepastebin.core.crypto.DevelopmentNativeCryptoEngine
+import com.securepastebin.core.crypto.ProductionNativeCryptoEngine
 import com.securepastebin.core.network.HttpApiClient
 import com.securepastebin.feature.upload.UploadFeature
 import com.securepastebin.feature.upload.UploadRequest
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
 private fun NativeFlowApp() {
     val apiBase = remember { "http://10.0.2.2:3000" }
     val apiClient = remember { HttpApiClient(baseUrl = apiBase) }
-    val cryptoEngine = remember { DevelopmentNativeCryptoEngine() }
+    val cryptoEngine = remember { ProductionNativeCryptoEngine() }
     val uploadFeature = remember {
         UploadFeature(
             apiClient = apiClient,

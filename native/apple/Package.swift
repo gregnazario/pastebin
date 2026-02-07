@@ -18,9 +18,27 @@ let package = Package(
         .library(name: "FeatureView", targets: ["FeatureView"]),
         .library(name: "FeatureHistory", targets: ["FeatureHistory"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/leif-ibsen/SwiftKyber", from: "2.0.0")
+    ],
     targets: [
-        .target(name: "CoreCrypto"),
+        .target(
+            name: "CArgon2",
+            path: "Vendor/Argon2",
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("src"),
+                .headerSearchPath("src/blake2"),
+                .headerSearchPath("include")
+            ]
+        ),
+        .target(
+            name: "CoreCrypto",
+            dependencies: [
+                .product(name: "SwiftKyber", package: "SwiftKyber"),
+                "CArgon2"
+            ]
+        ),
         .target(name: "CoreNetworking"),
         .target(name: "CoreStorage"),
         .target(name: "FeatureUpload", dependencies: ["CoreCrypto", "CoreNetworking", "CoreStorage"]),

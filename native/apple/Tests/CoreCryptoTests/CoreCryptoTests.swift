@@ -7,27 +7,27 @@ struct CoreCryptoTests {
         #expect(CryptoEngine.payloadVersion == 1)
     }
 
-    @Test func developmentCryptoEngineRoundTripsPayload() async throws {
-        let engine = DevelopmentNativeCryptoEngine()
+    @Test func productionCryptoEngineRoundTripsPayload() async throws {
+        let engine = ProductionNativeCryptoEngine()
         let metadata = CryptoFileMetadata(
             name: "note.txt",
             size: 2,
             mimeType: "text/plain",
             uploadDate: 1_738_886_400_000,
             expirationDate: nil,
-            encryptionConfig: .init(encryptMetadata: false, algorithm: "dev-only")
+            encryptionConfig: .init(encryptMetadata: true, algorithm: "Kyber768+AES256-GCM")
         )
 
         let encrypted = try await engine.encrypt(
             plaintext: [72, 73],
-            password: "DevPass#1",
+            password: "StrongPass#2026",
             metadata: metadata,
-            encryptMetadata: false
+            encryptMetadata: true
         )
 
         let decrypted = try await engine.decrypt(
             serializedPayload: encrypted.serializedPayload,
-            password: "DevPass#1",
+            password: "StrongPass#2026",
             privateKeyBase64Url: encrypted.privateKeyBase64Url
         )
 

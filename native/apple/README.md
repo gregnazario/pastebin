@@ -20,4 +20,5 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - `Sources/FeatureView/DecryptFlowView.swift`
 
 ## Security Note
-- `DevelopmentNativeCryptoEngine` is for flow wiring only and is non-production.
+- `ProductionNativeCryptoEngine` is the default engine for app integrations.
+- `DevelopmentNativeCryptoEngine` remains available for isolated wiring tests only and is non-production.

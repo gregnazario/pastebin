@@ -19,4 +19,5 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Create `native/android/local.properties` with `sdk.dir=/absolute/path/to/android/sdk`
 
 ## Security Note
-- `DevelopmentNativeCryptoEngine` is for flow wiring only and is non-production.
+- `ProductionNativeCryptoEngine` is the default engine used by `:app`.
+- `DevelopmentNativeCryptoEngine` remains available for isolated wiring tests only and is non-production.
