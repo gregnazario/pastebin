@@ -9,6 +9,7 @@ import AppKit
 import PDFKit
 #endif
 import SwiftUI
+import UniformTypeIdentifiers
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -21,6 +22,27 @@ public enum DecryptedPreview: Equatable {
     case unsupported(String)
 }
 
+public struct DecryptedFileDocument: FileDocument {
+    public static var readableContentTypes: [UTType] { [.data] }
+
+    public let data: Data
+
+    public init(data: Data) {
+        self.data = data
+    }
+
+    public init(configuration: ReadConfiguration) throws {
+        guard let fileData = configuration.file.regularFileContents else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        data = fileData
+    }
+
+    public func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
+
 @MainActor
 public final class DecryptFlowViewModel: ObservableObject {
     @Published public var shareURLString: String = ""
@@ -28,10 +50,16 @@ public final class DecryptFlowViewModel: ObservableObject {
     @Published public var isDecrypting: Bool = false
     @Published public var decryptedFileName: String?
     @Published public var decryptedPreview: DecryptedPreview?
+    @Published public var isFileExporterPresented: Bool = false
+    @Published public var exportDocument: DecryptedFileDocument?
+    @Published public var shareExportURL: URL?
     @Published public var errorMessage: String?
 
     private let viewService: ViewFeature
+    private var decryptedFileData: Data?
+    private var decryptedFileMimeType: String?
     private var temporaryPreviewFileURL: URL?
+    private var temporaryExportFileURL: URL?
 
     public init(viewService: ViewFeature) {
         self.viewService = viewService
@@ -43,8 +71,12 @@ public final class DecryptFlowViewModel: ObservableObject {
         isDecrypting = true
         decryptedPreview = nil
         decryptedFileName = nil
+        exportDocument = nil
+        shareExportURL = nil
         errorMessage = nil
-        cleanupTemporaryPreviewFile()
+        decryptedFileData = nil
+        decryptedFileMimeType = nil
+        cleanupTemporaryFiles()
 
         Task {
             do {
@@ -54,11 +86,42 @@ public final class DecryptFlowViewModel: ObservableObject {
 
                 let result = try await viewService.decrypt(.init(shareURL: url, password: password))
                 decryptedFileName = result.metadata.name
+                decryptedFileData = Data(result.plaintext)
+                decryptedFileMimeType = result.metadata.mimeType
                 decryptedPreview = try makePreview(plaintext: result.plaintext, metadata: result.metadata)
+                prepareShareURLIfPossible()
             } catch {
                 errorMessage = error.localizedDescription
             }
             isDecrypting = false
+        }
+    }
+
+    public var hasDecryptedFile: Bool {
+        decryptedFileData != nil && decryptedFileName != nil
+    }
+
+    public var exportContentType: UTType {
+        guard let decryptedFileMimeType,
+              let type = UTType(mimeType: decryptedFileMimeType) else {
+            return .data
+        }
+        return type
+    }
+
+    public func startSaveAs() {
+        guard let decryptedFileData else {
+            errorMessage = "Decrypt a file before saving."
+            return
+        }
+
+        exportDocument = DecryptedFileDocument(data: decryptedFileData)
+        isFileExporterPresented = true
+    }
+
+    public func handleFileExport(result: Result<URL, Error>) {
+        if case .failure(let error) = result {
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -86,10 +149,11 @@ public final class DecryptFlowViewModel: ObservableObject {
         }
 
         if mimeType.hasPrefix("audio/") || mimeType.hasPrefix("video/") {
-            let mediaURL = try writeTemporaryPreviewFile(
+            let mediaURL = try writeTemporaryFile(
                 data: data,
                 fileName: metadata.name,
-                mimeType: mimeType
+                mimeType: mimeType,
+                prefix: "decrypt-preview-"
             )
             temporaryPreviewFileURL = mediaURL
             return .media(mediaURL)
@@ -98,16 +162,17 @@ public final class DecryptFlowViewModel: ObservableObject {
         return .unsupported("No preview available for \(metadata.mimeType).")
     }
 
-    private func writeTemporaryPreviewFile(
+    private func writeTemporaryFile(
         data: Data,
         fileName: String,
-        mimeType: String
+        mimeType: String,
+        prefix: String
     ) throws -> URL {
         let fileManager = FileManager.default
         let originalExtension = URL(fileURLWithPath: fileName).pathExtension
         let pathExtension = originalExtension.isEmpty ? fallbackExtension(for: mimeType) : originalExtension
 
-        var targetURL = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        var targetURL = fileManager.temporaryDirectory.appendingPathComponent("\(prefix)\(UUID().uuidString)")
         if !pathExtension.isEmpty {
             targetURL.appendPathExtension(pathExtension)
         }
@@ -116,10 +181,40 @@ public final class DecryptFlowViewModel: ObservableObject {
         return targetURL
     }
 
-    private func cleanupTemporaryPreviewFile() {
-        guard let temporaryPreviewFileURL else { return }
-        try? FileManager.default.removeItem(at: temporaryPreviewFileURL)
+    private func prepareShareURLIfPossible() {
+        guard let decryptedFileData,
+              let decryptedFileName,
+              let decryptedFileMimeType else {
+            return
+        }
+
+        do {
+            if let temporaryExportFileURL {
+                try? FileManager.default.removeItem(at: temporaryExportFileURL)
+            }
+            let exportURL = try writeTemporaryFile(
+                data: decryptedFileData,
+                fileName: decryptedFileName,
+                mimeType: decryptedFileMimeType,
+                prefix: "decrypt-export-"
+            )
+            temporaryExportFileURL = exportURL
+            shareExportURL = exportURL
+        } catch {
+            shareExportURL = nil
+        }
+    }
+
+    public func cleanupTemporaryFiles() {
+        if let temporaryPreviewFileURL {
+            try? FileManager.default.removeItem(at: temporaryPreviewFileURL)
+        }
         self.temporaryPreviewFileURL = nil
+
+        if let temporaryExportFileURL {
+            try? FileManager.default.removeItem(at: temporaryExportFileURL)
+        }
+        self.temporaryExportFileURL = nil
     }
 
     private func fallbackExtension(for mimeType: String) -> String {
@@ -178,6 +273,18 @@ public struct DecryptFlowView: View {
                 }
             }
 
+            if viewModel.hasDecryptedFile {
+                Section("Actions") {
+                    Button("Save As") {
+                        viewModel.startSaveAs()
+                    }
+
+                    if let shareURL = viewModel.shareExportURL {
+                        ShareLink("Export", item: shareURL)
+                    }
+                }
+            }
+
             if let preview = viewModel.decryptedPreview {
                 Section("Preview") {
                     previewView(preview)
@@ -192,6 +299,17 @@ public struct DecryptFlowView: View {
             }
         }
         .navigationTitle("Decrypt")
+        .fileExporter(
+            isPresented: $viewModel.isFileExporterPresented,
+            document: viewModel.exportDocument,
+            contentType: viewModel.exportContentType,
+            defaultFilename: viewModel.decryptedFileName ?? "decrypted"
+        ) { result in
+            viewModel.handleFileExport(result: result)
+        }
+        .onDisappear {
+            viewModel.cleanupTemporaryFiles()
+        }
     }
 
     @ViewBuilder

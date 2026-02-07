@@ -2,6 +2,7 @@ package com.securepastebin.app
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.pdf.PdfRenderer
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.securepastebin.core.crypto.ProductionNativeCryptoEngine
 import com.securepastebin.core.network.HttpApiClient
+import com.securepastebin.core.storage.SharedPreferencesHistoryStore
 import com.securepastebin.feature.upload.UploadFeature
 import com.securepastebin.feature.upload.UploadRequest
 import com.securepastebin.feature.view.DecryptRequest
@@ -56,6 +58,7 @@ import com.securepastebin.feature.view.ViewFeature
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
+import androidx.core.content.FileProvider
 
 private enum class UploadInputMode {
     NOTE,
@@ -63,6 +66,12 @@ private enum class UploadInputMode {
 }
 
 private data class PickedFile(
+    val name: String,
+    val mimeType: String,
+    val bytes: ByteArray,
+)
+
+private data class DecryptedFilePayload(
     val name: String,
     val mimeType: String,
     val bytes: ByteArray,
@@ -97,9 +106,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun NativeFlowApp() {
+    val context = LocalContext.current
     val apiBase = remember { "http://10.0.2.2:3000" }
     val apiClient = remember { HttpApiClient(baseUrl = apiBase) }
     val cryptoEngine = remember { ProductionNativeCryptoEngine() }
+    val historyStore = remember(context.applicationContext) {
+        SharedPreferencesHistoryStore(context.applicationContext)
+    }
     val uploadFeature = remember {
         UploadFeature(
             apiClient = apiClient,
@@ -111,6 +124,7 @@ private fun NativeFlowApp() {
         ViewFeature(
             apiClient = apiClient,
             cryptoEngine = cryptoEngine,
+            historyStore = historyStore,
         )
     }
 
@@ -321,11 +335,34 @@ private fun DecryptFlowScreen(
     var fileName by remember { mutableStateOf<String?>(null) }
     var preview by remember { mutableStateOf<DecryptPreview?>(null) }
     var previewTempFile by remember { mutableStateOf<File?>(null) }
+    var decryptedPayload by remember { mutableStateOf<DecryptedFilePayload?>(null) }
+    var exportTempFile by remember { mutableStateOf<File?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(previewTempFile?.absolutePath) {
         onDispose {
             previewTempFile?.delete()
+        }
+    }
+
+    DisposableEffect(exportTempFile?.absolutePath) {
+        onDispose {
+            exportTempFile?.delete()
+        }
+    }
+
+    val saveFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("*/*"),
+    ) { destinationUri ->
+        val payload = decryptedPayload
+        if (destinationUri == null || payload == null) {
+            return@rememberLauncherForActivityResult
+        }
+
+        runCatching {
+            saveDecryptedFile(context, destinationUri, payload.bytes)
+        }.onFailure { throwable ->
+            error = throwable.message ?: "Failed to save decrypted file."
         }
     }
 
@@ -362,9 +399,12 @@ private fun DecryptFlowScreen(
                     isDecrypting = true
                     fileName = null
                     preview = null
+                    decryptedPayload = null
                     error = null
                     previewTempFile?.delete()
                     previewTempFile = null
+                    exportTempFile?.delete()
+                    exportTempFile = null
                     scope.launch {
                         try {
                             val result = viewFeature.decrypt(
@@ -374,6 +414,11 @@ private fun DecryptFlowScreen(
                                 ),
                             )
                             fileName = result.metadata.name
+                            decryptedPayload = DecryptedFilePayload(
+                                name = result.metadata.name,
+                                mimeType = result.metadata.mimeType,
+                                bytes = result.plaintext,
+                            )
                             val builtPreview = buildDecryptPreview(
                                 context = context,
                                 fileName = result.metadata.name,
@@ -397,6 +442,35 @@ private fun DecryptFlowScreen(
 
         fileName?.let {
             Text("File: $it", style = MaterialTheme.typography.titleMedium)
+        }
+
+        decryptedPayload?.let { payload ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = { saveFileLauncher.launch(payload.name) }) {
+                    Text("Save As")
+                }
+
+                Button(
+                    onClick = {
+                        runCatching {
+                            exportTempFile?.delete()
+                            val exportFile = writePreviewFile(
+                                context = context,
+                                fileName = payload.name,
+                                mimeType = payload.mimeType,
+                                bytes = payload.bytes,
+                                prefix = "decrypt-export-",
+                            )
+                            exportTempFile = exportFile
+                            shareDecryptedFile(context, exportFile, payload.mimeType)
+                        }.onFailure { throwable ->
+                            error = throwable.message ?: "Failed to export decrypted file."
+                        }
+                    },
+                ) {
+                    Text("Export")
+                }
+            }
         }
 
         preview?.let { content ->
@@ -525,6 +599,7 @@ private fun writePreviewFile(
     fileName: String,
     mimeType: String,
     bytes: ByteArray,
+    prefix: String = "decrypt-preview-",
 ): File {
     val originalExtension = fileName.substringAfterLast('.', "").lowercase()
     val extension = if (originalExtension.isNotBlank()) {
@@ -534,9 +609,39 @@ private fun writePreviewFile(
     }
 
     val suffix = if (extension.isBlank()) "" else ".$extension"
-    val previewFile = File(context.cacheDir, "decrypt-preview-${UUID.randomUUID()}$suffix")
+    val previewFile = File(context.cacheDir, "$prefix${UUID.randomUUID()}$suffix")
     previewFile.writeBytes(bytes)
     return previewFile
+}
+
+private fun saveDecryptedFile(
+    context: Context,
+    destinationUri: Uri,
+    bytes: ByteArray,
+) {
+    context.contentResolver.openOutputStream(destinationUri)?.use { output ->
+        output.write(bytes)
+    } ?: throw IllegalStateException("Unable to open destination for writing.")
+}
+
+private fun shareDecryptedFile(
+    context: Context,
+    file: File,
+    mimeType: String,
+) {
+    val contentUri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file,
+    )
+
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = mimeType
+        putExtra(Intent.EXTRA_STREAM, contentUri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    context.startActivity(Intent.createChooser(shareIntent, "Export decrypted file"))
 }
 
 private fun renderPdfFirstPage(file: File): Bitmap? {

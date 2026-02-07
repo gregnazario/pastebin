@@ -3,6 +3,8 @@ package com.securepastebin.feature.view
 import com.securepastebin.core.crypto.CryptoFileMetadata
 import com.securepastebin.core.crypto.NativeCryptoEngine
 import com.securepastebin.core.network.ApiClient
+import com.securepastebin.core.storage.HistoryEntry
+import com.securepastebin.core.storage.HistoryStore
 import java.net.URI
 import java.net.URLDecoder
 
@@ -38,6 +40,8 @@ sealed class DecryptServiceError(message: String) : Exception(message) {
 class ViewFeature(
     private val apiClient: ApiClient,
     private val cryptoEngine: NativeCryptoEngine,
+    private val historyStore: HistoryStore? = null,
+    private val nowMillis: () -> Long = { System.currentTimeMillis() },
 ) {
     suspend fun decrypt(request: DecryptRequest): DecryptResult {
         val parsed = parseShareUrl(request.shareUrl)
@@ -48,11 +52,27 @@ class ViewFeature(
             privateKeyBase64Url = parsed.privateKeyBase64Url,
         )
 
-        return DecryptResult(
+        val result = DecryptResult(
             id = parsed.id,
             plaintext = decrypted.plaintext,
             metadata = decrypted.metadata,
         )
+
+        historyStore?.let { store ->
+            val entry = HistoryEntry(
+                id = parsed.id,
+                fileName = decrypted.metadata.name,
+                createdAtMillis = nowMillis(),
+                expiresAtMillis = decrypted.metadata.expirationDate ?: 0,
+            )
+            try {
+                store.upsert(entry)
+            } catch (_: Exception) {
+                // History persistence must never block decryption success.
+            }
+        }
+
+        return result
     }
 
     private fun parseShareUrl(shareUrl: String): ParsedShareUrl {

@@ -42,7 +42,7 @@ let package = Package(
         .target(name: "CoreNetworking"),
         .target(name: "CoreStorage"),
         .target(name: "FeatureUpload", dependencies: ["CoreCrypto", "CoreNetworking", "CoreStorage"]),
-        .target(name: "FeatureView", dependencies: ["CoreCrypto", "CoreNetworking"]),
+        .target(name: "FeatureView", dependencies: ["CoreCrypto", "CoreNetworking", "CoreStorage"]),
         .target(name: "FeatureHistory", dependencies: ["CoreStorage"]),
         .testTarget(name: "CoreCryptoTests", dependencies: ["CoreCrypto"]),
         .testTarget(name: "CoreNetworkingTests", dependencies: ["CoreNetworking"]),

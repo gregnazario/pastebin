@@ -25,6 +25,10 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - image
   - PDF (first-page render)
   - audio/video media (`VideoView` controls)
+- Decrypt screen now includes post-decrypt actions:
+  - Save As (document picker destination)
+  - Export (Android share sheet via `FileProvider`)
+- Decrypt success now persists local history metadata through `SharedPreferencesHistoryStore`.
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.

@@ -8,6 +8,8 @@ import com.securepastebin.core.network.ApiClient
 import com.securepastebin.core.network.DownloadResponse
 import com.securepastebin.core.network.HealthResponse
 import com.securepastebin.core.network.UploadResponse
+import com.securepastebin.core.storage.HistoryEntry
+import com.securepastebin.core.storage.HistoryStore
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -38,10 +40,13 @@ class ViewFeatureTest {
                 metadata = expectedMetadata,
             ),
         )
+        val fakeHistoryStore = FakeHistoryStore()
 
         val service = ViewFeature(
             apiClient = fakeApiClient,
             cryptoEngine = fakeCryptoEngine,
+            historyStore = fakeHistoryStore,
+            nowMillis = { 1234 },
         )
 
         val result = service.decrypt(
@@ -56,6 +61,11 @@ class ViewFeatureTest {
         assertEquals(expectedMetadata, result.metadata)
         assertEquals("file-abc", fakeApiClient.downloadedID)
         assertEquals("key_fragment", fakeCryptoEngine.capturedPrivateKey)
+        assertEquals(1, fakeHistoryStore.entries.size)
+        assertEquals("file-abc", fakeHistoryStore.entries.first().id)
+        assertEquals("vector.txt", fakeHistoryStore.entries.first().fileName)
+        assertEquals(1234, fakeHistoryStore.entries.first().createdAtMillis)
+        assertEquals(0, fakeHistoryStore.entries.first().expiresAtMillis)
     }
 
     private class FakeApiClient(
@@ -98,6 +108,23 @@ class ViewFeatureTest {
         ): DecryptionResult {
             capturedPrivateKey = privateKeyBase64Url
             return decryptionResult
+        }
+    }
+
+    private class FakeHistoryStore : HistoryStore {
+        val entries = mutableListOf<HistoryEntry>()
+
+        override suspend fun upsert(entry: HistoryEntry) {
+            entries.removeAll { it.id == entry.id }
+            entries.add(entry)
+        }
+
+        override suspend fun list(): List<HistoryEntry> {
+            return entries.toList()
+        }
+
+        override suspend fun delete(id: String) {
+            entries.removeAll { it.id == id }
         }
     }
 }

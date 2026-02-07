@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider export paths for temporary decrypted-file sharing. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path
+        name="shared_decrypted_files"
+        path="." />
+</paths>

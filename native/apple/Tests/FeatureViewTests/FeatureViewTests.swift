@@ -3,6 +3,7 @@ import Testing
 @testable import FeatureView
 import CoreCrypto
 import CoreNetworking
+import CoreStorage
 
 /// Decrypt flow orchestration tests with fake dependencies.
 struct FeatureViewTests {
@@ -23,8 +24,14 @@ struct FeatureViewTests {
                 metadata: expectedMetadata
             )
         )
+        let historyStore = FakeHistoryStore()
 
-        let service = ViewFeature(apiClient: fakeAPI, cryptoEngine: fakeCrypto)
+        let service = ViewFeature(
+            apiClient: fakeAPI,
+            cryptoEngine: fakeCrypto,
+            historyStore: historyStore,
+            nowMillis: { 1234 }
+        )
         let result = try await service.decrypt(
             .init(
                 shareURL: URL(string: "https://pastebin.sed.fyi/p/file-abc#key_fragment")!,
@@ -37,6 +44,28 @@ struct FeatureViewTests {
         #expect(result.metadata == expectedMetadata)
         #expect(fakeAPI.downloadedID == "file-abc")
         #expect(fakeCrypto.capturedPrivateKey == "key_fragment")
+        let entries = try await historyStore.list()
+        #expect(entries.count == 1)
+        #expect(entries.first?.id == "file-abc")
+        #expect(entries.first?.fileName == "vector.txt")
+        #expect(entries.first?.createdAtMillis == 1234)
+        #expect(entries.first?.expiresAtMillis == 0)
+    }
+}
+
+private actor FakeHistoryStore: HistoryStore {
+    var upsertedEntries: [HistoryEntry] = []
+
+    func upsert(_ entry: HistoryEntry) async throws {
+        upsertedEntries.append(entry)
+    }
+
+    func list() async throws -> [HistoryEntry] {
+        upsertedEntries
+    }
+
+    func delete(id: String) async throws {
+        upsertedEntries.removeAll(where: { $0.id == id })
     }
 }
 

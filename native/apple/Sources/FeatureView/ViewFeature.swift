@@ -1,6 +1,7 @@
 /// View/decrypt feature orchestration for native Apple clients.
 import CoreCrypto
 import CoreNetworking
+import CoreStorage
 import Foundation
 
 /// Input model for decrypt orchestration.
@@ -49,10 +50,19 @@ public enum DecryptServiceError: Error, Sendable, Equatable, LocalizedError {
 public struct ViewFeature {
     private let apiClient: APIClient
     private let cryptoEngine: NativeCryptoEngine
+    private let historyStore: HistoryStore?
+    private let nowMillis: @Sendable () -> Int64
 
-    public init(apiClient: APIClient, cryptoEngine: NativeCryptoEngine) {
+    public init(
+        apiClient: APIClient,
+        cryptoEngine: NativeCryptoEngine,
+        historyStore: HistoryStore? = nil,
+        nowMillis: @escaping @Sendable () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }
+    ) {
         self.apiClient = apiClient
         self.cryptoEngine = cryptoEngine
+        self.historyStore = historyStore
+        self.nowMillis = nowMillis
     }
 
     /// Downloads encrypted payload and decrypts it using URL fragment key + password.
@@ -65,11 +75,23 @@ public struct ViewFeature {
             privateKeyBase64Url: parsed.privateKeyBase64Url
         )
 
-        return DecryptResult(
+        let result = DecryptResult(
             id: parsed.id,
             plaintext: decrypted.plaintext,
             metadata: decrypted.metadata
         )
+
+        if let historyStore {
+            let entry = HistoryEntry(
+                id: parsed.id,
+                fileName: decrypted.metadata.name,
+                createdAtMillis: nowMillis(),
+                expiresAtMillis: decrypted.metadata.expirationDate ?? 0
+            )
+            try? await historyStore.upsert(entry)
+        }
+
+        return result
     }
 
     private func parseShareURL(_ url: URL) throws -> (id: String, privateKeyBase64Url: String) {

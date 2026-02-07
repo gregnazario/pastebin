@@ -26,6 +26,10 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - image
   - PDF
   - audio/video media
+- Decrypt flow now includes post-decrypt actions:
+  - Save As (native file export dialog)
+  - Export (native share sheet)
+- Decrypt success now persists local history metadata through `UserDefaultsHistoryStore`.
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.
