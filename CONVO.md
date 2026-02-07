@@ -13,6 +13,63 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-02-07
+**Native App Planning (Swift + Kotlin)**
+- **Prompt**: "Can you make a plan to make a fully native iOS, iPadOS, and macOS app, along with a fully native Android app... Stretch goal would be similar on Windows as well."
+- **Action**:
+  - Audited current web functionality for parity planning (upload, note mode, decrypt, history, PWA/security UX, crypto pipeline).
+  - Audited existing `mobile/` implementation to identify current gaps vs true native requirements.
+  - Created a new implementation roadmap focused on fully native Swift and Kotlin delivery.
+  - Created a detailed architecture/design document with sequence diagrams and platform module structure.
+  - Captured required user tradeoff decisions before implementation starts.
+- **Files Created**:
+  - `plans/native-swift-kotlin-roadmap.md`
+  - `design-docs/native-swift-kotlin-architecture.md`
+- **Outcome**: Native multi-platform plan and architecture are documented and ready for scope/decision sign-off.
+
+**Tradeoff Interview Results (Signed-Off)**
+- **Prompt**: "interview me for any tradeoffs" followed by decisions:
+  - `1a, 2a, 3b, 4b, 5a, 6a, 7b, 8b, 9b, 10b, 11b, 12b`
+- **Action**:
+  - Updated roadmap and architecture docs with all approved choices.
+  - Re-sequenced phases for parallel iOS/iPadOS + Android delivery.
+  - Added v1 cloud sync scope, preview scope expansion (PDF/media), analytics privacy constraints, and macOS deferment.
+- **Files Modified**:
+  - `plans/native-swift-kotlin-roadmap.md`
+  - `design-docs/native-swift-kotlin-architecture.md`
+- **Outcome**: Tradeoff decisions are now encoded as implementation constraints and sequencing rules.
+
+**Native Build Start (Phase 0/1 Bootstrap)**
+- **Prompt**: "start building it"
+- **Action**:
+  - Implemented versioned REST API handling for native clients in server entry path:
+    - `GET /api/v1/health`
+    - `POST /api/v1/upload`
+    - `GET /api/v1/download?id=...`
+    - `GET /api/v1/download/{id}`
+  - Refactored Shelby server logic into shared internal functions for reuse by both server functions and REST routes.
+  - Added API unit tests for route/method behavior and status mapping.
+  - Added OpenAPI contract artifact for native API v1.
+  - Scaffolded initial native workspaces:
+    - Swift package modules under `native/apple/`
+    - Kotlin multi-module Android workspace under `native/android/`
+  - Ran validation commands:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Files Created**:
+  - `src/server/apiV1.ts`
+  - `src/server/apiV1.test.ts`
+  - `design-docs/native-api-v1-openapi.yaml`
+  - `native/README.md`
+  - `native/apple/*` (initial package/module scaffolding)
+  - `native/android/*` (initial Gradle/module scaffolding)
+- **Files Modified**:
+  - `src/server.ts`
+  - `src/server/shelby.ts`
+- **Outcome**: Native project bootstrap started with stable API surface and parallel platform scaffolds.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

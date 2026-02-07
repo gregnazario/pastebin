@@ -1,0 +1,20 @@
+<!-- Android app manifest for the native Secure Pastebin client. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.securepastebin.app">
+
+    <application
+        android:allowBackup="false"
+        android:label="Secure Pastebin"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

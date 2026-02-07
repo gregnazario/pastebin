@@ -245,6 +245,23 @@ interface ServerConfig {
   defaultExpirationDays: number
 }
 
+/** Validated upload request payload */
+export interface UploadBlobRequest {
+  data: number[]
+  filename: string
+}
+
+/** Validated download request payload */
+export interface DownloadBlobRequest {
+  id: string
+}
+
+/** Health response payload for native and web clients */
+export interface ShelbyHealthResponse {
+  configured: boolean
+  account: string | null
+}
+
 let validatedConfig: ServerConfig | null = null
 
 /**
@@ -325,233 +342,233 @@ function getClients() {
   return { shelbyClient, aptosClient, serviceAccount }
 }
 
-// ============================================================================
-// Server Functions
-// ============================================================================
+/**
+ * Extract request headers from TanStack context safely.
+ */
+function extractRequestHeaders(
+  context: unknown,
+): Headers | Record<string, string | undefined> | undefined {
+  if (!context || typeof context !== 'object') {
+    return undefined
+  }
+
+  const ctx = context as { request?: { headers?: Headers | Record<string, string | undefined> } }
+  return ctx.request?.headers
+}
 
 /**
- * Upload encrypted data to Shelby
+ * Validate upload input payload.
  */
-export const uploadBlob = createServerFn({ method: 'POST' })
-  .inputValidator((d: unknown) => {
-    // Comprehensive input validation
-    if (!d || typeof d !== 'object') {
-      throw new Error('Invalid request format')
-    }
+export function validateUploadBlobRequest(d: unknown): UploadBlobRequest {
+  // Comprehensive input validation
+  if (!d || typeof d !== 'object') {
+    throw new Error('Invalid request format')
+  }
 
-    const input = d as { data?: unknown; filename?: unknown }
+  const input = d as { data?: unknown; filename?: unknown }
 
-    // Validate data array
-    if (!Array.isArray(input.data)) {
-      throw new Error('Invalid request: data must be an array')
-    }
+  // Validate data array
+  if (!Array.isArray(input.data)) {
+    throw new Error('Invalid request: data must be an array')
+  }
 
-    if (input.data.length === 0) {
-      throw new Error('Invalid request: data cannot be empty')
-    }
+  if (input.data.length === 0) {
+    throw new Error('Invalid request: data cannot be empty')
+  }
 
-    if (input.data.length > MAX_UPLOAD_SIZE) {
-      throw new Error(`Invalid request: data exceeds maximum size of ${MAX_UPLOAD_SIZE} bytes`)
-    }
+  if (input.data.length > MAX_UPLOAD_SIZE) {
+    throw new Error(`Invalid request: data exceeds maximum size of ${MAX_UPLOAD_SIZE} bytes`)
+  }
 
-    // Validate all array elements are numbers (bytes)
-    if (!input.data.every((n) => typeof n === 'number' && n >= 0 && n <= 255)) {
-      throw new Error('Invalid request: data must contain valid byte values')
-    }
+  // Validate all array elements are numbers (bytes)
+  if (!input.data.every((n) => typeof n === 'number' && n >= 0 && n <= 255)) {
+    throw new Error('Invalid request: data must contain valid byte values')
+  }
 
-    // Validate filename
-    if (typeof input.filename !== 'string') {
-      throw new Error('Invalid request: filename must be a string')
-    }
+  // Validate filename
+  if (typeof input.filename !== 'string') {
+    throw new Error('Invalid request: filename must be a string')
+  }
 
-    if (input.filename.length === 0) {
-      throw new Error('Invalid request: filename cannot be empty')
-    }
+  if (input.filename.length === 0) {
+    throw new Error('Invalid request: filename cannot be empty')
+  }
 
-    if (input.filename.length > MAX_FILENAME_LENGTH) {
-      throw new Error(`Invalid request: filename exceeds maximum length of ${MAX_FILENAME_LENGTH}`)
-    }
+  if (input.filename.length > MAX_FILENAME_LENGTH) {
+    throw new Error(`Invalid request: filename exceeds maximum length of ${MAX_FILENAME_LENGTH}`)
+  }
 
-    return { data: input.data as number[], filename: input.filename }
-  })
-  .handler(async ({ data: input, context }) => {
-    // Rate limiting - extract client IP from request headers if available
-    // Note: TanStack Start may provide request context differently depending on version
-    // Fall back to 'unknown' if headers not available (still rate limits, just globally)
-    let clientId = 'unknown'
-    try {
-      // @ts-expect-error - context.request may exist depending on TanStack Start version
-      const headers = context?.request?.headers
-      if (headers) {
-        clientId = getClientIp(headers)
-      }
-    } catch {
-      // Use fallback
-    }
-
-    if (isRateLimited(uploadRateLimits, clientId, MAX_UPLOADS_PER_WINDOW)) {
-      log('warn', 'Rate limit exceeded for upload', { clientId })
-      throw new Error('Too many requests. Please try again later.')
-    }
-
-    const { shelbyClient, aptosClient, serviceAccount } = getClients()
-    const config = getConfig()
-
-    if (!serviceAccount || !shelbyClient || !aptosClient) {
-      log('error', 'Shelby clients not initialized')
-      throw new Error('Service temporarily unavailable')
-    }
-
-    const data = new Uint8Array(input.data)
-    const sanitizedFilename = sanitizeFilename(input.filename)
-
-    log('info', 'Starting upload', { filename: sanitizedFilename, size: data.length })
-
-    // Step 1: Encode and generate commitments
-    const provider = await createDefaultErasureCodingProvider()
-    const commitments = await generateCommitments(provider, Buffer.from(data))
-
-    // Step 2: Register on-chain
-    // Use timestamp + sanitized filename + random suffix for uniqueness
-    const randomSuffix = crypto.randomUUID().split('-')[0]
-    const blobName = `pastebin-${Date.now()}-${sanitizedFilename}-${randomSuffix}`
-    const expirationMicros =
-      (Date.now() + config.defaultExpirationDays * 24 * 60 * 60 * 1000) * 1000
-
-    const payload = ShelbyBlobClient.createRegisterBlobPayload({
-      account: serviceAccount.accountAddress,
-      blobName,
-      blobMerkleRoot: commitments.blob_merkle_root,
-      numChunksets: expectedTotalChunksets(commitments.raw_data_size),
-      expirationMicros,
-      blobSize: commitments.raw_data_size,
-    })
-
-    const transaction = await aptosClient.transaction.build.simple({
-      sender: serviceAccount.accountAddress,
-      data: payload,
-    })
-
-    const pendingTx = await aptosClient.signAndSubmitTransaction({
-      signer: serviceAccount,
-      transaction,
-    })
-
-    await aptosClient.waitForTransaction({
-      transactionHash: pendingTx.hash,
-    })
-
-    log('info', 'Blob registered on-chain', { txHash: pendingTx.hash, blobName })
-
-    // Step 3: Upload to RPC
-    await shelbyClient.rpc.putBlob({
-      account: serviceAccount.accountAddress.toString(),
-      blobName,
-      blobData: data,
-    })
-
-    log('info', 'Upload complete', { blobName })
-
-    return {
-      id: blobName,
-      expiresAt: Date.now() + config.defaultExpirationDays * 24 * 60 * 60 * 1000,
-    }
-  })
+  return { data: input.data as number[], filename: input.filename }
+}
 
 /**
- * Download encrypted data from Shelby
+ * Validate download input payload.
  */
-export const downloadBlob = createServerFn({ method: 'GET' })
-  .inputValidator((d: unknown) => {
-    // Validate input
-    if (!d || typeof d !== 'object') {
-      throw new Error('Invalid request format')
-    }
+export function validateDownloadBlobRequest(d: unknown): DownloadBlobRequest {
+  // Validate input
+  if (!d || typeof d !== 'object') {
+    throw new Error('Invalid request format')
+  }
 
-    const input = d as { id?: unknown }
+  const input = d as { id?: unknown }
 
-    if (typeof input.id !== 'string') {
-      throw new Error('Invalid request: id must be a string')
-    }
+  if (typeof input.id !== 'string') {
+    throw new Error('Invalid request: id must be a string')
+  }
 
-    if (input.id.length === 0) {
-      throw new Error('Invalid request: id cannot be empty')
-    }
+  if (input.id.length === 0) {
+    throw new Error('Invalid request: id cannot be empty')
+  }
 
-    // Validate file ID format
-    if (!isValidFileId(input.id)) {
-      throw new Error('Invalid request: malformed file ID')
-    }
+  // Validate file ID format
+  if (!isValidFileId(input.id)) {
+    throw new Error('Invalid request: malformed file ID')
+  }
 
-    return { id: input.id }
-  })
-  .handler(async ({ data: input, context }) => {
-    // Rate limiting - extract client IP from request headers if available
-    let clientId = 'unknown'
-    try {
-      // @ts-expect-error - context.request may exist depending on TanStack Start version
-      const headers = context?.request?.headers
-      if (headers) {
-        clientId = getClientIp(headers)
-      }
-    } catch {
-      // Use fallback
-    }
-
-    if (isRateLimited(downloadRateLimits, clientId, MAX_DOWNLOADS_PER_WINDOW)) {
-      log('warn', 'Rate limit exceeded for download', { clientId })
-      throw new Error('Too many requests. Please try again later.')
-    }
-
-    const { shelbyClient, serviceAccount } = getClients()
-
-    if (!serviceAccount || !shelbyClient) {
-      log('error', 'Shelby clients not initialized for download')
-      throw new Error('Service temporarily unavailable')
-    }
-
-    log('info', 'Starting download', { id: input.id })
-
-    const result = await shelbyClient.rpc.getBlob({
-      account: serviceAccount.accountAddress.toString(),
-      blobName: input.id,
-    })
-
-    if (!result?.readable) {
-      log('warn', 'Blob not found', { id: input.id })
-      throw new Error('File not found')
-    }
-
-    // Read stream into buffer
-    const reader = result.readable.getReader()
-    const chunks: Uint8Array[] = []
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      chunks.push(value)
-    }
-
-    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
-    const data = new Uint8Array(totalLength)
-    let offset = 0
-    for (const chunk of chunks) {
-      data.set(chunk, offset)
-      offset += chunk.length
-    }
-
-    log('info', 'Download complete', { id: input.id, size: totalLength })
-
-    // Return as array of numbers (serializable)
-    return {
-      data: Array.from(data),
-    }
-  })
+  return { id: input.id }
+}
 
 /**
- * Check server health and Shelby configuration
+ * Internal upload implementation shared by server functions and REST APIs.
  */
-export const checkHealth = createServerFn({ method: 'GET' }).handler(async () => {
+export async function uploadBlobInternal(
+  input: UploadBlobRequest,
+  requestHeaders?: Headers | Record<string, string | undefined>,
+): Promise<{ id: string; expiresAt: number }> {
+  // Rate limiting
+  const clientId = requestHeaders ? getClientIp(requestHeaders) : 'unknown'
+
+  if (isRateLimited(uploadRateLimits, clientId, MAX_UPLOADS_PER_WINDOW)) {
+    log('warn', 'Rate limit exceeded for upload', { clientId })
+    throw new Error('Too many requests. Please try again later.')
+  }
+
+  const { shelbyClient, aptosClient, serviceAccount } = getClients()
+  const config = getConfig()
+
+  if (!serviceAccount || !shelbyClient || !aptosClient) {
+    log('error', 'Shelby clients not initialized')
+    throw new Error('Service temporarily unavailable')
+  }
+
+  const data = new Uint8Array(input.data)
+  const sanitizedFilename = sanitizeFilename(input.filename)
+
+  log('info', 'Starting upload', { filename: sanitizedFilename, size: data.length })
+
+  // Step 1: Encode and generate commitments
+  const provider = await createDefaultErasureCodingProvider()
+  const commitments = await generateCommitments(provider, Buffer.from(data))
+
+  // Step 2: Register on-chain
+  // Use timestamp + sanitized filename + random suffix for uniqueness
+  const randomSuffix = crypto.randomUUID().split('-')[0]
+  const blobName = `pastebin-${Date.now()}-${sanitizedFilename}-${randomSuffix}`
+  const expirationMicros = (Date.now() + config.defaultExpirationDays * 24 * 60 * 60 * 1000) * 1000
+
+  const payload = ShelbyBlobClient.createRegisterBlobPayload({
+    account: serviceAccount.accountAddress,
+    blobName,
+    blobMerkleRoot: commitments.blob_merkle_root,
+    numChunksets: expectedTotalChunksets(commitments.raw_data_size),
+    expirationMicros,
+    blobSize: commitments.raw_data_size,
+  })
+
+  const transaction = await aptosClient.transaction.build.simple({
+    sender: serviceAccount.accountAddress,
+    data: payload,
+  })
+
+  const pendingTx = await aptosClient.signAndSubmitTransaction({
+    signer: serviceAccount,
+    transaction,
+  })
+
+  await aptosClient.waitForTransaction({
+    transactionHash: pendingTx.hash,
+  })
+
+  log('info', 'Blob registered on-chain', { txHash: pendingTx.hash, blobName })
+
+  // Step 3: Upload to RPC
+  await shelbyClient.rpc.putBlob({
+    account: serviceAccount.accountAddress.toString(),
+    blobName,
+    blobData: data,
+  })
+
+  log('info', 'Upload complete', { blobName })
+
+  return {
+    id: blobName,
+    expiresAt: Date.now() + config.defaultExpirationDays * 24 * 60 * 60 * 1000,
+  }
+}
+
+/**
+ * Internal download implementation shared by server functions and REST APIs.
+ */
+export async function downloadBlobInternal(
+  input: DownloadBlobRequest,
+  requestHeaders?: Headers | Record<string, string | undefined>,
+): Promise<{ data: number[] }> {
+  // Rate limiting
+  const clientId = requestHeaders ? getClientIp(requestHeaders) : 'unknown'
+
+  if (isRateLimited(downloadRateLimits, clientId, MAX_DOWNLOADS_PER_WINDOW)) {
+    log('warn', 'Rate limit exceeded for download', { clientId })
+    throw new Error('Too many requests. Please try again later.')
+  }
+
+  const { shelbyClient, serviceAccount } = getClients()
+
+  if (!serviceAccount || !shelbyClient) {
+    log('error', 'Shelby clients not initialized for download')
+    throw new Error('Service temporarily unavailable')
+  }
+
+  log('info', 'Starting download', { id: input.id })
+
+  const result = await shelbyClient.rpc.getBlob({
+    account: serviceAccount.accountAddress.toString(),
+    blobName: input.id,
+  })
+
+  if (!result?.readable) {
+    log('warn', 'Blob not found', { id: input.id })
+    throw new Error('File not found')
+  }
+
+  // Read stream into buffer
+  const reader = result.readable.getReader()
+  const chunks: Uint8Array[] = []
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    chunks.push(value)
+  }
+
+  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
+  const data = new Uint8Array(totalLength)
+  let offset = 0
+  for (const chunk of chunks) {
+    data.set(chunk, offset)
+    offset += chunk.length
+  }
+
+  log('info', 'Download complete', { id: input.id, size: totalLength })
+
+  return {
+    data: Array.from(data),
+  }
+}
+
+/**
+ * Internal health check implementation shared by server functions and REST APIs.
+ */
+export async function checkHealthInternal(): Promise<ShelbyHealthResponse> {
   try {
     const { serviceAccount } = getClients()
     const config = getConfig()
@@ -567,4 +584,33 @@ export const checkHealth = createServerFn({ method: 'GET' }).handler(async () =>
       account: null,
     }
   }
+}
+
+// ============================================================================
+// Server Functions
+// ============================================================================
+
+/**
+ * Upload encrypted data to Shelby
+ */
+export const uploadBlob = createServerFn({ method: 'POST' })
+  .inputValidator((d: unknown) => validateUploadBlobRequest(d))
+  .handler(async ({ data: input, context }) => {
+    return uploadBlobInternal(input, extractRequestHeaders(context))
+  })
+
+/**
+ * Download encrypted data from Shelby
+ */
+export const downloadBlob = createServerFn({ method: 'GET' })
+  .inputValidator((d: unknown) => validateDownloadBlobRequest(d))
+  .handler(async ({ data: input, context }) => {
+    return downloadBlobInternal(input, extractRequestHeaders(context))
+  })
+
+/**
+ * Check server health and Shelby configuration
+ */
+export const checkHealth = createServerFn({ method: 'GET' }).handler(async () => {
+  return checkHealthInternal()
 })

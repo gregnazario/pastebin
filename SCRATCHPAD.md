@@ -2,7 +2,62 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-02-01)
+## Current State (2026-02-07)
+
+### Active Task
+- **Phase**: Pre-implementation planning for native clients.
+- **Current Task**: Create production roadmap and architecture docs for fully native Swift (iOS/iPadOS/macOS) and Kotlin (Android) apps.
+- **Stretch Scope**: Windows native client planning path documented.
+
+### New Planning Artifacts (2026-02-07)
+- ✅ Added roadmap: `plans/native-swift-kotlin-roadmap.md`
+- ✅ Added architecture/design doc: `design-docs/native-swift-kotlin-architecture.md`
+- ✅ Captured parity baseline from current web app (upload, decrypt, note mode, history, security UX).
+- ✅ Captured and finalized non-obvious tradeoff decisions:
+  - Native crypto per platform with shared conformance vectors.
+  - Versioned REST API for native clients.
+  - Core-first v1 scope.
+  - Include iCloud + Google Drive sync in v1.
+  - Keep 100MB limit and fixed server expiration policy.
+  - Include PDF/media preview in v1.
+  - Slightly relaxed mobile password policy (with minimum security floor).
+  - Parallel Apple + Android release; macOS deferred.
+  - Rich analytics with privacy constraints.
+  - Windows deferred until post-GA.
+
+### Immediate Next Step
+- Start Phase 0 implementation artifacts:
+  - Define versioned REST API contract.
+  - Produce cross-platform crypto conformance vectors.
+  - Scaffold `native/apple/` and `native/android/` repositories/modules.
+
+### Native Bootstrap Progress (2026-02-07)
+- ✅ Implemented versioned native API endpoints in server runtime:
+  - `GET /api/v1/health`
+  - `POST /api/v1/upload`
+  - `GET /api/v1/download?id=...`
+  - `GET /api/v1/download/{id}`
+- ✅ Refactored `src/server/shelby.ts` to expose reusable internal functions:
+  - `uploadBlobInternal`
+  - `downloadBlobInternal`
+  - `checkHealthInternal`
+  - Shared input validators
+- ✅ Added API handler unit tests in `src/server/apiV1.test.ts`
+- ✅ Added OpenAPI contract at `design-docs/native-api-v1-openapi.yaml`
+- ✅ Scaffolded native workspaces:
+  - `native/apple/` with modular Swift package layout
+  - `native/android/` with modular Gradle layout
+- ✅ Validation commands run and passing:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+
+### Updated Immediate Next Step
+- Begin Phase 1 security spec and compatibility deliverables:
+  - Generate crypto conformance vectors from web implementation.
+  - Define strict payload parser/serializer conformance tests for Swift and Kotlin targets.
+  - Implement first real native API client adapters in `CoreNetworking` (Swift/Kotlin).
 
 ### Project Status
 - **Phase**: Phase 5 - Testing & Benchmarking (Advanced)
@@ -152,4 +207,4 @@ bun run typecheck # Type checking
 
 ---
 
-*Last updated: 2026-02-06*
+*Last updated: 2026-02-07*

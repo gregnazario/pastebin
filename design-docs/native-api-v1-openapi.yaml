@@ -1,0 +1,155 @@
+# OpenAPI contract for native client integration.
+# This contract maps to /api/v1 endpoints implemented in src/server/apiV1.ts.
+
+openapi: 3.1.0
+info:
+  title: Secure Pastebin Native API
+  version: 1.0.0
+  description: |
+    Versioned REST API for native Swift and Kotlin clients.
+servers:
+  - url: https://pastebin.sed.fyi
+    description: Production
+  - url: http://localhost:3000
+    description: Local development
+paths:
+  /api/v1/health:
+    get:
+      summary: Service health and Shelby configuration status
+      operationId: getHealth
+      responses:
+        '200':
+          description: Health payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/v1/upload:
+    post:
+      summary: Upload encrypted blob bytes
+      operationId: uploadBlob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+      responses:
+        '200':
+          description: Upload succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/download:
+    get:
+      summary: Download encrypted blob bytes by ID
+      operationId: downloadBlobByQuery
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Download succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/download/{id}:
+    get:
+      summary: Download encrypted blob bytes by path ID
+      operationId: downloadBlobByPath
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Download succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  responses:
+    ErrorResponse:
+      description: Error response payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        configured:
+          type: boolean
+        account:
+          type: string
+          nullable: true
+      required: [configured, account]
+    UploadRequest:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 255
+        filename:
+          type: string
+          maxLength: 255
+      required: [data, filename]
+    UploadResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        expiresAt:
+          type: integer
+          format: int64
+      required: [id, expiresAt]
+    DownloadResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 255
+      required: [data]
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
