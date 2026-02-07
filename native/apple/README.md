@@ -13,3 +13,11 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
 - `FeatureUpload`
 - `FeatureView`
 - `FeatureHistory`
+
+## UI Flow Wiring
+- SwiftUI upload and decrypt flow views are implemented in:
+  - `Sources/FeatureUpload/UploadFlowView.swift`
+  - `Sources/FeatureView/DecryptFlowView.swift`
+
+## Security Note
+- `DevelopmentNativeCryptoEngine` is for flow wiring only and is non-production.

@@ -82,6 +82,20 @@ This file maintains the current state of the project for smooth conversation han
   - Gradle runs, but Android SDK is not configured (`ANDROID_HOME` / `local.properties` `sdk.dir`).
   - Command attempted: `gradle -p native/android :feature:upload:test :feature:view:test`.
 
+### Native UI Wiring Progress (2026-02-07, latest update)
+- ✅ SwiftUI screen layer added for upload/decrypt flows:
+  - `UploadFlowView.swift`
+  - `DecryptFlowView.swift`
+- ✅ Android Compose app shell added with Upload/Decrypt tabs in `MainActivity`.
+- ✅ Development-only crypto adapters added to both platforms to enable real flow wiring before production crypto parity lands:
+  - Swift: `DevelopmentNativeCryptoEngine`
+  - Kotlin: `DevelopmentNativeCryptoEngine`
+- ✅ Apple tests now cover:
+  - Core crypto roundtrip (development adapter)
+  - Networking config
+  - Upload/decrypt feature orchestration
+- ⚠️ Android Gradle unit tests remain blocked until SDK path is configured locally.
+
 ### Current Verification Snapshot
 - ✅ `bun run lint`
 - ✅ `bun run typecheck`

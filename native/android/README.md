@@ -11,3 +11,12 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - `:app`
 - `:core:crypto`, `:core:network`, `:core:storage`
 - `:feature:upload`, `:feature:view`, `:feature:history`
+
+## Running the App
+- The app currently targets local API via `http://10.0.2.2:3000` (Android emulator loopback).
+- Configure Android SDK before running Gradle tasks:
+  - Set `ANDROID_HOME`, or
+  - Create `native/android/local.properties` with `sdk.dir=/absolute/path/to/android/sdk`
+
+## Security Note
+- `DevelopmentNativeCryptoEngine` is for flow wiring only and is non-production.

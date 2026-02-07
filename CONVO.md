@@ -143,6 +143,27 @@ Each entry should include:
   - `native/android/feature/view/src/test/kotlin/com/securepastebin/feature/view/ViewFeatureTest.kt`
 - **Outcome**: Cross-platform feature orchestration exists for upload/decrypt flows, with passing Apple/web tests and Android tests staged pending local SDK setup.
 
+**Native UI Wiring (SwiftUI + Compose)**
+- **Prompt**: "1" (continue with wiring services into actual screens)
+- **Action**:
+  - Added SwiftUI upload/decrypt flow screens and view models:
+    - `UploadFlowView` + `UploadFlowViewModel`
+    - `DecryptFlowView` + `DecryptFlowViewModel`
+  - Added development-only native crypto engine in Swift (`DevelopmentNativeCryptoEngine`) so upload/decrypt flows can execute end-to-end while production crypto parity is still in progress.
+  - Added development-only native crypto engine in Kotlin (`DevelopmentNativeCryptoEngine`) for Android flow wiring.
+  - Replaced Android empty activity with Compose UI host featuring Upload and Decrypt tabs that call real feature orchestrators.
+  - Added Compose dependencies/plugins to Android app module.
+  - Added Android core crypto unit test for development crypto engine roundtrip.
+  - Updated native READMEs with environment and security notes.
+  - Validation run:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+    - `swift test` ✅
+    - `gradle -p native/android :feature:upload:test :feature:view:test :core:crypto:test` ⚠️ blocked by missing Android SDK config (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Actual native UI screens are now wired to upload/decrypt services on both platforms, with explicit non-production crypto adapter for development flow execution.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
