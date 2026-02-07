@@ -1,8 +1,14 @@
 package com.securepastebin.app
 
+import android.content.ContentResolver
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,6 +42,17 @@ import com.securepastebin.feature.upload.UploadRequest
 import com.securepastebin.feature.view.DecryptRequest
 import com.securepastebin.feature.view.ViewFeature
 import kotlinx.coroutines.launch
+
+private enum class UploadInputMode {
+    NOTE,
+    FILE,
+}
+
+private data class PickedFile(
+    val name: String,
+    val mimeType: String,
+    val bytes: ByteArray,
+)
 
 /**
  * Main Android entry activity with Compose screens for upload and decrypt flows.
@@ -95,6 +113,23 @@ private fun UploadFlowScreen(
     var isUploading by remember { mutableStateOf(false) }
     var shareLink by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var inputMode by remember { mutableStateOf(UploadInputMode.NOTE) }
+    var selectedFile by remember { mutableStateOf<PickedFile?>(null) }
+
+    val context = LocalContext.current
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+
+        try {
+            selectedFile = readPickedFile(context, uri)
+            error = null
+        } catch (e: Exception) {
+            selectedFile = null
+            error = e.message ?: "Failed to read selected file."
+        }
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -102,25 +137,52 @@ private fun UploadFlowScreen(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = filename,
-            onValueChange = { filename = it },
-            label = { Text("Filename") },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                capitalization = KeyboardCapitalization.None,
-            ),
-            singleLine = true,
-        )
+        TabRow(selectedTabIndex = if (inputMode == UploadInputMode.NOTE) 0 else 1) {
+            Tab(
+                selected = inputMode == UploadInputMode.NOTE,
+                onClick = { inputMode = UploadInputMode.NOTE },
+                text = { Text("Note") },
+            )
+            Tab(
+                selected = inputMode == UploadInputMode.FILE,
+                onClick = { inputMode = UploadInputMode.FILE },
+                text = { Text("File") },
+            )
+        }
 
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = noteText,
-            onValueChange = { noteText = it },
-            label = { Text("Note") },
-            minLines = 6,
-        )
+        if (inputMode == UploadInputMode.NOTE) {
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = filename,
+                onValueChange = { filename = it },
+                label = { Text("Filename") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.None,
+                ),
+                singleLine = true,
+            )
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = noteText,
+                onValueChange = { noteText = it },
+                label = { Text("Note") },
+                minLines = 6,
+            )
+        } else {
+            Button(onClick = { filePickerLauncher.launch(arrayOf("*/*")) }) {
+                Text("Choose File")
+            }
+
+            selectedFile?.let { file ->
+                Text("Selected: ${file.name}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "${file.bytes.size} bytes • ${file.mimeType}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
 
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -133,20 +195,36 @@ private fun UploadFlowScreen(
 
         Button(
             onClick = {
+                val uploadPayload = when (inputMode) {
+                    UploadInputMode.NOTE -> UploadRequest(
+                        plaintext = noteText.toByteArray(Charsets.UTF_8),
+                        filename = if (filename.isBlank()) "note.txt" else filename,
+                        mimeType = "text/plain",
+                        password = password,
+                        encryptMetadata = false,
+                    )
+                    UploadInputMode.FILE -> {
+                        val file = selectedFile
+                        if (file == null) {
+                            error = "Choose a file before uploading."
+                            return@Button
+                        }
+                        UploadRequest(
+                            plaintext = file.bytes,
+                            filename = file.name,
+                            mimeType = file.mimeType,
+                            password = password,
+                            encryptMetadata = false,
+                        )
+                    }
+                }
+
                 isUploading = true
                 error = null
                 shareLink = null
                 scope.launch {
                     try {
-                        val result = uploadFeature.upload(
-                            UploadRequest(
-                                plaintext = noteText.toByteArray(Charsets.UTF_8),
-                                filename = if (filename.isBlank()) "note.txt" else filename,
-                                mimeType = "text/plain",
-                                password = password,
-                                encryptMetadata = false,
-                            ),
-                        )
+                        val result = uploadFeature.upload(uploadPayload)
                         shareLink = result.shareUrl
                     } catch (e: Exception) {
                         error = e.message
@@ -155,7 +233,12 @@ private fun UploadFlowScreen(
                     }
                 }
             },
-            enabled = !isUploading && noteText.isNotBlank() && password.isNotBlank(),
+            enabled = !isUploading &&
+                password.isNotBlank() &&
+                (
+                    (inputMode == UploadInputMode.NOTE && noteText.isNotBlank()) ||
+                        (inputMode == UploadInputMode.FILE && selectedFile != null)
+                    ),
         ) {
             Text(if (isUploading) "Uploading..." else "Encrypt and Upload")
         }
@@ -169,6 +252,34 @@ private fun UploadFlowScreen(
             Text("Error: $message", color = MaterialTheme.colorScheme.error)
         }
     }
+}
+
+private fun readPickedFile(context: Context, uri: Uri): PickedFile {
+    val resolver = context.contentResolver
+    val mimeType = resolver.getType(uri) ?: "application/octet-stream"
+    val displayName = queryDisplayName(resolver, uri) ?: "file.bin"
+    val bytes = resolver.openInputStream(uri)?.use { input ->
+        input.readBytes()
+    } ?: throw IllegalStateException("Unable to open selected file.")
+
+    return PickedFile(
+        name = displayName,
+        mimeType = mimeType,
+        bytes = bytes,
+    )
+}
+
+private fun queryDisplayName(
+    resolver: ContentResolver,
+    uri: Uri,
+): String? {
+    resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (nameIndex >= 0 && cursor.moveToFirst()) {
+            return cursor.getString(nameIndex)
+        }
+    }
+    return null
 }
 
 @Composable
