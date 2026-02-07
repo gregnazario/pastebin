@@ -363,6 +363,37 @@ Each entry should include:
   - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: History rows now provide direct open/share actions on both native platforms using generated share links, reducing copy/paste friction for follow-up access and sharing.
 
+**Native Deep-Link Handoff: History -> Decrypt (In-App)**
+- **Prompt**: "yes" (after suggestion to wire deep-link handoff into native decrypt prefill flow)
+- **Action**:
+  - Android:
+    - Added in-app handoff state in app shell:
+      - history `Open` now routes to Decrypt tab
+      - selected share URL is prefilled into decrypt share-url field
+      - prefill payload is consumed after injection to avoid repeated resets
+    - Updated `HistoryFlowScreen` to call host callback (`onOpenInDecrypt`) instead of external browser open intent.
+    - Updated `DecryptFlowScreen` to accept `prefilledShareUrl` and apply it via `LaunchedEffect`.
+  - Apple:
+    - Added optional `onOpenInDecrypt` callback to `HistoryFlowView` so host apps can route to decrypt screens in-app.
+    - Added `prefillShareURL(_:)` helper on `DecryptFlowViewModel` for host-driven URL injection.
+    - Preserved existing fallback behavior: if no callback is provided, history `Open` still uses `openURL`.
+  - Updated Apple/Android native READMEs with new deep-link handoff behavior.
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Selecting `Open` from native history now supports in-app decrypt continuation (Android implemented directly in host; Apple callback surface added for host integration), reducing context switching and improving decrypt retry UX.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

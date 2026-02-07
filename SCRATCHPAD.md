@@ -172,6 +172,30 @@ This file maintains the current state of the project for smooth conversation han
   - extend history row actions with deep-link handoff into native decrypt screen
   - begin v1 cloud sync adapters (iCloud + Google Drive)
 
+### Deep-Link Handoff Progress (2026-02-07, latest update)
+- ✅ Android in-app history -> decrypt handoff implemented:
+  - `Open` from History now switches to Decrypt tab and pre-fills share URL.
+  - Prefill value is consumed after injection to prevent repeat resets.
+  - implementation: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Apple host integration hooks added:
+  - `HistoryFlowView` now accepts optional `onOpenInDecrypt` callback.
+  - `DecryptFlowViewModel` now exposes `prefillShareURL(_:)` for host-driven injection.
+  - implementation:
+    - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+    - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android Gradle validation remains blocked by missing SDK config:
+  - `gradle :feature:history:testDebugUnitTest`
+  - `gradle :app:compileDebugKotlin`
+
+### Updated Immediate Next Step
+- Continue parity hardening for native clients:
+  - integrate Apple history/decrypt callback handoff in concrete app host shell
+  - add automated UI coverage for Android history->decrypt handoff path
+  - begin v1 cloud sync adapters (iCloud + Google Drive)
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 
