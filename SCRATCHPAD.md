@@ -78,6 +78,37 @@ This file maintains the current state of the project for smooth conversation han
   - save/export decrypted payload
   - retain recent decrypt history with expiry metadata
 
+### Save/Export + History Wiring Progress (2026-02-07, latest update)
+- ✅ Apple decrypt flow now includes actions after successful decrypt:
+  - `Save As` via SwiftUI `fileExporter`
+  - `Export` via SwiftUI `ShareLink`
+  - temporary preview/export file lifecycle cleanup
+  - implementation: `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+- ✅ Apple history persistence added in `CoreStorage`:
+  - `UserDefaultsHistoryStore` in `native/apple/Sources/CoreStorage/HistoryStore.swift`
+  - decrypt success now persists history entry in `ViewFeature`
+- ✅ Android decrypt flow now includes actions after successful decrypt:
+  - `Save As` via `CreateDocument`
+  - `Export` via share intent + `FileProvider`
+  - implementation: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Android history persistence added in `core:storage`:
+  - `SharedPreferencesHistoryStore` in `native/android/core/storage/.../HistoryStore.kt`
+  - decrypt success now persists history entry in `feature:view`
+- ✅ Validation rerun:
+  - `bun run lint` passed
+  - `bun run typecheck` passed
+  - `bun test` passed
+  - `bun run build` passed
+  - `swift test` passed
+- ⚠️ Android Gradle validation remains blocked by missing SDK config:
+  - `ANDROID_HOME` not set and no `native/android/local.properties` `sdk.dir`
+
+### Updated Immediate Next Step
+- Add history UI surfaces on native clients:
+  - list recent decrypt/upload entries
+  - delete entries
+  - show expiration metadata with expired-state filtering
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 

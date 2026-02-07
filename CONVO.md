@@ -253,6 +253,46 @@ Each entry should include:
   - `gradle -p native/android :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: Decrypt flows now have file-type-aware native previews on both platforms, closing a major UX parity gap vs web preview expectations.
 
+**Native Decrypt Save/Export Actions + History Persistence**
+- **Prompt**: "yes please wire those actions"
+- **Action**:
+  - Apple:
+    - Added `UserDefaultsHistoryStore` to `CoreStorage` for persisted history entries.
+    - Wired `ViewFeature` decrypt success path to upsert history entries (non-fatal on write failure).
+    - Added decrypt actions to `DecryptFlowView`:
+      - `Save As` (SwiftUI `fileExporter`)
+      - `Export` (SwiftUI `ShareLink`)
+    - Added temporary export-file lifecycle handling and tests for history persistence write behavior.
+  - Android:
+    - Added `SharedPreferencesHistoryStore` to `core:storage`.
+    - Wired `feature:view` decrypt success path to upsert history entries (non-fatal on write failure).
+    - Added decrypt actions in Compose decrypt screen:
+      - `Save As` (`CreateDocument`)
+      - `Export` (share intent via `FileProvider`)
+    - Added app manifest/file-provider path config and tests for decrypt-triggered history persistence.
+  - Updated module wiring/dependencies where needed (`FeatureView` on Apple, `:feature:view` on Android).
+- **Files Modified**:
+  - `native/apple/Sources/CoreStorage/HistoryStore.swift`
+  - `native/apple/Sources/FeatureView/ViewFeature.swift`
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/apple/Package.swift`
+  - `native/android/core/storage/src/main/kotlin/com/securepastebin/core/storage/HistoryStore.kt`
+  - `native/android/feature/view/src/main/kotlin/com/securepastebin/feature/view/ViewFeature.kt`
+  - `native/android/feature/view/src/test/kotlin/com/securepastebin/feature/view/ViewFeatureTest.kt`
+  - `native/android/feature/view/build.gradle.kts`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/main/AndroidManifest.xml`
+  - `native/android/app/src/main/res/xml/file_paths.xml`
+- **Validation**:
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `swift test` ✅
+  - `gradle :feature:view:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Decrypt actions are now wired for save/export and decrypt history persistence is integrated on both native platforms.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

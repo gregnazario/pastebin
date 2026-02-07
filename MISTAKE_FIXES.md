@@ -20,3 +20,14 @@ This document tracks implementation mistakes discovered during development and t
 - **Root Cause**: A line break immediately after `return` triggered Kotlin semicolon insertion, returning `Unit`.
 - **Fix**: Rewrote the expression so `return` and expression are on the same statement.
 - **Result**: Core crypto Kotlin sources compile correctly under direct `kotlinc` checks.
+
+## [2026-02-07] Native Decrypt Action Wiring Issue
+
+### Issue 1: SwiftUI `fileExporter` Integration Initially Used an Incompatible Binding Shape
+- **Context**: Wiring decrypt "Save As" in `DecryptFlowView.swift` initially failed compile checks.
+- **Root Cause**: The first integration path used a `fileExporter` overload shape that did not match the document state binding arrangement in the view model.
+- **Fix**:
+  - Added an explicit `DecryptedFileDocument` `FileDocument` type.
+  - Stored export document state on `DecryptFlowViewModel`.
+  - Wired `fileExporter` to `isPresented`, optional document binding, content type, and completion handler.
+- **Result**: Apple native decrypt action compiles and runs with passing `swift test`.
