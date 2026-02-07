@@ -34,6 +34,7 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - expired-entry toggle
   - delete action for entries
   - open/share actions for generated history links
+  - `Open` routes to Decrypt tab and pre-fills share URL in-app
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.

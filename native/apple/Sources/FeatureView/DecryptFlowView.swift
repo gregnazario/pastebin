@@ -125,6 +125,12 @@ public final class DecryptFlowViewModel: ObservableObject {
         }
     }
 
+    /// Prefills the decrypt share URL from an in-app deep-link handoff.
+    public func prefillShareURL(_ url: URL) {
+        shareURLString = url.absoluteString
+        errorMessage = nil
+    }
+
     private func makePreview(
         plaintext: [UInt8],
         metadata: CryptoFileMetadata

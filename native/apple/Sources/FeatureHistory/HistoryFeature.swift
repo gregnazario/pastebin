@@ -136,9 +136,15 @@ public final class HistoryFlowViewModel: ObservableObject {
 /// SwiftUI history screen with filtering and delete actions.
 public struct HistoryFlowView: View {
     @StateObject private var viewModel: HistoryFlowViewModel
+    private let onOpenInDecrypt: ((URL) -> Void)?
+    @Environment(\.openURL) private var openURL
 
-    public init(viewModel: HistoryFlowViewModel) {
+    public init(
+        viewModel: HistoryFlowViewModel,
+        onOpenInDecrypt: ((URL) -> Void)? = nil
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.onOpenInDecrypt = onOpenInDecrypt
     }
 
     public var body: some View {
@@ -200,8 +206,14 @@ public struct HistoryFlowView: View {
             Spacer(minLength: 12)
             VStack(alignment: .trailing, spacing: 6) {
                 if let shareURL = entry.shareURL {
-                    Link("Open", destination: shareURL)
-                        .font(.callout)
+                    Button("Open") {
+                        if let onOpenInDecrypt {
+                            onOpenInDecrypt(shareURL)
+                        } else {
+                            openURL(shareURL)
+                        }
+                    }
+                    .font(.callout)
 
                     ShareLink("Share", item: shareURL)
                         .font(.callout)

@@ -145,6 +145,7 @@ private fun NativeFlowApp() {
     }
 
     var selectedTab by remember { mutableIntStateOf(0) }
+    var pendingDecryptShareUrl by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = selectedTab) {
@@ -155,8 +156,20 @@ private fun NativeFlowApp() {
 
         when (selectedTab) {
             0 -> UploadFlowScreen(uploadFeature = uploadFeature, modifier = Modifier.fillMaxSize())
-            1 -> DecryptFlowScreen(viewFeature = viewFeature, modifier = Modifier.fillMaxSize())
-            else -> HistoryFlowScreen(historyFeature = historyFeature, modifier = Modifier.fillMaxSize())
+            1 -> DecryptFlowScreen(
+                viewFeature = viewFeature,
+                prefilledShareUrl = pendingDecryptShareUrl,
+                onPrefilledShareUrlConsumed = { pendingDecryptShareUrl = null },
+                modifier = Modifier.fillMaxSize(),
+            )
+            else -> HistoryFlowScreen(
+                historyFeature = historyFeature,
+                onOpenInDecrypt = { shareUrl ->
+                    pendingDecryptShareUrl = shareUrl
+                    selectedTab = 1
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }
@@ -344,6 +357,8 @@ private fun queryDisplayName(
 @Composable
 private fun DecryptFlowScreen(
     viewFeature: ViewFeature,
+    prefilledShareUrl: String?,
+    onPrefilledShareUrlConsumed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -356,6 +371,14 @@ private fun DecryptFlowScreen(
     var decryptedPayload by remember { mutableStateOf<DecryptedFilePayload?>(null) }
     var exportTempFile by remember { mutableStateOf<File?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(prefilledShareUrl) {
+        if (!prefilledShareUrl.isNullOrBlank()) {
+            shareUrl = prefilledShareUrl
+            error = null
+            onPrefilledShareUrlConsumed()
+        }
+    }
 
     DisposableEffect(previewTempFile?.absolutePath) {
         onDispose {
@@ -527,6 +550,7 @@ private fun DecryptFlowScreen(
 @Composable
 private fun HistoryFlowScreen(
     historyFeature: HistoryFeature,
+    onOpenInDecrypt: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -623,7 +647,7 @@ private fun HistoryFlowScreen(
                             Button(
                                 onClick = {
                                     runCatching {
-                                        openHistoryLink(context, shareUrl)
+                                        onOpenInDecrypt(shareUrl)
                                     }.onFailure { throwable ->
                                         error = throwable.message ?: "Failed to open history link."
                                     }
@@ -813,14 +837,6 @@ private fun shareDecryptedFile(
     }
 
     context.startActivity(Intent.createChooser(shareIntent, "Export decrypted file"))
-}
-
-private fun openHistoryLink(
-    context: Context,
-    shareUrl: String,
-) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(shareUrl))
-    context.startActivity(intent)
 }
 
 private fun shareHistoryLink(
