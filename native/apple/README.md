@@ -30,6 +30,10 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - Save As (native file export dialog)
   - Export (native share sheet)
 - Decrypt success now persists local history metadata through `UserDefaultsHistoryStore`.
+- History flow components are available in `FeatureHistory`:
+  - filtered list of recent entries
+  - expired-entry toggle
+  - delete action for entries
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.

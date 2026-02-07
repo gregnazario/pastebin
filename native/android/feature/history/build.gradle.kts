@@ -25,4 +25,6 @@ android {
 
 dependencies {
     implementation(project(":core:storage"))
+    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }

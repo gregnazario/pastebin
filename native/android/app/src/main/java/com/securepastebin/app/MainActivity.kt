@@ -18,6 +18,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
@@ -25,15 +27,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,17 +53,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.FileProvider
 import com.securepastebin.core.crypto.ProductionNativeCryptoEngine
 import com.securepastebin.core.network.HttpApiClient
 import com.securepastebin.core.storage.SharedPreferencesHistoryStore
+import com.securepastebin.feature.history.HistoryFeature
+import com.securepastebin.feature.history.HistoryListItem
 import com.securepastebin.feature.upload.UploadFeature
 import com.securepastebin.feature.upload.UploadRequest
 import com.securepastebin.feature.view.DecryptRequest
 import com.securepastebin.feature.view.ViewFeature
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.UUID
-import androidx.core.content.FileProvider
 
 private enum class UploadInputMode {
     NOTE,
@@ -91,7 +101,7 @@ private data class DecryptPreviewBuild(
 )
 
 /**
- * Main Android entry activity with Compose screens for upload and decrypt flows.
+ * Main Android entry activity with Compose screens for upload, decrypt, and history flows.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,6 +137,9 @@ private fun NativeFlowApp() {
             historyStore = historyStore,
         )
     }
+    val historyFeature = remember {
+        HistoryFeature(historyStore = historyStore)
+    }
 
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -134,11 +147,13 @@ private fun NativeFlowApp() {
         TabRow(selectedTabIndex = selectedTab) {
             Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Upload") })
             Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Decrypt") })
+            Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("History") })
         }
 
         when (selectedTab) {
             0 -> UploadFlowScreen(uploadFeature = uploadFeature, modifier = Modifier.fillMaxSize())
-            else -> DecryptFlowScreen(viewFeature = viewFeature, modifier = Modifier.fillMaxSize())
+            1 -> DecryptFlowScreen(viewFeature = viewFeature, modifier = Modifier.fillMaxSize())
+            else -> HistoryFlowScreen(historyFeature = historyFeature, modifier = Modifier.fillMaxSize())
         }
     }
 }
@@ -507,6 +522,126 @@ private fun DecryptFlowScreen(
 }
 
 @Composable
+private fun HistoryFlowScreen(
+    historyFeature: HistoryFeature,
+    modifier: Modifier = Modifier,
+) {
+    var includeExpired by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var entries by remember { mutableStateOf<List<HistoryListItem>>(emptyList()) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(includeExpired) {
+        isLoading = true
+        error = null
+        try {
+            entries = historyFeature.list(includeExpired = includeExpired)
+        } catch (e: Exception) {
+            error = e.message ?: "Failed to load history."
+        } finally {
+            isLoading = false
+        }
+    }
+
+    Column(
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("Include expired")
+            Switch(
+                checked = includeExpired,
+                onCheckedChange = { includeExpired = it },
+            )
+        }
+
+        Button(
+            onClick = {
+                scope.launch {
+                    isLoading = true
+                    error = null
+                    try {
+                        entries = historyFeature.list(includeExpired = includeExpired)
+                    } catch (e: Exception) {
+                        error = e.message ?: "Failed to load history."
+                    } finally {
+                        isLoading = false
+                    }
+                }
+            },
+            enabled = !isLoading,
+        ) {
+            Text(if (isLoading) "Refreshing..." else "Refresh")
+        }
+
+        if (entries.isEmpty() && !isLoading) {
+            Text("No history entries yet.", style = MaterialTheme.typography.bodyMedium)
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(entries, key = { it.id }) { entry ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f).padding(end = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text(entry.fileName, style = MaterialTheme.typography.titleSmall)
+                        Text("ID: ${entry.id}", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "Created: ${formatHistoryMillis(entry.createdAtMillis)}",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Text(
+                            historyExpirationLabel(entry),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (entry.isExpired) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isLoading = true
+                                error = null
+                                try {
+                                    historyFeature.delete(entry.id)
+                                    entries = historyFeature.list(includeExpired = includeExpired)
+                                } catch (e: Exception) {
+                                    error = e.message ?: "Failed to delete history entry."
+                                } finally {
+                                    isLoading = false
+                                }
+                            }
+                        },
+                        enabled = !isLoading,
+                    ) {
+                        Text("Delete")
+                    }
+                }
+            }
+        }
+
+        error?.let {
+            Text("Error: $it", color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+@Composable
 private fun PdfFirstPagePreview(file: File) {
     val firstPageBitmap = remember(file.absolutePath) { renderPdfFirstPage(file) }
 
@@ -642,6 +777,30 @@ private fun shareDecryptedFile(
     }
 
     context.startActivity(Intent.createChooser(shareIntent, "Export decrypted file"))
+}
+
+private val historyDateTimeFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+private fun formatHistoryMillis(millis: Long): String {
+    if (millis <= 0) {
+        return "N/A"
+    }
+    return Instant.ofEpochMilli(millis)
+        .atZone(ZoneId.systemDefault())
+        .format(historyDateTimeFormatter)
+}
+
+private fun historyExpirationLabel(item: HistoryListItem): String {
+    if (item.expiresAtMillis <= 0) {
+        return "Expires: Never"
+    }
+    val formattedExpiration = formatHistoryMillis(item.expiresAtMillis)
+    return if (item.isExpired) {
+        "Expires: $formattedExpiration (expired)"
+    } else {
+        "Expires: $formattedExpiration"
+    }
 }
 
 private fun renderPdfFirstPage(file: File): Bitmap? {

@@ -29,6 +29,10 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Save As (document picker destination)
   - Export (Android share sheet via `FileProvider`)
 - Decrypt success now persists local history metadata through `SharedPreferencesHistoryStore`.
+- App now includes a native History tab:
+  - filtered list of recent entries
+  - expired-entry toggle
+  - delete action for entries
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.
