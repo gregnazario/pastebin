@@ -21,6 +21,11 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
 - Upload flow now supports both:
   - note input mode
   - native file picker mode via `fileImporter`
+- Decrypt flow supports MIME-aware preview for:
+  - text
+  - image
+  - PDF
+  - audio/video media
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.

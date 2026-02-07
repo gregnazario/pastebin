@@ -20,6 +20,11 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - Upload screen supports:
   - note input mode
   - native document picker mode via `OpenDocument`
+- Decrypt screen supports MIME-aware preview for:
+  - text
+  - image
+  - PDF (first-page render)
+  - audio/video media (`VideoView` controls)
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.

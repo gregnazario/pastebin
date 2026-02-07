@@ -60,6 +60,24 @@ This file maintains the current state of the project for smooth conversation han
   - file-type-aware preview surfaces (image/PDF/media)
   - history persistence wiring into active screens
 
+### Decrypt Preview Progress (2026-02-07, latest update)
+- ✅ Apple decrypt flow now supports MIME-aware preview rendering:
+  - text, image, PDF, audio/video media
+  - implemented in `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+- ✅ Android decrypt flow now supports MIME-aware preview rendering:
+  - text, image, PDF first page, audio/video media
+  - implemented in `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Temporary preview file lifecycle handling added for media/PDF preview payloads.
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android compile/test remains blocked in this environment until SDK path is configured.
+
+### New Immediate Next Step
+- Wire history persistence and richer preview actions:
+  - save/export decrypted payload
+  - retain recent decrypt history with expiry metadata
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 

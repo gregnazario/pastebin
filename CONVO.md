@@ -219,6 +219,40 @@ Each entry should include:
   - `gradle -p native/android :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: Native upload flows now support actual file selection on both Apple and Android while preserving note upload mode.
 
+**Native Decrypt MIME-Aware Preview Parity**
+- **Prompt**: "yes" (implement next parity step: file-type-aware decrypt previews for image/PDF/media)
+- **Action**:
+  - Apple (`SwiftUI`):
+    - Added `DecryptedPreview` model and MIME-aware preview selection in `DecryptFlowViewModel`.
+    - Implemented preview rendering for:
+      - text
+      - image
+      - PDF (via `PDFKit` wrapper)
+      - audio/video (`VideoPlayer` via `AVKit`)
+    - Added temporary-file management for media preview payloads.
+  - Android (`Compose`):
+    - Added sealed `DecryptPreview` model in app UI host and MIME-aware preview builder.
+    - Implemented preview rendering for:
+      - text
+      - image (`BitmapFactory` + Compose `Image`)
+      - PDF first page (`PdfRenderer`)
+      - audio/video (`VideoView` in `AndroidView`)
+    - Added temporary preview-file creation/cleanup for PDF/media payloads.
+  - Updated native platform READMEs to document new decrypt preview behavior.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle -p native/android :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Decrypt flows now have file-type-aware native previews on both platforms, closing a major UX parity gap vs web preview expectations.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
