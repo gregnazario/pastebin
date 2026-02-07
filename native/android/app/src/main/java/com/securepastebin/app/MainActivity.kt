@@ -2,15 +2,24 @@ package com.securepastebin.app
 
 import android.content.ContentResolver
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
+import android.webkit.MimeTypeMap
+import android.widget.MediaController
+import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +32,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,10 +41,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.securepastebin.core.crypto.ProductionNativeCryptoEngine
 import com.securepastebin.core.network.HttpApiClient
 import com.securepastebin.feature.upload.UploadFeature
@@ -42,6 +54,8 @@ import com.securepastebin.feature.upload.UploadRequest
 import com.securepastebin.feature.view.DecryptRequest
 import com.securepastebin.feature.view.ViewFeature
 import kotlinx.coroutines.launch
+import java.io.File
+import java.util.UUID
 
 private enum class UploadInputMode {
     NOTE,
@@ -52,6 +66,19 @@ private data class PickedFile(
     val name: String,
     val mimeType: String,
     val bytes: ByteArray,
+)
+
+private sealed interface DecryptPreview {
+    data class Text(val value: String) : DecryptPreview
+    data class Image(val bitmap: Bitmap) : DecryptPreview
+    data class Pdf(val file: File) : DecryptPreview
+    data class Media(val uri: Uri) : DecryptPreview
+    data class Unsupported(val message: String) : DecryptPreview
+}
+
+private data class DecryptPreviewBuild(
+    val preview: DecryptPreview,
+    val temporaryFile: File?,
 )
 
 /**
@@ -287,12 +314,20 @@ private fun DecryptFlowScreen(
     viewFeature: ViewFeature,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     var shareUrl by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isDecrypting by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf<String?>(null) }
-    var preview by remember { mutableStateOf<String?>(null) }
+    var preview by remember { mutableStateOf<DecryptPreview?>(null) }
+    var previewTempFile by remember { mutableStateOf<File?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+
+    DisposableEffect(previewTempFile?.absolutePath) {
+        onDispose {
+            previewTempFile?.delete()
+        }
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -328,6 +363,8 @@ private fun DecryptFlowScreen(
                     fileName = null
                     preview = null
                     error = null
+                    previewTempFile?.delete()
+                    previewTempFile = null
                     scope.launch {
                         try {
                             val result = viewFeature.decrypt(
@@ -337,7 +374,14 @@ private fun DecryptFlowScreen(
                                 ),
                             )
                             fileName = result.metadata.name
-                            preview = result.plaintext.toString(Charsets.UTF_8)
+                            val builtPreview = buildDecryptPreview(
+                                context = context,
+                                fileName = result.metadata.name,
+                                mimeType = result.metadata.mimeType,
+                                bytes = result.plaintext,
+                            )
+                            preview = builtPreview.preview
+                            previewTempFile = builtPreview.temporaryFile
                         } catch (e: Exception) {
                             error = e.message
                         } finally {
@@ -355,13 +399,166 @@ private fun DecryptFlowScreen(
             Text("File: $it", style = MaterialTheme.typography.titleMedium)
         }
 
-        preview?.let {
+        preview?.let { content ->
             Text("Preview", style = MaterialTheme.typography.titleMedium)
-            Text(it, style = MaterialTheme.typography.bodySmall)
+            when (content) {
+                is DecryptPreview.Text -> {
+                    Text(content.value, style = MaterialTheme.typography.bodySmall)
+                }
+                is DecryptPreview.Image -> {
+                    Image(
+                        bitmap = content.bitmap.asImageBitmap(),
+                        contentDescription = "Decrypted image preview",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 320.dp),
+                    )
+                }
+                is DecryptPreview.Pdf -> {
+                    PdfFirstPagePreview(file = content.file)
+                }
+                is DecryptPreview.Media -> {
+                    MediaPreview(uri = content.uri)
+                }
+                is DecryptPreview.Unsupported -> {
+                    Text(content.message, style = MaterialTheme.typography.bodySmall)
+                }
+            }
         }
 
         error?.let {
             Text("Error: $it", color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+@Composable
+private fun PdfFirstPagePreview(file: File) {
+    val firstPageBitmap = remember(file.absolutePath) { renderPdfFirstPage(file) }
+
+    if (firstPageBitmap != null) {
+        Image(
+            bitmap = firstPageBitmap.asImageBitmap(),
+            contentDescription = "PDF first page preview",
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 360.dp),
+        )
+    } else {
+        Text("Unable to render PDF preview.", style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun MediaPreview(uri: Uri) {
+    AndroidView(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 220.dp, max = 320.dp),
+        factory = { context ->
+            VideoView(context).apply {
+                setMediaController(MediaController(context))
+                setVideoURI(uri)
+                seekTo(1)
+            }
+        },
+        update = { view ->
+            view.setVideoURI(uri)
+            view.seekTo(1)
+        },
+    )
+}
+
+private fun buildDecryptPreview(
+    context: Context,
+    fileName: String,
+    mimeType: String,
+    bytes: ByteArray,
+): DecryptPreviewBuild {
+    val normalizedMimeType = mimeType.lowercase()
+
+    if (normalizedMimeType.startsWith("text/")) {
+        return DecryptPreviewBuild(
+            preview = DecryptPreview.Text(bytes.toString(Charsets.UTF_8)),
+            temporaryFile = null,
+        )
+    }
+
+    if (normalizedMimeType.startsWith("image/")) {
+        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        if (bitmap != null) {
+            return DecryptPreviewBuild(
+                preview = DecryptPreview.Image(bitmap),
+                temporaryFile = null,
+            )
+        }
+        return DecryptPreviewBuild(
+            preview = DecryptPreview.Unsupported("Image preview could not be decoded."),
+            temporaryFile = null,
+        )
+    }
+
+    if (normalizedMimeType == "application/pdf") {
+        val file = writePreviewFile(context, fileName, mimeType, bytes)
+        return DecryptPreviewBuild(
+            preview = DecryptPreview.Pdf(file),
+            temporaryFile = file,
+        )
+    }
+
+    if (normalizedMimeType.startsWith("audio/") || normalizedMimeType.startsWith("video/")) {
+        val file = writePreviewFile(context, fileName, mimeType, bytes)
+        return DecryptPreviewBuild(
+            preview = DecryptPreview.Media(Uri.fromFile(file)),
+            temporaryFile = file,
+        )
+    }
+
+    return DecryptPreviewBuild(
+        preview = DecryptPreview.Unsupported("No preview available for $mimeType."),
+        temporaryFile = null,
+    )
+}
+
+private fun writePreviewFile(
+    context: Context,
+    fileName: String,
+    mimeType: String,
+    bytes: ByteArray,
+): File {
+    val originalExtension = fileName.substringAfterLast('.', "").lowercase()
+    val extension = if (originalExtension.isNotBlank()) {
+        originalExtension
+    } else {
+        MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: ""
+    }
+
+    val suffix = if (extension.isBlank()) "" else ".$extension"
+    val previewFile = File(context.cacheDir, "decrypt-preview-${UUID.randomUUID()}$suffix")
+    previewFile.writeBytes(bytes)
+    return previewFile
+}
+
+private fun renderPdfFirstPage(file: File): Bitmap? {
+    if (!file.exists()) {
+        return null
+    }
+
+    val descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+    descriptor.use { fileDescriptor ->
+        PdfRenderer(fileDescriptor).use { renderer ->
+            if (renderer.pageCount == 0) {
+                return null
+            }
+
+            renderer.openPage(0).use { page ->
+                val width = page.width.coerceAtLeast(1)
+                val height = page.height.coerceAtLeast(1)
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                bitmap.eraseColor(android.graphics.Color.WHITE)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                return bitmap
+            }
         }
     }
 }
