@@ -17,6 +17,9 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - Configure Android SDK before running Gradle tasks:
   - Set `ANDROID_HOME`, or
   - Create `native/android/local.properties` with `sdk.dir=/absolute/path/to/android/sdk`
+- Upload screen supports:
+  - note input mode
+  - native document picker mode via `OpenDocument`
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.

@@ -42,6 +42,24 @@ This file maintains the current state of the project for smooth conversation han
   - expand preview support beyond text
   - begin local history persistence integration in active screens
 
+### Upload File Picker Progress (2026-02-07, latest update)
+- ✅ Apple upload flow now supports note/file input mode switching:
+  - `native/apple/Sources/FeatureUpload/UploadFlowView.swift`
+  - Uses `fileImporter` + security-scoped URL access + MIME type detection.
+- ✅ Android upload flow now supports note/file input mode switching:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - Uses `OpenDocument` launcher + content resolver metadata/byte loading.
+- ✅ Existing upload orchestration (`UploadFeature`) reused unchanged on both platforms.
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android build/test remains blocked in this environment until SDK path is configured.
+
+### Updated Immediate Next Step
+- Expand native decrypt preview and history UX parity:
+  - file-type-aware preview surfaces (image/PDF/media)
+  - history persistence wiring into active screens
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 

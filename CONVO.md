@@ -193,6 +193,32 @@ Each entry should include:
   - `gradle -p native/android :core:crypto:test` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: Native Apple and Android crypto layers are now production-capable and aligned to the web payload/algorithm contract, replacing development-only flow adapters for active app wiring.
 
+**Native File Picker Integration (Option 1 follow-up)**
+- **Prompt**: "yes do that" (after selecting next option `1`, wire native file picker flows into upload)
+- **Action**:
+  - Apple (`SwiftUI`):
+    - Added upload input modes (`note` / `file`) to `UploadFlowViewModel`.
+    - Added `fileImporter`-driven file selection in `UploadFlowView`.
+    - Implemented secure-scoped file reading, MIME detection (`UTType`), selected-file state, and upload routing to existing `UploadFeature`.
+  - Android (`Compose`):
+    - Added upload input modes (`NOTE` / `FILE`) in upload screen.
+    - Added native document picker integration via `rememberLauncherForActivityResult(OpenDocument)`.
+    - Implemented content-resolver file read (bytes, display name, MIME type) and upload routing to existing `UploadFeature`.
+  - Updated native platform README notes to reflect file picker capability.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureUpload/UploadFlowView.swift`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle -p native/android :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Native upload flows now support actual file selection on both Apple and Android while preserving note upload mode.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
