@@ -45,6 +45,22 @@ struct FeatureHistoryTests {
 
         #expect(items.map(\.id) == ["b"])
     }
+
+    @Test func listIncludesShareURLsWhenConfigured() async throws {
+        let store = FakeHistoryStore(entries: [
+            .init(id: "file abc", fileName: "alpha.txt", createdAtMillis: 200, expiresAtMillis: 0)
+        ])
+        let feature = HistoryFeature(
+            historyStore: store,
+            shareBaseURL: URL(string: "https://pastebin.sed.fyi/")!,
+            nowMillis: { 1000 }
+        )
+
+        let items = try await feature.list(includeExpired: true)
+
+        #expect(items.count == 1)
+        #expect(items.first?.shareURL?.absoluteString == "https://pastebin.sed.fyi/p/file%20abc")
+    }
 }
 
 private actor FakeHistoryStore: HistoryStore {

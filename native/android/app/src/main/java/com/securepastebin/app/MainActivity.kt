@@ -138,7 +138,10 @@ private fun NativeFlowApp() {
         )
     }
     val historyFeature = remember {
-        HistoryFeature(historyStore = historyStore)
+        HistoryFeature(
+            historyStore = historyStore,
+            shareBaseUrl = apiBase,
+        )
     }
 
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -526,6 +529,7 @@ private fun HistoryFlowScreen(
     historyFeature: HistoryFeature,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     var includeExpired by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var entries by remember { mutableStateOf<List<HistoryListItem>>(emptyList()) }
@@ -612,24 +616,56 @@ private fun HistoryFlowScreen(
                         )
                     }
 
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                isLoading = true
-                                error = null
-                                try {
-                                    historyFeature.delete(entry.id)
-                                    entries = historyFeature.list(includeExpired = includeExpired)
-                                } catch (e: Exception) {
-                                    error = e.message ?: "Failed to delete history entry."
-                                } finally {
-                                    isLoading = false
-                                }
-                            }
-                        },
-                        enabled = !isLoading,
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Text("Delete")
+                        entry.shareUrl?.let { shareUrl ->
+                            Button(
+                                onClick = {
+                                    runCatching {
+                                        openHistoryLink(context, shareUrl)
+                                    }.onFailure { throwable ->
+                                        error = throwable.message ?: "Failed to open history link."
+                                    }
+                                },
+                                enabled = !isLoading,
+                            ) {
+                                Text("Open")
+                            }
+
+                            Button(
+                                onClick = {
+                                    runCatching {
+                                        shareHistoryLink(context, shareUrl)
+                                    }.onFailure { throwable ->
+                                        error = throwable.message ?: "Failed to share history link."
+                                    }
+                                },
+                                enabled = !isLoading,
+                            ) {
+                                Text("Share")
+                            }
+                        }
+
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    isLoading = true
+                                    error = null
+                                    try {
+                                        historyFeature.delete(entry.id)
+                                        entries = historyFeature.list(includeExpired = includeExpired)
+                                    } catch (e: Exception) {
+                                        error = e.message ?: "Failed to delete history entry."
+                                    } finally {
+                                        isLoading = false
+                                    }
+                                }
+                            },
+                            enabled = !isLoading,
+                        ) {
+                            Text("Delete")
+                        }
                     }
                 }
             }
@@ -777,6 +813,25 @@ private fun shareDecryptedFile(
     }
 
     context.startActivity(Intent.createChooser(shareIntent, "Export decrypted file"))
+}
+
+private fun openHistoryLink(
+    context: Context,
+    shareUrl: String,
+) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(shareUrl))
+    context.startActivity(intent)
+}
+
+private fun shareHistoryLink(
+    context: Context,
+    shareUrl: String,
+) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, shareUrl)
+    }
+    context.startActivity(Intent.createChooser(intent, "Share paste link"))
 }
 
 private val historyDateTimeFormatter: DateTimeFormatter =

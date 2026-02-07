@@ -34,6 +34,7 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - filtered list of recent entries
   - expired-entry toggle
   - delete action for entries
+  - open/share actions for generated history links
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.

@@ -10,32 +10,38 @@ public struct HistoryListItem: Sendable, Hashable {
     public let createdAtMillis: Int64
     public let expiresAtMillis: Int64
     public let isExpired: Bool
+    public let shareURL: URL?
 
     public init(
         id: String,
         fileName: String,
         createdAtMillis: Int64,
         expiresAtMillis: Int64,
-        isExpired: Bool
+        isExpired: Bool,
+        shareURL: URL?
     ) {
         self.id = id
         self.fileName = fileName
         self.createdAtMillis = createdAtMillis
         self.expiresAtMillis = expiresAtMillis
         self.isExpired = isExpired
+        self.shareURL = shareURL
     }
 }
 
 /// History use-case service for filtering and deleting entries.
 public struct HistoryFeature {
     private let historyStore: HistoryStore
+    private let shareBaseURL: URL?
     private let nowMillis: @Sendable () -> Int64
 
     public init(
         historyStore: HistoryStore,
+        shareBaseURL: URL? = nil,
         nowMillis: @escaping @Sendable () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }
     ) {
         self.historyStore = historyStore
+        self.shareBaseURL = shareBaseURL
         self.nowMillis = nowMillis
     }
 
@@ -50,7 +56,8 @@ public struct HistoryFeature {
                 fileName: entry.fileName,
                 createdAtMillis: entry.createdAtMillis,
                 expiresAtMillis: entry.expiresAtMillis,
-                isExpired: expired
+                isExpired: expired,
+                shareURL: buildShareURL(id: entry.id)
             )
         }
 
@@ -62,6 +69,20 @@ public struct HistoryFeature {
     /// Deletes a history entry by ID.
     public func delete(id: String) async throws {
         try await historyStore.delete(id: id)
+    }
+
+    private func buildShareURL(id: String) -> URL? {
+        guard let shareBaseURL,
+              var components = URLComponents(url: shareBaseURL, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+
+        let normalizedPath = components.path.hasSuffix("/")
+            ? String(components.path.dropLast())
+            : components.path
+        components.path = "\(normalizedPath)/p/\(id)"
+        components.percentEncodedFragment = nil
+        return components.url
     }
 }
 
@@ -177,10 +198,20 @@ public struct HistoryFlowView: View {
                     .foregroundStyle(entry.isExpired ? .red : .secondary)
             }
             Spacer(minLength: 12)
-            Button("Delete", role: .destructive) {
-                viewModel.delete(id: entry.id)
+            VStack(alignment: .trailing, spacing: 6) {
+                if let shareURL = entry.shareURL {
+                    Link("Open", destination: shareURL)
+                        .font(.callout)
+
+                    ShareLink("Share", item: shareURL)
+                        .font(.callout)
+                }
+
+                Button("Delete", role: .destructive) {
+                    viewModel.delete(id: entry.id)
+                }
+                .disabled(viewModel.isLoading)
             }
-            .disabled(viewModel.isLoading)
         }
     }
 

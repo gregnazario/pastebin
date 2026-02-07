@@ -60,6 +60,25 @@ class HistoryFeatureTest {
 
         assertEquals(listOf("b"), items.map { it.id })
     }
+
+    @Test
+    fun listIncludesShareUrlsWhenConfigured(): Unit = runBlocking {
+        val fakeStore = FakeHistoryStore(
+            entries = mutableListOf(
+                HistoryEntry(id = "file abc", fileName = "alpha.txt", createdAtMillis = 200, expiresAtMillis = 0),
+            ),
+        )
+        val feature = HistoryFeature(
+            historyStore = fakeStore,
+            shareBaseUrl = "https://pastebin.sed.fyi/",
+            nowMillis = { 1000 },
+        )
+
+        val items = feature.list(includeExpired = true)
+
+        assertEquals(1, items.size)
+        assertEquals("https://pastebin.sed.fyi/p/file%20abc", items.first().shareUrl)
+    }
 }
 
 private class FakeHistoryStore(

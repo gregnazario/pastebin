@@ -1,6 +1,8 @@
 package com.securepastebin.feature.history
 
 import com.securepastebin.core.storage.HistoryStore
+import java.net.URI
+import java.net.URLEncoder
 
 /**
  * Presentation model for one entry in the history list.
@@ -11,6 +13,7 @@ data class HistoryListItem(
     val createdAtMillis: Long,
     val expiresAtMillis: Long,
     val isExpired: Boolean,
+    val shareUrl: String?,
 )
 
 /**
@@ -18,6 +21,7 @@ data class HistoryListItem(
  */
 class HistoryFeature(
     private val historyStore: HistoryStore,
+    private val shareBaseUrl: String? = null,
     private val nowMillis: () -> Long = { System.currentTimeMillis() },
 ) {
     /**
@@ -36,6 +40,7 @@ class HistoryFeature(
                     createdAtMillis = entry.createdAtMillis,
                     expiresAtMillis = entry.expiresAtMillis,
                     isExpired = expired,
+                    shareUrl = buildShareUrl(entry.id),
                 )
             }
             .filter { includeExpired || !it.isExpired }
@@ -47,5 +52,12 @@ class HistoryFeature(
      */
     suspend fun delete(id: String) {
         historyStore.delete(id)
+    }
+
+    private fun buildShareUrl(id: String): String? {
+        val base = shareBaseUrl ?: return null
+        val normalizedBase = if (base.endsWith("/")) base.dropLast(1) else base
+        val encodedID = URLEncoder.encode(id, Charsets.UTF_8.name()).replace("+", "%20")
+        return URI.create("$normalizedBase/p/$encodedID").toString()
     }
 }
