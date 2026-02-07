@@ -109,6 +109,40 @@ This file maintains the current state of the project for smooth conversation han
   - delete entries
   - show expiration metadata with expired-state filtering
 
+### History UI Surface Progress (2026-02-07, latest update)
+- ✅ Apple `FeatureHistory` now includes:
+  - list filtering (include/exclude expired entries)
+  - expiration status mapping
+  - delete action
+  - SwiftUI `HistoryFlowView` + `HistoryFlowViewModel`
+  - implementation: `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+- ✅ Apple history feature tests added:
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - validates filtering, sorting, and delete behavior
+- ✅ Android `feature:history` now includes:
+  - list filtering (include/exclude expired entries)
+  - expiration status mapping
+  - delete action
+  - implementation: `native/android/feature/history/.../HistoryFeature.kt`
+- ✅ Android app now has a native History tab:
+  - wired in `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - supports refresh, include-expired toggle, and per-entry delete
+- ✅ Android history feature tests added:
+  - `native/android/feature/history/src/test/.../HistoryFeatureTest.kt`
+  - validates filtering, sorting, and delete behavior
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android Gradle validation remains blocked by missing SDK config:
+  - `gradle :feature:history:testDebugUnitTest`
+  - `gradle :app:compileDebugKotlin`
+
+### Updated Immediate Next Step
+- Continue parity hardening for native clients:
+  - integrate history navigation/action callbacks into Apple app host shell
+  - add share/open actions directly from history entries
+  - begin v1 cloud sync adapters (iCloud + Google Drive)
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 

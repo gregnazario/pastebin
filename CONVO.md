@@ -293,6 +293,45 @@ Each entry should include:
   - `gradle :feature:view:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: Decrypt actions are now wired for save/export and decrypt history persistence is integrated on both native platforms.
 
+**Native History UI Surface Wiring**
+- **Prompt**: "yes" (continue with suggested next step: history UI surfaces)
+- **Action**:
+  - Apple:
+    - Replaced `FeatureHistory` stub with full feature logic and SwiftUI history UI:
+      - list with expiration status
+      - include-expired toggle
+      - delete action
+    - Added dedicated unit tests for history list filtering/sorting and delete behavior.
+    - Added `FeatureHistoryTests` target in Swift package manifest.
+  - Android:
+    - Replaced `feature:history` stub with real feature service:
+      - list with expiration status
+      - include-expired filtering
+      - delete action
+    - Added `HistoryFeatureTest` unit tests for filter/sort/delete behavior.
+    - Added new Compose `History` tab in app shell and wired screen interactions to `HistoryFeature`.
+  - Updated Apple/Android native READMEs to reflect history UI capability.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Package.swift`
+  - `native/apple/README.md`
+  - `native/android/feature/history/src/main/kotlin/com/securepastebin/feature/history/HistoryFeature.kt`
+  - `native/android/feature/history/build.gradle.kts`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+- **Files Created**:
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - `native/android/feature/history/src/test/kotlin/com/securepastebin/feature/history/HistoryFeatureTest.kt`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Native history list/delete/expiry-filter surfaces are now implemented (Apple feature module + Android app tab), closing another core parity gap with the web experience.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
