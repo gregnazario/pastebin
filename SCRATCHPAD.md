@@ -53,6 +53,22 @@ This file maintains the current state of the project for smooth conversation han
   - `bun test`
   - `bun run build`
 
+### Native Implementation Progress (2026-02-07, continued)
+- ✅ Swift `CoreNetworking` now has a real `URLSessionAPIClient` implementation:
+  - typed request/response models
+  - robust server error decoding
+  - configuration and timeout controls
+- ✅ Kotlin `core:network` now has a real `HttpApiClient` implementation:
+  - upload/download/health calls against `/api/v1/*`
+  - structured `ApiClientException` handling
+  - JSON parsing and status-code handling
+- ✅ Added Apple networking test target: `CoreNetworkingTests`
+- ✅ Added shared crypto conformance vector source:
+  - `shared/crypto/conformanceVectors.ts`
+- ✅ Added conformance verification test in web runtime:
+  - `src/services/crypto/ConformanceVectors.test.ts`
+  - test decrypts vector payload and verifies metadata/plaintext fidelity
+
 ### Updated Immediate Next Step
 - Begin Phase 1 security spec and compatibility deliverables:
   - Generate crypto conformance vectors from web implementation.

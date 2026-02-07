@@ -201,6 +201,7 @@ sequenceDiagram
 
 ## QA and Compliance Architecture
 - Shared conformance test vectors committed in repo.
+  - Source artifact: `shared/crypto/conformanceVectors.ts`
 - CI gates:
   - Swift unit and UI tests.
   - Kotlin unit and instrumentation tests.

@@ -70,6 +70,34 @@ Each entry should include:
   - `src/server/shelby.ts`
 - **Outcome**: Native project bootstrap started with stable API surface and parallel platform scaffolds.
 
+**Native Networking + Crypto Conformance Implementation**
+- **Prompt**: "let's implement it"
+- **Action**:
+  - Replaced Swift `CoreNetworking` stub with production `URLSession` API client for:
+    - upload (`/api/v1/upload`)
+    - download (`/api/v1/download`)
+    - health (`/api/v1/health`)
+  - Replaced Kotlin `core:network` stub with production `HttpURLConnection` API client and structured API errors.
+  - Added Apple `CoreNetworkingTests` target with configuration smoke tests.
+  - Added cross-platform cryptographic conformance vector artifact generated from the current web implementation.
+  - Added a web-side conformance test that decrypts the vector and verifies plaintext + metadata.
+  - Updated architecture doc to reference the conformance vector source artifact.
+  - Ran validation commands:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅ (including conformance vector decryption test)
+    - `bun run build` ✅
+- **Files Modified**:
+  - `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - `native/apple/Package.swift`
+  - `native/android/core/network/src/main/kotlin/com/securepastebin/core/network/ApiClient.kt`
+  - `design-docs/native-swift-kotlin-architecture.md`
+- **Files Created**:
+  - `native/apple/Tests/CoreNetworkingTests/CoreNetworkingTests.swift`
+  - `shared/crypto/conformanceVectors.ts`
+  - `src/services/crypto/ConformanceVectors.test.ts`
+- **Outcome**: Native client networking moved from stubs to working implementations; crypto compatibility now has an enforceable conformance baseline.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
