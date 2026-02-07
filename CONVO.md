@@ -98,6 +98,51 @@ Each entry should include:
   - `src/services/crypto/ConformanceVectors.test.ts`
 - **Outcome**: Native client networking moved from stubs to working implementations; crypto compatibility now has an enforceable conformance baseline.
 
+**Native Feature Upload/Decrypt Flow Implementation**
+- **Prompt**: "1" (implement first end-to-end upload/decrypt feature flows)
+- **Action**:
+  - Implemented Apple upload orchestration (`FeatureUpload`) with:
+    - metadata construction
+    - crypto-engine encryption call
+    - API upload call
+    - share-link generation (`/p/{id}#key`)
+  - Implemented Apple decrypt orchestration (`FeatureView`) with:
+    - share-link parsing
+    - API download call
+    - crypto-engine decryption call
+  - Expanded Apple core crypto interfaces to support encrypt/decrypt contracts and payload models.
+  - Added Apple feature tests:
+    - `FeatureUploadTests` validates encrypted filename behavior + share-link output
+    - `FeatureViewTests` validates link parsing + download/decrypt orchestration
+  - Implemented Android upload orchestration (`feature:upload`) with the same flow model.
+  - Implemented Android decrypt orchestration (`feature:view`) with share-link parsing and decrypt workflow.
+  - Expanded Android core crypto module with encrypt/decrypt contracts and payload models.
+  - Added Android unit tests for upload/decrypt orchestration in feature modules.
+  - Validation run:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+    - `swift test` (native/apple) ✅
+    - `gradle -p native/android :feature:upload:test :feature:view:test` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Files Modified**:
+  - `native/apple/Sources/CoreCrypto/CryptoEngine.swift`
+  - `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - `native/apple/Sources/FeatureUpload/UploadFeature.swift`
+  - `native/apple/Sources/FeatureView/ViewFeature.swift`
+  - `native/apple/Package.swift`
+  - `native/android/core/crypto/src/main/kotlin/com/securepastebin/core/crypto/CryptoEngine.kt`
+  - `native/android/feature/upload/src/main/kotlin/com/securepastebin/feature/upload/UploadFeature.kt`
+  - `native/android/feature/view/src/main/kotlin/com/securepastebin/feature/view/ViewFeature.kt`
+  - `native/android/feature/upload/build.gradle.kts`
+  - `native/android/feature/view/build.gradle.kts`
+- **Files Created**:
+  - `native/apple/Tests/FeatureUploadTests/FeatureUploadTests.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/android/feature/upload/src/test/kotlin/com/securepastebin/feature/upload/UploadFeatureTest.kt`
+  - `native/android/feature/view/src/test/kotlin/com/securepastebin/feature/view/ViewFeatureTest.kt`
+- **Outcome**: Cross-platform feature orchestration exists for upload/decrypt flows, with passing Apple/web tests and Android tests staged pending local SDK setup.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

@@ -69,6 +69,27 @@ This file maintains the current state of the project for smooth conversation han
   - `src/services/crypto/ConformanceVectors.test.ts`
   - test decrypts vector payload and verifies metadata/plaintext fidelity
 
+### Native Feature Flow Progress (2026-02-07, latest)
+- ✅ Apple upload/decrypt orchestration implemented:
+  - `FeatureUpload` now coordinates metadata + encrypt + upload + share-link generation.
+  - `FeatureView` now coordinates share-link parse + download + decrypt.
+- ✅ Apple core crypto interfaces expanded for production integration contract.
+- ✅ Apple feature tests added and passing via `swift test`.
+- ✅ Android upload/decrypt orchestration implemented with parity flow.
+- ✅ Android core crypto interfaces expanded for production integration contract.
+- ✅ Android feature tests added for upload and decrypt orchestration.
+- ⚠️ Android test execution blocked in environment:
+  - Gradle runs, but Android SDK is not configured (`ANDROID_HOME` / `local.properties` `sdk.dir`).
+  - Command attempted: `gradle -p native/android :feature:upload:test :feature:view:test`.
+
+### Current Verification Snapshot
+- ✅ `bun run lint`
+- ✅ `bun run typecheck`
+- ✅ `bun test`
+- ✅ `bun run build`
+- ✅ `swift test` in `native/apple`
+- ⚠️ Android Gradle tests pending SDK configuration
+
 ### Updated Immediate Next Step
 - Begin Phase 1 security spec and compatibility deliverables:
   - Generate crypto conformance vectors from web implementation.

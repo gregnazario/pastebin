@@ -20,17 +20,31 @@ public protocol APIClient {
 public struct UploadResponse: Decodable, Sendable, Equatable {
     public let id: String
     public let expiresAt: Int64
+
+    public init(id: String, expiresAt: Int64) {
+        self.id = id
+        self.expiresAt = expiresAt
+    }
 }
 
 /// Download response payload for `/api/v1/download`.
 public struct DownloadResponse: Decodable, Sendable, Equatable {
     public let data: [UInt8]
+
+    public init(data: [UInt8]) {
+        self.data = data
+    }
 }
 
 /// Health response payload for `/api/v1/health`.
 public struct HealthResponse: Decodable, Sendable, Equatable {
     public let configured: Bool
     public let account: String?
+
+    public init(configured: Bool, account: String?) {
+        self.configured = configured
+        self.account = account
+    }
 }
 
 private struct UploadRequest: Encodable {

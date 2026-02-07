@@ -26,4 +26,6 @@ android {
 dependencies {
     implementation(project(":core:crypto"))
     implementation(project(":core:network"))
+    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }
