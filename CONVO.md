@@ -14,6 +14,39 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-08
+**Android Picker Edge Coverage + Runtime API Settings**
+- **Prompt**: "yes do 1 and 2" (Android picker edge-case instrumentation + Android runtime API settings)
+- **Action**:
+  - Added plan/design docs for Android picker-edge and runtime API settings.
+  - Implemented Android runtime API settings with:
+    - persisted API base URL store
+    - environment presets (Local/Staging/Production)
+    - manual URL override validation
+    - app-shell Settings dialog and dynamic feature/client rebuild on apply
+  - Added Android unit tests for API URL normalization/validation/preset matching.
+  - Expanded Android instrumentation in `HistoryUiCoverageTest` for:
+    - Drive create-picker cancel path (remains unconfigured)
+    - Drive create-picker invalid-authority path error surfacing
+    - Drive open-picker invalid-authority path error surfacing
+  - Added Espresso Intents instrumentation dependency for picker-result stubbing.
+  - Updated Android README with runtime settings and new instrumentation coverage.
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/app/build.gradle.kts`
+  - `native/android/README.md`
+- **Files Created**:
+  - `plans/android-picker-edge-and-runtime-api-settings.md`
+  - `design-docs/android-picker-edge-and-runtime-api-settings.md`
+  - `native/android/app/src/main/java/com/securepastebin/app/ApiBaseSettings.kt`
+  - `native/android/app/src/test/kotlin/com/securepastebin/app/ApiBaseSettingsTest.kt`
+- **Commands Run**:
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `gradle :app:connectedDebugAndroidTest`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Android runtime environment switching and picker-edge instrumentation coverage are implemented and validated.
+
+### 2026-02-08
 **Native Sync Edge Coverage (Do 1 then 2)**
 - **Prompt**: "do 1 then 2" (Android sync edge/error instrumentation first, then Apple UI-level cloud-sync messaging tests)
 - **Action**:

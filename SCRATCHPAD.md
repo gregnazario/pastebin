@@ -8,6 +8,33 @@ This file maintains the current state of the project for smooth conversation han
 - **Phase**: Phase 2 foundation hardening (native parity + validation closure).
 - **Current Task**: Close remaining native parity gaps after Android environment unblock.
 
+### Android Picker Edge + Runtime API Settings Progress (2026-02-08, latest update)
+- ✅ Added plan/design docs:
+  - `plans/android-picker-edge-and-runtime-api-settings.md`
+  - `design-docs/android-picker-edge-and-runtime-api-settings.md`
+- ✅ Implemented Android runtime API settings and persistence:
+  - `native/android/app/src/main/java/com/securepastebin/app/ApiBaseSettings.kt`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - includes:
+    - Local/Staging/Production presets
+    - manual URL override + validation
+    - persisted API base URL
+    - in-app Settings dialog and dynamic client/feature rebuild on apply
+- ✅ Added Android unit tests for API settings helpers:
+  - `native/android/app/src/test/kotlin/com/securepastebin/app/ApiBaseSettingsTest.kt`
+- ✅ Expanded Android picker edge-case instrumentation coverage:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - adds:
+    - create-picker cancel path (unconfigured state preserved)
+    - create-picker invalid-authority setup error path
+    - open-picker invalid-authority setup error path
+- ✅ Updated Android docs:
+  - `native/android/README.md`
+- ✅ Validation rerun:
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed
+  - `gradle :app:connectedDebugAndroidTest` passed (`11/11` tests)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+
 ### Native Sync Edge Coverage Progress (2026-02-08, latest update)
 - ✅ Added plan/design docs:
   - `plans/native-sync-edge-case-coverage.md`
@@ -164,7 +191,7 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Immediate Next Step
 - Continue parity hardening for native clients:
-  - add Android instrumentation for picker-cancel and invalid-authority setup-error paths (launcher-result edge cases)
+  - add Android instrumentation for runtime API settings dialog behavior (invalid manual URL, preset apply persistence)
   - add Apple UI-level coverage for history row action rendering fallbacks when share URL is unavailable
 
 ### Production Crypto Progress (2026-02-07, latest update)

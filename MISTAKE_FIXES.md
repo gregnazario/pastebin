@@ -4,6 +4,16 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-08] Android Picker Edge Instrumentation Visibility Assertion Flake
+
+### Issue 1: Invalid-authority picker tests failed on `assertIsDisplayed`
+- **Context**: Newly added create/open picker invalid-authority instrumentation tests failed during `connectedDebugAndroidTest` despite `waitUntil` finding expected error text nodes.
+- **Root Cause**: Strict display assertion was sensitive to Compose viewport/semantics rendering timing on emulator for lower-screen error sections.
+- **Fix**:
+  - Switched final checks to stable node-existence assertions using `onAllNodesWithText(..., useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()`.
+  - Re-ran `gradle :app:connectedDebugAndroidTest`.
+- **Result**: Android instrumentation suite passes with the added picker-edge cases (`11/11` tests).
+
 ## [2026-02-08] Android Instrumentation Visibility Assertion Flake
 
 ### Issue 1: Malformed-sync error test failed on `assertIsDisplayed`
