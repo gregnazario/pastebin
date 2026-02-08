@@ -394,6 +394,35 @@ Each entry should include:
   - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: Selecting `Open` from native history now supports in-app decrypt continuation (Android implemented directly in host; Apple callback surface added for host integration), reducing context switching and improving decrypt retry UX.
 
+**Apple Sample Host Shell (End-to-End Handoff Demo)**
+- **Prompt**: "yes please" (add in-repo Apple sample app host shell demonstrating callback handoff end-to-end)
+- **Action**:
+  - Added new Apple module `AppShellDemo` to Swift package:
+    - New product/target in `native/apple/Package.swift`.
+    - New test target `AppShellDemoTests`.
+  - Implemented `AppHostFlowView` sample SwiftUI shell in:
+    - `native/apple/Sources/AppShellDemo/AppHostFlowView.swift`
+  - Sample shell includes Upload / Decrypt / History tabs and routes:
+    - History `Open` -> in-app decrypt prefill via `HistoryDecryptHandoffCoordinator`.
+  - Added coordinator unit test:
+    - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - Updated Apple README with sample shell usage location.
+- **Files Modified**:
+  - `native/apple/Package.swift`
+  - `native/apple/README.md`
+- **Files Created**:
+  - `native/apple/Sources/AppShellDemo/AppHostFlowView.swift`
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+- **Validation**:
+  - `swift test` ✅ (includes new `AppShellDemoTests`)
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: In-repo Apple sample host shell now demonstrates concrete end-to-end in-app handoff wiring from History actions into the Decrypt flow.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

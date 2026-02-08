@@ -196,6 +196,29 @@ This file maintains the current state of the project for smooth conversation han
   - add automated UI coverage for Android history->decrypt handoff path
   - begin v1 cloud sync adapters (iCloud + Google Drive)
 
+### Apple Host Shell Demo Progress (2026-02-07, latest update)
+- ✅ Added `AppShellDemo` Swift package module for Apple host-shell composition:
+  - Upload / Decrypt / History tabs
+  - in-app History `Open` -> Decrypt prefill handoff coordinator
+  - implementation: `native/apple/Sources/AppShellDemo/AppHostFlowView.swift`
+- ✅ Added host-handoff coordinator test coverage:
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+- ✅ Updated package manifest:
+  - `AppShellDemo` product/target + `AppShellDemoTests` test target
+  - file: `native/apple/Package.swift`
+- ✅ Validation rerun:
+  - `swift test` passed (includes new AppShell demo test target)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android Gradle validation remains blocked by missing SDK config:
+  - `gradle :feature:history:testDebugUnitTest`
+  - `gradle :app:compileDebugKotlin`
+
+### Updated Immediate Next Step
+- Continue parity hardening for native clients:
+  - add Apple app-project scaffold that directly hosts `AppHostFlowView`
+  - add automated UI coverage for Android history->decrypt handoff path
+  - begin v1 cloud sync adapters (iCloud + Google Drive)
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 
