@@ -46,6 +46,8 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Verifies history delete action removes entries in UI.
   - Verifies expired-entry filtering toggle behavior.
   - Verifies cloud-sync setup controls appear when Drive sync is unconfigured.
+  - Verifies configured Drive sync `Sync Now` success summary and imported entry visibility.
+  - Verifies configured Drive sync conflict summary path and remote-winner rendering.
 - Run instrumentation tests (emulator/local device required):
   - `gradle :app:connectedDebugAndroidTest`
 
