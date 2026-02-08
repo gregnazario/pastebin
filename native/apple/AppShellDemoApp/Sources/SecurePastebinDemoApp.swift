@@ -6,7 +6,7 @@ import SwiftUI
 struct SecurePastebinDemoApp: App {
     var body: some Scene {
         WindowGroup {
-            DemoAppFactory.makeRootView()
+            DemoRootContainerView()
         }
     }
 }

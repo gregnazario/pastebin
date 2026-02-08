@@ -47,6 +47,7 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - App sources: `AppShellDemoApp/Sources/`
   - App project: `SecurePastebinAppleDemo.xcodeproj`
 - The app launches `DemoAppFactory.makeRootView()` which wires `AppHostFlowView` with local API defaults.
+- The demo app includes a runtime settings sheet (gear button) to update API base URL without rebuilding.
 - To regenerate project files after target/spec edits:
   - `xcodegen generate --spec project.yml`
 
