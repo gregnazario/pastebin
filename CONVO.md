@@ -607,6 +607,34 @@ Each entry should include:
     - `bun run build` ✅
 - **Outcome**: v1 native cloud sync adapters are now implemented on both platforms with conflict-tracked merge results and user-visible sync state/actions.
 
+**Android Instrumentation Coverage Expansion (History UI)**
+- **Prompt**: "More Android instrumentation/UI coverage beyond the single handoff test (`native/android/app/src/androidTest`)."
+- **Action**:
+  - Added plan/design artifacts:
+    - `plans/android-instrumentation-ui-expansion.md`
+    - `design-docs/android-instrumentation-ui-expansion.md`
+  - Added stable test selector in history UI:
+    - `history-include-expired-switch` test tag on Include-expired `Switch`
+    - file: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - Added new instrumentation suite:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+    - scenarios:
+      - delete action removes entry and shows empty state
+      - include-expired switch reveals expired entries
+      - cloud sync section shows Drive setup controls when unconfigured
+  - Updated Android README instrumentation section:
+    - `native/android/README.md`
+  - Validation run:
+    - `gradle :app:compileDebugAndroidTestKotlin` ✅
+    - `gradle :app:assembleDebugAndroidTest` ✅
+    - `gradle :app:connectedDebugAndroidTest` ✅
+      - executed 4 instrumentation tests total on `emulator-5554 - 15` with 0 failures
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Outcome**: Android instrumentation coverage now includes core History UI behavior and cloud-sync setup state, beyond the initial handoff-only test.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

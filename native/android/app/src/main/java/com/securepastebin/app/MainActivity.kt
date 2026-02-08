@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -104,6 +105,7 @@ private data class DecryptPreviewBuild(
 )
 
 private const val defaultDriveSyncFileName = "secure-pastebin-history-sync.json"
+private const val historyIncludeExpiredSwitchTestTag = "history-include-expired-switch"
 
 /**
  * Main Android entry activity with Compose screens for upload, decrypt, and history flows.
@@ -679,6 +681,7 @@ private fun HistoryFlowScreen(
         ) {
             Text("Include expired")
             Switch(
+                modifier = Modifier.testTag(historyIncludeExpiredSwitchTestTag),
                 checked = includeExpired,
                 onCheckedChange = { includeExpired = it },
             )

@@ -42,6 +42,10 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 ## Instrumentation Coverage
 - `app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
   - Verifies history `Open` switches to Decrypt and pre-fills share URL.
+- `app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - Verifies history delete action removes entries in UI.
+  - Verifies expired-entry filtering toggle behavior.
+  - Verifies cloud-sync setup controls appear when Drive sync is unconfigured.
 - Run instrumentation tests (emulator/local device required):
   - `gradle :app:connectedDebugAndroidTest`
 

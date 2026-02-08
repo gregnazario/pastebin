@@ -78,10 +78,30 @@ This file maintains the current state of the project for smooth conversation han
   - `gradle :core:storage:testDebugUnitTest :feature:history:testDebugUnitTest :app:compileDebugKotlin` passed
   - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
 
+### Android Instrumentation Expansion Progress (2026-02-08, latest update)
+- ✅ Added instrumentation expansion plan + design docs:
+  - `plans/android-instrumentation-ui-expansion.md`
+  - `design-docs/android-instrumentation-ui-expansion.md`
+- ✅ Added test-tag hook for stable switch targeting:
+  - `history-include-expired-switch` in `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Added new instrumentation suite:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - covers:
+    - delete action empty-state transition
+    - include-expired toggle behavior
+    - cloud-sync setup controls (unconfigured state)
+- ✅ Updated Android README instrumentation section:
+  - `native/android/README.md`
+- ✅ Validation rerun:
+  - `gradle :app:compileDebugAndroidTestKotlin` passed
+  - `gradle :app:assembleDebugAndroidTest` passed
+  - `gradle :app:connectedDebugAndroidTest` passed (`4/4` tests, `0` failures)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+
 ### Immediate Next Step
 - Continue parity hardening for native clients:
   - add Apple demo environment profile presets (local/staging/prod)
-  - add Android instrumentation coverage for Drive sync controls (connect/select/sync states)
+  - add Android instrumentation coverage for Drive sync happy-path (select + sync summary) with test fixture URI
   - add Apple tests covering HistoryFlowView cloud sync state transitions
 
 ### Production Crypto Progress (2026-02-07, latest update)
