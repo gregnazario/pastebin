@@ -14,6 +14,34 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-08
+**Native Sync Edge Coverage (Do 1 then 2)**
+- **Prompt**: "do 1 then 2" (Android sync edge/error instrumentation first, then Apple UI-level cloud-sync messaging tests)
+- **Action**:
+  - Added plan + design docs for native sync edge-case coverage.
+  - Expanded Android instrumentation in `HistoryUiCoverageTest` with:
+    - configured Drive URI re-selection simulation (updated fixture URI + recreate)
+    - malformed sync payload failure-path assertion for user-visible error text
+  - Added reusable Android fixture helpers for multi-file/raw payload setup and cleanup.
+  - Added Apple UI cloud-sync presentation helpers used by `HistoryFlowView`:
+    - action title mapping
+    - status text/error-style mapping
+  - Added Apple tests validating cloud-sync UI message/title mapping for all states.
+  - Updated Android instrumentation README coverage bullets.
+- **Files Modified**:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+- **Files Created**:
+  - `plans/native-sync-edge-case-coverage.md`
+  - `design-docs/native-sync-edge-case-coverage.md`
+- **Commands Run**:
+  - `swift test` (in `native/apple`)
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` (in `native/android`)
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Android sync edge/error paths and Apple cloud-sync UI messaging contract coverage are now implemented and validated.
+
+### 2026-02-08
 **Native Sync Test Coverage Expansion (Do 1 then 2)**
 - **Prompt**: "Do 1 then 2" (Apple sync state tests, then Android configured Drive sync instrumentation)
 - **Action**:

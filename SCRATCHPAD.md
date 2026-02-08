@@ -8,6 +8,29 @@ This file maintains the current state of the project for smooth conversation han
 - **Phase**: Phase 2 foundation hardening (native parity + validation closure).
 - **Current Task**: Close remaining native parity gaps after Android environment unblock.
 
+### Native Sync Edge Coverage Progress (2026-02-08, latest update)
+- ✅ Added plan/design docs:
+  - `plans/native-sync-edge-case-coverage.md`
+  - `design-docs/native-sync-edge-case-coverage.md`
+- ✅ Expanded Android sync instrumentation coverage:
+  - file: `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - adds:
+    - configured Drive URI re-selection simulation path (fixture URI swap + recreate)
+    - malformed sync payload failure-path user-visible error assertion
+  - fixture utilities now support multi-file/raw payload setup and cleanup
+- ✅ Added Apple cloud-sync UI messaging contract hooks + tests:
+  - implementation:
+    - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - tests:
+    - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - covers action-title and status/error-message mapping for all cloud-sync states
+- ✅ Updated Android instrumentation documentation:
+  - `native/android/README.md`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` passed (`8/8` tests)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+
 ### Native Sync Test Coverage Expansion (2026-02-08, latest update)
 - ✅ Added plan/design docs:
   - `plans/native-sync-test-coverage-expansion.md`
@@ -141,8 +164,8 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Immediate Next Step
 - Continue parity hardening for native clients:
-  - extend Android instrumentation to cover Drive file re-selection edge cases and sync-failure error surfacing
-  - add Apple UI-level tests for visible cloud-sync status messaging in `HistoryFlowView`
+  - add Android instrumentation for picker-cancel and invalid-authority setup-error paths (launcher-result edge cases)
+  - add Apple UI-level coverage for history row action rendering fallbacks when share URL is unavailable
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:

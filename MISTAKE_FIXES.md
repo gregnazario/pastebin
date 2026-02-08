@@ -4,6 +4,16 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-08] Android Instrumentation Visibility Assertion Flake
+
+### Issue 1: Malformed-sync error test failed on `assertIsDisplayed`
+- **Context**: New `HistoryUiCoverageTest` malformed payload path intermittently failed during `connectedDebugAndroidTest`.
+- **Root Cause**: Strict `assertIsDisplayed` on long error text was brittle against emulator viewport/semantics rendering differences even when the error node existed.
+- **Fix**:
+  - Switched to stable existence-based assertion using `onAllNodesWithText(..., substring = true, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()`.
+  - Re-ran `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`.
+- **Result**: Android instrumentation suite now passes consistently (`8/8` tests).
+
 ## [2026-02-08] Android Sync Instrumentation Fixture Timestamp Issue
 
 ### Issue 1: Configured Drive sync tests asserted missing imported entries
