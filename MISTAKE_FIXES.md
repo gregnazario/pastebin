@@ -16,6 +16,16 @@ This document tracks implementation mistakes discovered during development and t
     - `gradle :feature:history:testDebugUnitTest :feature:upload:testDebugUnitTest :feature:view:testDebugUnitTest :app:compileDebugKotlin`
 - **Result**: Android module tests and app Kotlin compile now pass in the local environment.
 
+## [2026-02-08] Android Instrumentation Assertion API Mismatch
+
+### Issue 1: `assertExists` Import Failed During `androidTest` Kotlin Compile
+- **Context**: New Compose instrumentation test (`HistoryToDecryptHandoffTest`) failed to compile.
+- **Root Cause**: `assertExists` was imported from a package symbol not exposed by the current Compose test artifact set in this project configuration.
+- **Fix**:
+  - Replaced assertions with `assertIsDisplayed` in the instrumentation test.
+  - Re-ran `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`.
+- **Result**: Android instrumentation test sources now compile and package successfully.
+
 ## [2026-02-07] Native Crypto Adapter Build/Logic Issues
 
 ### Issue 1: Swift Argon2 Dependency Linked `genkat.c` (`_main`) Into Test Binary

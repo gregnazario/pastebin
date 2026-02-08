@@ -36,6 +36,12 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - open/share actions for generated history links
   - `Open` routes to Decrypt tab and pre-fills share URL in-app
 
+## Instrumentation Coverage
+- `app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
+  - Verifies history `Open` switches to Decrypt and pre-fills share URL.
+- Run instrumentation tests (emulator/local device required):
+  - `gradle :app:connectedDebugAndroidTest`
+
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.
 - `DevelopmentNativeCryptoEngine` remains available for isolated wiring tests only and is non-production.

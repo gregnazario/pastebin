@@ -32,9 +32,26 @@ This file maintains the current state of the project for smooth conversation han
 - ✅ `swift test` in `native/apple`
 - ✅ `gradle :feature:history:testDebugUnitTest :feature:upload:testDebugUnitTest :feature:view:testDebugUnitTest :app:compileDebugKotlin` in `native/android`
 
+### Android UI Instrumentation Progress (2026-02-08, latest update)
+- ✅ Added Android instrumentation dependencies in:
+  - `native/android/app/build.gradle.kts`
+- ✅ Added handoff instrumentation test:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
+  - validates History `Open` -> Decrypt tab + Share URL prefill behavior
+- ✅ Added plan/design docs for this section:
+  - `plans/android-ui-instrumentation-coverage.md`
+  - `design-docs/android-ui-instrumentation-coverage.md`
+- ✅ Added Android README coverage docs:
+  - `native/android/README.md`
+- ✅ Validation rerun:
+  - `gradle :app:compileDebugAndroidTestKotlin` passed
+  - `gradle :app:assembleDebugAndroidTest` passed
+- ⚠️ Runtime instrumentation execution currently blocked in this environment:
+  - `gradle :app:connectedDebugAndroidTest` failed with `No connected devices!`
+
 ### Immediate Next Step
 - Continue parity hardening for native clients:
-  - add Android UI/instrumentation coverage for history -> decrypt handoff path
+  - provision emulator/device and run `:app:connectedDebugAndroidTest`
   - add Apple demo environment profile presets (local/staging/prod)
   - start v1 cloud sync adapters (iCloud + Google Drive)
 

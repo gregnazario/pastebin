@@ -522,6 +522,26 @@ Each entry should include:
   - `native/android/local.properties` (ignored)
 - **Outcome**: Android SDK is now configured locally and the previously blocked Android module tests + app Kotlin compile pass successfully.
 
+**Android UI Instrumentation Coverage (History -> Decrypt Handoff)**
+- **Prompt**: "build android ui instrumentation test coverage"
+- **Action**:
+  - Added Android instrumentation test dependency wiring in:
+    - `native/android/app/build.gradle.kts`
+  - Added Compose instrumentation test:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
+    - seeds local history entry in `SharedPreferencesHistoryStore`
+    - validates tapping History `Open` switches to Decrypt and pre-fills Share URL
+  - Added Android instrumentation section to docs:
+    - `native/android/README.md`
+  - Added planning/design artifacts per project rules:
+    - `plans/android-ui-instrumentation-coverage.md`
+    - `design-docs/android-ui-instrumentation-coverage.md`
+  - Validation run:
+    - `gradle :app:compileDebugAndroidTestKotlin` ✅
+    - `gradle :app:assembleDebugAndroidTest` ✅
+    - `gradle :app:connectedDebugAndroidTest` ⚠️ failed in current environment (`No connected devices!`)
+- **Outcome**: Android UI instrumentation coverage now exists for the highest-value handoff path and is build-validated; runtime execution requires an attached emulator/device.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
