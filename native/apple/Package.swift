@@ -16,7 +16,8 @@ let package = Package(
         .library(name: "CoreStorage", targets: ["CoreStorage"]),
         .library(name: "FeatureUpload", targets: ["FeatureUpload"]),
         .library(name: "FeatureView", targets: ["FeatureView"]),
-        .library(name: "FeatureHistory", targets: ["FeatureHistory"])
+        .library(name: "FeatureHistory", targets: ["FeatureHistory"]),
+        .library(name: "AppShellDemo", targets: ["AppShellDemo"])
     ],
     dependencies: [
         .package(url: "https://github.com/leif-ibsen/SwiftKyber", from: "2.0.0")
@@ -44,10 +45,12 @@ let package = Package(
         .target(name: "FeatureUpload", dependencies: ["CoreCrypto", "CoreNetworking", "CoreStorage"]),
         .target(name: "FeatureView", dependencies: ["CoreCrypto", "CoreNetworking", "CoreStorage"]),
         .target(name: "FeatureHistory", dependencies: ["CoreStorage"]),
+        .target(name: "AppShellDemo", dependencies: ["FeatureUpload", "FeatureView", "FeatureHistory"]),
         .testTarget(name: "CoreCryptoTests", dependencies: ["CoreCrypto"]),
         .testTarget(name: "CoreNetworkingTests", dependencies: ["CoreNetworking"]),
         .testTarget(name: "FeatureUploadTests", dependencies: ["FeatureUpload", "CoreCrypto", "CoreNetworking"]),
         .testTarget(name: "FeatureViewTests", dependencies: ["FeatureView", "CoreCrypto", "CoreNetworking"]),
-        .testTarget(name: "FeatureHistoryTests", dependencies: ["FeatureHistory", "CoreStorage"])
+        .testTarget(name: "FeatureHistoryTests", dependencies: ["FeatureHistory", "CoreStorage"]),
+        .testTarget(name: "AppShellDemoTests", dependencies: ["AppShellDemo"])
     ]
 )
