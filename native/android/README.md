@@ -13,7 +13,11 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - `:feature:upload`, `:feature:view`, `:feature:history`
 
 ## Running the App
-- The app currently targets local API via `http://10.0.2.2:3000` (Android emulator loopback).
+- Default API base is local emulator via `http://10.0.2.2:3000`.
+- Runtime API settings are available in-app via `Settings`:
+  - Presets: `Local`, `Staging`, `Production`
+  - Manual API base URL override with validation
+  - Selected API base persists across app launches
 - Configure Android SDK before running Gradle tasks:
   - Set `ANDROID_HOME`, or
   - Create `native/android/local.properties` with `sdk.dir=/absolute/path/to/android/sdk`
@@ -50,6 +54,8 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Verifies configured Drive sync conflict summary path and remote-winner rendering.
   - Verifies configured Drive sync URI re-selection path uses updated fixture state.
   - Verifies malformed Drive sync payload path surfaces user-visible error messaging.
+  - Verifies Drive create-picker cancel path keeps sync in unconfigured state.
+  - Verifies create/open picker invalid-authority results surface setup error messaging.
 - Run instrumentation tests (emulator/local device required):
   - `gradle :app:connectedDebugAndroidTest`
 

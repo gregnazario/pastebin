@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +45,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
@@ -104,6 +106,7 @@ private data class DecryptPreviewBuild(
     val temporaryFile: File?,
 )
 
+private const val defaultApiBaseURL = "http://10.0.2.2:3000"
 private const val defaultDriveSyncFileName = "secure-pastebin-history-sync.json"
 private const val historyIncludeExpiredSwitchTestTag = "history-include-expired-switch"
 
@@ -125,8 +128,14 @@ class MainActivity : ComponentActivity() {
 private fun NativeFlowApp() {
     val context = LocalContext.current
     val contentResolver = context.contentResolver
-    val apiBase = remember { "http://10.0.2.2:3000" }
-    val apiClient = remember { HttpApiClient(baseUrl = apiBase) }
+    val apiBaseConfigStore = remember(context.applicationContext) {
+        ApiBaseConfigurationStore(context.applicationContext)
+    }
+    var apiBase by remember {
+        mutableStateOf(apiBaseConfigStore.readApiBaseUrl(defaultApiBaseURL))
+    }
+    var isApiSettingsPresented by remember { mutableStateOf(false) }
+    val apiClient = remember(apiBase) { HttpApiClient(baseUrl = apiBase) }
     val cryptoEngine = remember { ProductionNativeCryptoEngine() }
     val historyStore = remember(context.applicationContext) {
         SharedPreferencesHistoryStore(context.applicationContext)
@@ -138,21 +147,21 @@ private fun NativeFlowApp() {
         mutableStateOf(driveSyncConfigStore.readDocumentURI())
     }
     var driveSyncError by remember { mutableStateOf<String?>(null) }
-    val uploadFeature = remember {
+    val uploadFeature = remember(apiClient, cryptoEngine, apiBase) {
         UploadFeature(
             apiClient = apiClient,
             cryptoEngine = cryptoEngine,
             shareBaseUrl = apiBase,
         )
     }
-    val viewFeature = remember {
+    val viewFeature = remember(apiClient, cryptoEngine, historyStore) {
         ViewFeature(
             apiClient = apiClient,
             cryptoEngine = cryptoEngine,
             historyStore = historyStore,
         )
     }
-    val historyFeature = remember {
+    val historyFeature = remember(historyStore, apiBase) {
         HistoryFeature(
             historyStore = historyStore,
             shareBaseUrl = apiBase,
@@ -215,7 +224,34 @@ private fun NativeFlowApp() {
     var selectedTab by remember { mutableIntStateOf(0) }
     var pendingDecryptShareUrl by remember { mutableStateOf<String?>(null) }
 
+    if (isApiSettingsPresented) {
+        ApiBaseSettingsDialog(
+            currentApiBase = apiBase,
+            onDismissRequest = { isApiSettingsPresented = false },
+            onApply = { updatedApiBase ->
+                apiBaseConfigStore.writeApiBaseUrl(updatedApiBase)
+                apiBase = updatedApiBase
+                isApiSettingsPresented = false
+            },
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "API: $apiBase",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f),
+            )
+            Button(onClick = { isApiSettingsPresented = true }) {
+                Text("Settings")
+            }
+        }
+
         TabRow(selectedTabIndex = selectedTab) {
             Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Upload") })
             Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Decrypt") })
@@ -255,6 +291,82 @@ private fun NativeFlowApp() {
             )
         }
     }
+}
+
+@Composable
+private fun ApiBaseSettingsDialog(
+    currentApiBase: String,
+    onDismissRequest: () -> Unit,
+    onApply: (String) -> Unit,
+) {
+    var draftApiBase by remember(currentApiBase) { mutableStateOf(currentApiBase) }
+    var validationErrorMessage by remember { mutableStateOf<String?>(null) }
+    val activePreset = remember(draftApiBase) {
+        ApiBaseEnvironmentPreset.matching(draftApiBase)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("API Settings") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "Choose an environment preset or enter a custom API base URL.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    "Current preset: ${activePreset?.label ?: "Custom"}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+
+                ApiBaseEnvironmentPreset.entries.forEach { preset ->
+                    Button(
+                        onClick = {
+                            draftApiBase = preset.baseUrl
+                            validationErrorMessage = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("${preset.label}: ${preset.baseUrl}")
+                    }
+                }
+
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = draftApiBase,
+                    onValueChange = {
+                        draftApiBase = it
+                        validationErrorMessage = null
+                    },
+                    label = { Text("API Base URL") },
+                    singleLine = true,
+                )
+
+                validationErrorMessage?.let { message ->
+                    Text(message, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val normalized = normalizeApiBaseUrlCandidate(draftApiBase)
+                    if (!isValidApiBaseUrl(normalized)) {
+                        validationErrorMessage = "Enter a valid http(s) API base URL."
+                        return@Button
+                    }
+                    onApply(normalized)
+                },
+            ) {
+                Text("Apply")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismissRequest) {
+                Text("Cancel")
+            }
+        },
+    )
 }
 
 @Composable

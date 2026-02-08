@@ -1,6 +1,9 @@
 package com.securepastebin.app
 
+import android.app.Activity
+import android.app.Instrumentation
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -9,6 +12,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.securepastebin.core.storage.HistoryEntry
 import com.securepastebin.core.storage.SharedPreferencesHistoryStore
@@ -140,6 +145,95 @@ class HistoryUiCoverageTest {
         composeRule.onNodeWithText("Google Drive sync file is not configured yet.").assertIsDisplayed()
         composeRule.onNodeWithText("Create Drive File").assertIsDisplayed()
         composeRule.onNodeWithText("Use Existing File").assertIsDisplayed()
+    }
+
+    @Test
+    fun historyCloudSyncCreatePickerCancelKeepsUnconfiguredState() {
+        clearCloudSyncConfig()
+
+        withIntentStubs {
+            Intents.intending(hasAction(Intent.ACTION_CREATE_DOCUMENT))
+                .respondWith(Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null))
+
+            composeRule.onNodeWithText("History").performClick()
+            composeRule.onNodeWithText("Create Drive File").performClick()
+            composeRule.waitForIdle()
+
+            composeRule.onNodeWithText("Google Drive sync file is not configured yet.").assertIsDisplayed()
+            composeRule.onNodeWithText("Create Drive File").assertIsDisplayed()
+            composeRule.onNodeWithText("Use Existing File").assertIsDisplayed()
+            val syncNowVisible = composeRule
+                .onAllNodesWithText("Sync Now", useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+            assertFalse("Sync should remain unavailable after picker cancel.", syncNowVisible)
+        }
+    }
+
+    @Test
+    fun historyCloudSyncCreatePickerInvalidAuthorityShowsSetupError() {
+        clearCloudSyncConfig()
+        val invalidUri = Uri.parse("content://com.example.invalid.documents/sync.json")
+        val invalidResult = Intent().setData(invalidUri)
+
+        withIntentStubs {
+            Intents.intending(hasAction(Intent.ACTION_CREATE_DOCUMENT))
+                .respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, invalidResult))
+
+            composeRule.onNodeWithText("History").performClick()
+            composeRule.onNodeWithText("Create Drive File").performClick()
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                composeRule
+                    .onAllNodesWithText(
+                        "Error: Select a Google Drive location for cloud sync.",
+                        useUnmergedTree = true,
+                    )
+                    .fetchSemanticsNodes()
+                    .isNotEmpty()
+            }
+
+            val createErrorVisible = composeRule
+                .onAllNodesWithText(
+                    "Error: Select a Google Drive location for cloud sync.",
+                    useUnmergedTree = true,
+                )
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+            assertTrue("Invalid Drive create-picker URI should surface setup error.", createErrorVisible)
+        }
+    }
+
+    @Test
+    fun historyCloudSyncOpenPickerInvalidAuthorityShowsSetupError() {
+        clearCloudSyncConfig()
+        val invalidUri = Uri.parse("content://com.example.invalid.documents/sync.json")
+        val invalidResult = Intent().setData(invalidUri)
+
+        withIntentStubs {
+            Intents.intending(hasAction(Intent.ACTION_OPEN_DOCUMENT))
+                .respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, invalidResult))
+
+            composeRule.onNodeWithText("History").performClick()
+            composeRule.onNodeWithText("Use Existing File").performClick()
+            composeRule.waitUntil(timeoutMillis = 5_000) {
+                composeRule
+                    .onAllNodesWithText(
+                        "Error: Select a JSON document from Google Drive.",
+                        useUnmergedTree = true,
+                    )
+                    .fetchSemanticsNodes()
+                    .isNotEmpty()
+            }
+
+            val openErrorVisible = composeRule
+                .onAllNodesWithText(
+                    "Error: Select a JSON document from Google Drive.",
+                    useUnmergedTree = true,
+                )
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+            assertTrue("Invalid Drive open-picker URI should surface setup error.", openErrorVisible)
+        }
     }
 
     @Test
@@ -401,5 +495,17 @@ class HistoryUiCoverageTest {
             fixture.delete()
         }
         trackedDriveSyncFixtures.clear()
+    }
+
+    /**
+     * Runs a test block with Espresso Intents initialized for launcher stubbing.
+     */
+    private fun withIntentStubs(block: () -> Unit) {
+        Intents.init()
+        try {
+            block()
+        } finally {
+            Intents.release()
+        }
     }
 }
