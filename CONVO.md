@@ -423,6 +423,42 @@ Each entry should include:
   - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: In-repo Apple sample host shell now demonstrates concrete end-to-end in-app handoff wiring from History actions into the Decrypt flow.
 
+**Apple Xcode App Target Scaffold (Launches AppHostFlowView)**
+- **Prompt**: "yes" (after proposal to add Xcode app target scaffold that directly launches `AppHostFlowView`)
+- **Action**:
+  - Added a concrete Apple iOS demo app scaffold under `native/apple/`:
+    - `AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+    - `AppShellDemoApp/Support/Info.plist`
+  - Added `AppShellDemo` factory helper:
+    - `Sources/AppShellDemo/DemoAppFactory.swift`
+    - Wires production modules (`URLSessionAPIClient`, `ProductionNativeCryptoEngine`, `UserDefaultsHistoryStore`) and returns `AppHostFlowView`.
+  - Added XcodeGen project spec and generated Xcode project:
+    - `native/apple/project.yml`
+    - `native/apple/SecurePastebinAppleDemo.xcodeproj`
+  - Updated Swift package target wiring so `AppShellDemo` can construct full dependency graph.
+  - Updated Apple README with scaffold and regeneration instructions.
+- **Files Modified**:
+  - `native/apple/Package.swift`
+  - `native/apple/README.md`
+- **Files Created**:
+  - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+  - `native/apple/AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+  - `native/apple/AppShellDemoApp/Support/Info.plist`
+  - `native/apple/project.yml`
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.xcworkspace/contents.xcworkspacedata`
+- **Validation**:
+  - `swift test` ✅
+  - `xcodebuild -list -project native/apple/SecurePastebinAppleDemo.xcodeproj` ✅
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: A runnable Xcode iOS demo app target scaffold now exists in-repo and launches the host flow shell directly.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

@@ -219,6 +219,31 @@ This file maintains the current state of the project for smooth conversation han
   - add automated UI coverage for Android history->decrypt handoff path
   - begin v1 cloud sync adapters (iCloud + Google Drive)
 
+### Apple Xcode Scaffold Progress (2026-02-07, latest update)
+- ✅ Added runnable iOS Xcode demo app scaffold in `native/apple/`:
+  - app entry: `AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+  - app plist: `AppShellDemoApp/Support/Info.plist`
+  - project spec: `project.yml`
+  - generated project: `SecurePastebinAppleDemo.xcodeproj`
+- ✅ Added `DemoAppFactory` in `AppShellDemo`:
+  - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+  - builds full dependency graph and launches `AppHostFlowView`.
+- ✅ Updated `Package.swift` target dependencies for `AppShellDemo` construction wiring.
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `xcodebuild -list` on scaffold project passed
+  - iOS simulator build for `SecurePastebinDemoApp` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android Gradle validation remains blocked by missing SDK config:
+  - `gradle :feature:history:testDebugUnitTest`
+  - `gradle :app:compileDebugKotlin`
+
+### Updated Immediate Next Step
+- Continue parity hardening for native clients:
+  - add minimal onboarding/config screen for demo app API base URL override
+  - add automated UI coverage for Android history->decrypt handoff path
+  - begin v1 cloud sync adapters (iCloud + Google Drive)
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 
