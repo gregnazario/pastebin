@@ -4,6 +4,16 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-08] Android Sync Instrumentation Fixture Timestamp Issue
+
+### Issue 1: Configured Drive sync tests asserted missing imported entries
+- **Context**: New `HistoryUiCoverageTest` sync tests compiled, but `connectedDebugAndroidTest` failed on visibility assertions for synced file names.
+- **Root Cause**: Fixture `expiresAtMillis` values used small absolute numbers (epoch-adjacent), so entries were immediately treated as expired and filtered out by default (`Include expired` disabled).
+- **Fix**:
+  - Updated fixture timestamps in `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt` to use `System.currentTimeMillis()` with future expirations.
+  - Re-ran `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`.
+- **Result**: Instrumentation suite now passes (`6/6` tests) with stable synced-entry assertions.
+
 ## [2026-02-08] Android Compose Build Import Issue
 
 ### Issue 1: Explicit `weight` Import Broke Kotlin Compile in App Host

@@ -13,6 +13,29 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-02-08
+**Native Sync Test Coverage Expansion (Do 1 then 2)**
+- **Prompt**: "Do 1 then 2" (Apple sync state tests, then Android configured Drive sync instrumentation)
+- **Action**:
+  - Added Apple `HistoryFlowViewModel.syncCloud()` tests for:
+    - unconfigured coordinator failure state
+    - syncing -> success summary transition
+    - syncing -> failure message transition
+  - Added Android instrumentation coverage for configured sync file path:
+    - `Sync Now` success summary + imported entry rendering
+    - conflict summary path + remote-winner rendering
+  - Added Android instrumentation fixture helpers to seed cloud-sync payload JSON and preference URI.
+  - Updated native Android instrumentation documentation to include the new coverage.
+- **Files Modified**:
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+- **Commands Run**:
+  - `swift test` (in `native/apple`)
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` (in `native/android`)
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Apple and Android sync coverage increased with passing native + web validation.
+
 ### 2026-02-07
 **Native App Planning (Swift + Kotlin)**
 - **Prompt**: "Can you make a plan to make a fully native iOS, iPadOS, and macOS app, along with a fully native Android app... Stretch goal would be similar on Windows as well."

@@ -8,6 +8,28 @@ This file maintains the current state of the project for smooth conversation han
 - **Phase**: Phase 2 foundation hardening (native parity + validation closure).
 - **Current Task**: Close remaining native parity gaps after Android environment unblock.
 
+### Native Sync Test Coverage Expansion (2026-02-08, latest update)
+- ✅ Added plan/design docs:
+  - `plans/native-sync-test-coverage-expansion.md`
+  - `design-docs/native-sync-test-coverage-expansion.md`
+- ✅ Added Apple cloud-sync state transition tests:
+  - file: `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - coverage:
+    - unconfigured coordinator failure state
+    - syncing -> success summary transition
+    - syncing -> failure message transition
+- ✅ Added Android configured Drive sync instrumentation coverage:
+  - file: `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - coverage:
+    - configured fixture URI + `Sync Now` success summary and imported entry
+    - conflict summary path with remote winner rendering
+- ✅ Updated Android instrumentation docs:
+  - `native/android/README.md`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` passed (`6/6` tests)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+
 ### Android SDK Unblock + Validation Progress (2026-02-08, latest update)
 - ✅ Local Android SDK configured at:
   - `/Users/greg/Library/Android/sdk`
@@ -119,8 +141,8 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Immediate Next Step
 - Continue parity hardening for native clients:
-  - add Android instrumentation coverage for Drive sync happy-path (select + sync summary) with test fixture URI
-  - add Apple tests covering HistoryFlowView cloud sync state transitions
+  - extend Android instrumentation to cover Drive file re-selection edge cases and sync-failure error surfacing
+  - add Apple UI-level tests for visible cloud-sync status messaging in `HistoryFlowView`
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:
