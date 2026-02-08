@@ -542,6 +542,24 @@ Each entry should include:
     - `gradle :app:connectedDebugAndroidTest` ⚠️ failed in current environment (`No connected devices!`)
 - **Outcome**: Android UI instrumentation coverage now exists for the highest-value handoff path and is build-validated; runtime execution requires an attached emulator/device.
 
+**Android Instrumentation Runtime Execution (Connected Emulator)**
+- **Prompt**: "1" (run `:app:connectedDebugAndroidTest` on emulator/device)
+- **Action**:
+  - Installed missing local Android emulator components and AVD tooling into SDK:
+    - `emulator`
+    - `system-images;android-35;google_apis;arm64-v8a`
+    - `cmdline-tools;latest`
+  - Created AVD:
+    - `codex_api35` (Pixel 7, API 35, Google APIs ARM64)
+  - Booted emulator headless and waited for `sys.boot_completed=1`.
+  - Ran instrumentation runtime task:
+    - `gradle :app:connectedDebugAndroidTest`
+- **Validation Result**:
+  - `connectedDebugAndroidTest` ✅
+  - Device: `emulator-5554 - 15`
+  - Tests executed: `1/1` passed, `0` failed, `0` skipped
+- **Outcome**: Android instrumentation coverage now has confirmed runtime execution in addition to compile/package validation.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

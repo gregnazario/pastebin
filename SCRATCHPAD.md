@@ -46,12 +46,13 @@ This file maintains the current state of the project for smooth conversation han
 - ✅ Validation rerun:
   - `gradle :app:compileDebugAndroidTestKotlin` passed
   - `gradle :app:assembleDebugAndroidTest` passed
-- ⚠️ Runtime instrumentation execution currently blocked in this environment:
-  - `gradle :app:connectedDebugAndroidTest` failed with `No connected devices!`
+- ✅ Runtime instrumentation execution now verified on connected emulator:
+  - `gradle :app:connectedDebugAndroidTest` passed
+  - `1/1` tests passed on `emulator-5554 - 15`
+  - AVD used: `codex_api35` (API 35, Google APIs ARM64, headless boot)
 
 ### Immediate Next Step
 - Continue parity hardening for native clients:
-  - provision emulator/device and run `:app:connectedDebugAndroidTest`
   - add Apple demo environment profile presets (local/staging/prod)
   - start v1 cloud sync adapters (iCloud + Google Drive)
 
