@@ -45,7 +45,17 @@ let package = Package(
         .target(name: "FeatureUpload", dependencies: ["CoreCrypto", "CoreNetworking", "CoreStorage"]),
         .target(name: "FeatureView", dependencies: ["CoreCrypto", "CoreNetworking", "CoreStorage"]),
         .target(name: "FeatureHistory", dependencies: ["CoreStorage"]),
-        .target(name: "AppShellDemo", dependencies: ["FeatureUpload", "FeatureView", "FeatureHistory"]),
+        .target(
+            name: "AppShellDemo",
+            dependencies: [
+                "CoreCrypto",
+                "CoreNetworking",
+                "CoreStorage",
+                "FeatureUpload",
+                "FeatureView",
+                "FeatureHistory"
+            ]
+        ),
         .testTarget(name: "CoreCryptoTests", dependencies: ["CoreCrypto"]),
         .testTarget(name: "CoreNetworkingTests", dependencies: ["CoreNetworking"]),
         .testTarget(name: "FeatureUploadTests", dependencies: ["FeatureUpload", "CoreCrypto", "CoreNetworking"]),

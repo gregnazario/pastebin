@@ -41,6 +41,15 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - in-app History `Open` -> Decrypt prefill handoff
   - source: `Sources/AppShellDemo/AppHostFlowView.swift`
 
+## Xcode Demo App Scaffold
+- A runnable iOS demo app scaffold is included:
+  - Project spec: `project.yml`
+  - App sources: `AppShellDemoApp/Sources/`
+  - App project: `SecurePastebinAppleDemo.xcodeproj`
+- The app launches `DemoAppFactory.makeRootView()` which wires `AppHostFlowView` with local API defaults.
+- To regenerate project files after target/spec edits:
+  - `xcodegen generate --spec project.yml`
+
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.
 - `DevelopmentNativeCryptoEngine` remains available for isolated wiring tests only and is non-production.

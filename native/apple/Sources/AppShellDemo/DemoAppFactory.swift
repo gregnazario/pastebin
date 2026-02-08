@@ -1,0 +1,49 @@
+/// Factory helpers for constructing a runnable Apple sample app host shell.
+import CoreCrypto
+import CoreNetworking
+import CoreStorage
+import FeatureHistory
+import FeatureUpload
+import FeatureView
+import Foundation
+import SwiftUI
+
+/// Builds `AppHostFlowView` with production module wiring for local development.
+public enum DemoAppFactory {
+    /// Creates a fully wired host shell view for iOS/iPadOS/macOS demo targets.
+    @MainActor
+    public static func makeRootView(
+        apiBaseURL: URL = URL(string: "http://127.0.0.1:3000")!,
+        shareBaseURL: URL? = nil,
+        historyDefaults: UserDefaults = .standard
+    ) -> some View {
+        let apiClient = URLSessionAPIClient(
+            configuration: .init(baseURL: apiBaseURL)
+        )
+        let cryptoEngine = ProductionNativeCryptoEngine()
+        let historyStore = UserDefaultsHistoryStore(defaults: historyDefaults)
+        let resolvedShareBaseURL = shareBaseURL ?? apiBaseURL
+
+        let uploadFeature = UploadFeature(
+            apiClient: apiClient,
+            cryptoEngine: cryptoEngine,
+            shareBaseURL: resolvedShareBaseURL
+        )
+        let decryptFeature = ViewFeature(
+            apiClient: apiClient,
+            cryptoEngine: cryptoEngine,
+            historyStore: historyStore
+        )
+        let historyFeature = HistoryFeature(
+            historyStore: historyStore,
+            shareBaseURL: resolvedShareBaseURL
+        )
+
+        return AppHostFlowView(
+            uploadViewModel: UploadFlowViewModel(uploadService: uploadFeature),
+            decryptViewModel: DecryptFlowViewModel(viewService: decryptFeature),
+            historyViewModel: HistoryFlowViewModel(historyFeature: historyFeature),
+            initialTab: .upload
+        )
+    }
+}
