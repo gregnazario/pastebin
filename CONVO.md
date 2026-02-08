@@ -560,6 +560,53 @@ Each entry should include:
   - Tests executed: `1/1` passed, `0` failed, `0` skipped
 - **Outcome**: Android instrumentation coverage now has confirmed runtime execution in addition to compile/package validation.
 
+**v1 Cloud Sync Adapters (iCloud + Google Drive)**
+- **Prompt**: "v1 cloud sync adapters (tradeoff choice): iCloud (Apple) + Google Drive (Android), plus sync state/conflict handling."
+- **Action**:
+  - Added plan/design artifacts for native cloud sync:
+    - `plans/native-cloud-sync-v1.md`
+    - `design-docs/native-cloud-sync-v1.md`
+  - Apple implementation:
+    - Added `CoreStorage` cloud-sync primitives:
+      - `ICloudHistorySyncAdapter` (iCloud via `NSUbiquitousKeyValueStore`)
+      - `HistoryCloudSyncCoordinator` with conflict-aware merge stats
+      - models: `HistorySyncResult`, `HistorySyncStats`, `HistorySyncConflict`
+      - file: `native/apple/Sources/CoreStorage/CloudSync.swift`
+    - Wired sync state/actions into history UI/view model:
+      - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+    - Wired demo host to enable iCloud sync by default:
+      - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+    - Added `CoreStorage` sync unit tests:
+      - `native/apple/Tests/CoreStorageTests/CoreStorageSyncTests.swift`
+    - Updated package manifest and docs:
+      - `native/apple/Package.swift`
+      - `native/apple/README.md`
+  - Android implementation:
+    - Added `core:storage` cloud-sync primitives:
+      - `GoogleDriveHistorySyncAdapter` (Storage Access Framework URI-based Drive JSON sync)
+      - `HistoryCloudSyncCoordinator` with conflict-aware merge stats
+      - `GoogleDriveSyncConfigurationStore`
+      - models: `HistorySyncResult`, `HistorySyncStats`, `HistorySyncConflict`
+      - file: `native/android/core/storage/src/main/kotlin/com/securepastebin/core/storage/CloudSync.kt`
+    - Added `core:storage` sync unit tests:
+      - `native/android/core/storage/src/test/kotlin/com/securepastebin/core/storage/HistoryCloudSyncCoordinatorTest.kt`
+    - Added `core:storage` test dependencies:
+      - `native/android/core/storage/build.gradle.kts`
+    - Wired History tab cloud sync controls:
+      - create/select Google Drive sync file
+      - one-shot sync action with summary/error state
+      - file: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+    - Updated docs:
+      - `native/android/README.md`
+  - Validation run:
+    - `swift test` ✅ (includes new `CoreStorageSyncTests`)
+    - `gradle :core:storage:testDebugUnitTest :feature:history:testDebugUnitTest :app:compileDebugKotlin` ✅
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Outcome**: v1 native cloud sync adapters are now implemented on both platforms with conflict-tracked merge results and user-visible sync state/actions.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

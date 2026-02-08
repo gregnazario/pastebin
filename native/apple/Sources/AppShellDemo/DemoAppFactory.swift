@@ -22,6 +22,11 @@ public enum DemoAppFactory {
         )
         let cryptoEngine = ProductionNativeCryptoEngine()
         let historyStore = UserDefaultsHistoryStore(defaults: historyDefaults)
+        let cloudSyncAdapter = ICloudHistorySyncAdapter()
+        let cloudSyncCoordinator = HistoryCloudSyncCoordinator(
+            historyStore: historyStore,
+            cloudAdapter: cloudSyncAdapter
+        )
         let resolvedShareBaseURL = shareBaseURL ?? apiBaseURL
 
         let uploadFeature = UploadFeature(
@@ -42,7 +47,10 @@ public enum DemoAppFactory {
         return AppHostFlowView(
             uploadViewModel: UploadFlowViewModel(uploadService: uploadFeature),
             decryptViewModel: DecryptFlowViewModel(viewService: decryptFeature),
-            historyViewModel: HistoryFlowViewModel(historyFeature: historyFeature),
+            historyViewModel: HistoryFlowViewModel(
+                historyFeature: historyFeature,
+                cloudSyncCoordinator: cloudSyncCoordinator
+            ),
             initialTab: .upload
         )
     }

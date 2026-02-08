@@ -88,15 +88,28 @@ public struct HistoryFeature {
 
 @MainActor
 public final class HistoryFlowViewModel: ObservableObject {
+    public enum CloudSyncState: Equatable {
+        case idle
+        case syncing
+        case success(summary: String)
+        case failure(message: String)
+    }
+
     @Published public var includeExpired: Bool = false
     @Published public var isLoading: Bool = false
     @Published public var entries: [HistoryListItem] = []
     @Published public var errorMessage: String?
+    @Published public var cloudSyncState: CloudSyncState = .idle
 
     private let historyFeature: HistoryFeature
+    private let cloudSyncCoordinator: HistoryCloudSyncCoordinator?
 
-    public init(historyFeature: HistoryFeature) {
+    public init(
+        historyFeature: HistoryFeature,
+        cloudSyncCoordinator: HistoryCloudSyncCoordinator? = nil
+    ) {
         self.historyFeature = historyFeature
+        self.cloudSyncCoordinator = cloudSyncCoordinator
     }
 
     /// Refreshes history entries from storage.
@@ -131,6 +144,35 @@ public final class HistoryFlowViewModel: ObservableObject {
             isLoading = false
         }
     }
+
+    /// Runs one-shot cloud history synchronization when configured.
+    public func syncCloud() {
+        guard let cloudSyncCoordinator else {
+            cloudSyncState = .failure(message: "Cloud sync is not configured.")
+            return
+        }
+        guard cloudSyncState != .syncing else { return }
+
+        cloudSyncState = .syncing
+
+        Task {
+            do {
+                let result = try await cloudSyncCoordinator.syncNow()
+                entries = try await historyFeature.list(includeExpired: includeExpired)
+                cloudSyncState = .success(summary: summaryText(result))
+            } catch {
+                cloudSyncState = .failure(message: error.localizedDescription)
+            }
+        }
+    }
+
+    public var hasCloudSync: Bool {
+        cloudSyncCoordinator != nil
+    }
+
+    private func summaryText(_ result: HistorySyncResult) -> String {
+        "Synced \(result.stats.added) added, \(result.stats.updated) updated, \(result.stats.conflicts) conflicts."
+    }
 }
 
 /// SwiftUI history screen with filtering and delete actions.
@@ -155,6 +197,30 @@ public struct HistoryFlowView: View {
                     viewModel.load()
                 }
                 .disabled(viewModel.isLoading)
+            }
+
+            if viewModel.hasCloudSync {
+                Section("Cloud Sync") {
+                    Button(cloudSyncActionTitle) {
+                        viewModel.syncCloud()
+                    }
+                    .disabled(viewModel.isLoading || viewModel.cloudSyncState == .syncing)
+
+                    switch viewModel.cloudSyncState {
+                    case .idle:
+                        Text("Not synced yet.")
+                            .foregroundStyle(.secondary)
+                    case .syncing:
+                        Text("Syncing with iCloud...")
+                            .foregroundStyle(.secondary)
+                    case let .success(summary):
+                        Text(summary)
+                            .foregroundStyle(.secondary)
+                    case let .failure(message):
+                        Text(message)
+                            .foregroundStyle(.red)
+                    }
+                }
             }
 
             Section("Recent Decrypts") {
@@ -245,6 +311,15 @@ public struct HistoryFlowView: View {
         }
         let date = Date(timeIntervalSince1970: TimeInterval(millis) / 1000)
         return HistoryFlowDateFormatter.shared.string(from: date)
+    }
+
+    private var cloudSyncActionTitle: String {
+        switch viewModel.cloudSyncState {
+        case .syncing:
+            return "Syncing..."
+        default:
+            return "Sync iCloud"
+        }
     }
 }
 

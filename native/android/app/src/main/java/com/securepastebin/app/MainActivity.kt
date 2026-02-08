@@ -55,6 +55,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import com.securepastebin.core.crypto.ProductionNativeCryptoEngine
 import com.securepastebin.core.network.HttpApiClient
+import com.securepastebin.core.storage.GoogleDriveHistorySyncAdapter
+import com.securepastebin.core.storage.GoogleDriveSyncConfigurationStore
+import com.securepastebin.core.storage.HistoryCloudSyncCoordinator
+import com.securepastebin.core.storage.HistorySyncResult
 import com.securepastebin.core.storage.SharedPreferencesHistoryStore
 import com.securepastebin.feature.history.HistoryFeature
 import com.securepastebin.feature.history.HistoryListItem
@@ -99,6 +103,8 @@ private data class DecryptPreviewBuild(
     val temporaryFile: File?,
 )
 
+private const val defaultDriveSyncFileName = "secure-pastebin-history-sync.json"
+
 /**
  * Main Android entry activity with Compose screens for upload, decrypt, and history flows.
  */
@@ -116,12 +122,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun NativeFlowApp() {
     val context = LocalContext.current
+    val contentResolver = context.contentResolver
     val apiBase = remember { "http://10.0.2.2:3000" }
     val apiClient = remember { HttpApiClient(baseUrl = apiBase) }
     val cryptoEngine = remember { ProductionNativeCryptoEngine() }
     val historyStore = remember(context.applicationContext) {
         SharedPreferencesHistoryStore(context.applicationContext)
     }
+    val driveSyncConfigStore = remember(context.applicationContext) {
+        GoogleDriveSyncConfigurationStore(context.applicationContext)
+    }
+    var driveSyncDocumentURIString by remember {
+        mutableStateOf(driveSyncConfigStore.readDocumentURI())
+    }
+    var driveSyncError by remember { mutableStateOf<String?>(null) }
     val uploadFeature = remember {
         UploadFeature(
             apiClient = apiClient,
@@ -141,6 +155,59 @@ private fun NativeFlowApp() {
             historyStore = historyStore,
             shareBaseUrl = apiBase,
         )
+    }
+    val cloudSyncCoordinator = remember(
+        context.applicationContext,
+        historyStore,
+        driveSyncDocumentURIString,
+    ) {
+        driveSyncDocumentURIString?.let { uriString ->
+            HistoryCloudSyncCoordinator(
+                historyStore = historyStore,
+                cloudAdapter = GoogleDriveHistorySyncAdapter(
+                    context = context.applicationContext,
+                    documentUri = Uri.parse(uriString),
+                ),
+            )
+        }
+    }
+
+    val createDriveSyncFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        if (!isGoogleDriveDocumentURI(uri)) {
+            driveSyncError = "Select a Google Drive location for cloud sync."
+            return@rememberLauncherForActivityResult
+        }
+
+        runCatching {
+            driveSyncConfigStore.takePersistablePermissions(contentResolver, uri)
+            driveSyncConfigStore.writeDocumentURI(uri)
+            driveSyncDocumentURIString = uri.toString()
+            driveSyncError = null
+        }.onFailure { throwable ->
+            driveSyncError = throwable.message ?: "Failed to configure Google Drive sync file."
+        }
+    }
+
+    val openDriveSyncFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        if (!isGoogleDriveDocumentURI(uri)) {
+            driveSyncError = "Select a JSON document from Google Drive."
+            return@rememberLauncherForActivityResult
+        }
+
+        runCatching {
+            driveSyncConfigStore.takePersistablePermissions(contentResolver, uri)
+            driveSyncConfigStore.writeDocumentURI(uri)
+            driveSyncDocumentURIString = uri.toString()
+            driveSyncError = null
+        }.onFailure { throwable ->
+            driveSyncError = throwable.message ?: "Failed to connect Google Drive sync file."
+        }
     }
 
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -167,6 +234,21 @@ private fun NativeFlowApp() {
                     pendingDecryptShareUrl = shareUrl
                     selectedTab = 1
                 },
+                isCloudSyncConfigured = cloudSyncCoordinator != null,
+                driveSyncDocumentURIString = driveSyncDocumentURIString,
+                onCreateDriveSyncFile = {
+                    createDriveSyncFileLauncher.launch(defaultDriveSyncFileName)
+                },
+                onSelectDriveSyncFile = {
+                    openDriveSyncFileLauncher.launch(arrayOf("application/json"))
+                },
+                onSyncNow = {
+                    val coordinator = cloudSyncCoordinator
+                        ?: throw IllegalStateException("Google Drive sync is not configured.")
+                    coordinator.syncNow()
+                },
+                setupErrorMessage = driveSyncError,
+                onSetupErrorConsumed = { driveSyncError = null },
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -550,13 +632,22 @@ private fun DecryptFlowScreen(
 private fun HistoryFlowScreen(
     historyFeature: HistoryFeature,
     onOpenInDecrypt: (String) -> Unit,
+    isCloudSyncConfigured: Boolean,
+    driveSyncDocumentURIString: String?,
+    onCreateDriveSyncFile: () -> Unit,
+    onSelectDriveSyncFile: () -> Unit,
+    onSyncNow: suspend () -> HistorySyncResult,
+    setupErrorMessage: String?,
+    onSetupErrorConsumed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     var includeExpired by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+    var isSyncing by remember { mutableStateOf(false) }
     var entries by remember { mutableStateOf<List<HistoryListItem>>(emptyList()) }
     var error by remember { mutableStateOf<String?>(null) }
+    var syncSummary by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(includeExpired) {
@@ -568,6 +659,13 @@ private fun HistoryFlowScreen(
             error = e.message ?: "Failed to load history."
         } finally {
             isLoading = false
+        }
+    }
+
+    LaunchedEffect(setupErrorMessage) {
+        if (!setupErrorMessage.isNullOrBlank()) {
+            error = setupErrorMessage
+            onSetupErrorConsumed()
         }
     }
 
@@ -603,6 +701,60 @@ private fun HistoryFlowScreen(
             enabled = !isLoading,
         ) {
             Text(if (isLoading) "Refreshing..." else "Refresh")
+        }
+
+        Text("Cloud Sync", style = MaterialTheme.typography.titleMedium)
+        if (!isCloudSyncConfigured) {
+            Text(
+                "Google Drive sync file is not configured yet.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onCreateDriveSyncFile, enabled = !isLoading && !isSyncing) {
+                    Text("Create Drive File")
+                }
+                Button(onClick = onSelectDriveSyncFile, enabled = !isLoading && !isSyncing) {
+                    Text("Use Existing File")
+                }
+            }
+        } else {
+            driveSyncDocumentURIString?.let { uriString ->
+                Text(uriString, style = MaterialTheme.typography.bodySmall)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            isSyncing = true
+                            error = null
+                            syncSummary = null
+                            try {
+                                val result = onSyncNow()
+                                entries = historyFeature.list(includeExpired = includeExpired)
+                                syncSummary = formatCloudSyncSummary(result)
+                            } catch (e: Exception) {
+                                error = e.message ?: "Cloud sync failed."
+                            } finally {
+                                isSyncing = false
+                            }
+                        }
+                    },
+                    enabled = !isLoading && !isSyncing,
+                ) {
+                    Text(if (isSyncing) "Syncing..." else "Sync Now")
+                }
+
+                Button(
+                    onClick = onSelectDriveSyncFile,
+                    enabled = !isLoading && !isSyncing,
+                ) {
+                    Text("Change File")
+                }
+            }
+        }
+
+        syncSummary?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall)
         }
 
         if (entries.isEmpty() && !isLoading) {
@@ -847,6 +999,16 @@ private fun shareHistoryLink(
         putExtra(Intent.EXTRA_TEXT, shareUrl)
     }
     context.startActivity(Intent.createChooser(intent, "Share paste link"))
+}
+
+private fun isGoogleDriveDocumentURI(uri: Uri): Boolean {
+    val authority = uri.authority ?: return false
+    return authority.contains("com.google.android.apps.docs.storage")
+}
+
+private fun formatCloudSyncSummary(result: HistorySyncResult): String {
+    return "Synced: ${result.stats.added} added, ${result.stats.updated} updated, " +
+        "${result.stats.conflicts} conflicts."
 }
 
 private val historyDateTimeFormatter: DateTimeFormatter =

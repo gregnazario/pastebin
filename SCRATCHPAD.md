@@ -51,10 +51,38 @@ This file maintains the current state of the project for smooth conversation han
   - `1/1` tests passed on `emulator-5554 - 15`
   - AVD used: `codex_api35` (API 35, Google APIs ARM64, headless boot)
 
+### Cloud Sync Adapter Progress (2026-02-08, latest update)
+- ✅ Added native cloud-sync plan + design docs:
+  - `plans/native-cloud-sync-v1.md`
+  - `design-docs/native-cloud-sync-v1.md`
+- ✅ Apple cloud sync implementation completed:
+  - `ICloudHistorySyncAdapter` + `HistoryCloudSyncCoordinator` in `CoreStorage`
+  - conflict-aware sync stats/results surfaced to History UI
+  - App shell factory now wires iCloud sync coordinator
+  - files:
+    - `native/apple/Sources/CoreStorage/CloudSync.swift`
+    - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+    - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+- ✅ Android cloud sync implementation completed:
+  - `GoogleDriveHistorySyncAdapter` + `HistoryCloudSyncCoordinator`
+  - persisted Drive sync-file URI config store
+  - History tab controls for create/select Drive file and sync-now action
+  - files:
+    - `native/android/core/storage/src/main/kotlin/com/securepastebin/core/storage/CloudSync.kt`
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Added sync unit tests:
+  - Apple: `native/apple/Tests/CoreStorageTests/CoreStorageSyncTests.swift`
+  - Android: `native/android/core/storage/src/test/kotlin/com/securepastebin/core/storage/HistoryCloudSyncCoordinatorTest.kt`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `gradle :core:storage:testDebugUnitTest :feature:history:testDebugUnitTest :app:compileDebugKotlin` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+
 ### Immediate Next Step
 - Continue parity hardening for native clients:
   - add Apple demo environment profile presets (local/staging/prod)
-  - start v1 cloud sync adapters (iCloud + Google Drive)
+  - add Android instrumentation coverage for Drive sync controls (connect/select/sync states)
+  - add Apple tests covering HistoryFlowView cloud sync state transitions
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:

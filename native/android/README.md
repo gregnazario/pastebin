@@ -35,6 +35,9 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - delete action for entries
   - open/share actions for generated history links
   - `Open` routes to Decrypt tab and pre-fills share URL in-app
+  - Google Drive cloud-sync controls:
+    - connect/create Drive-backed sync JSON file
+    - run conflict-aware one-shot sync with summary state
 
 ## Instrumentation Coverage
 - `app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`

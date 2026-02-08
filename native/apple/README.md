@@ -36,6 +36,10 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - delete action for entries
   - open/share actions for generated history links
   - optional in-app open callback for routing to decrypt screens
+  - iCloud sync action with conflict-aware sync summary state
+- `CoreStorage` now includes cloud sync primitives:
+  - `ICloudHistorySyncAdapter` (`NSUbiquitousKeyValueStore`)
+  - `HistoryCloudSyncCoordinator` (merge + conflict tracking)
 - `AppShellDemo` module provides a sample SwiftUI host shell:
   - Upload / Decrypt / History tab composition
   - in-app History `Open` -> Decrypt prefill handoff
