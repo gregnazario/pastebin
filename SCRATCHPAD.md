@@ -244,6 +244,31 @@ This file maintains the current state of the project for smooth conversation han
   - add automated UI coverage for Android history->decrypt handoff path
   - begin v1 cloud sync adapters (iCloud + Google Drive)
 
+### Apple Demo Settings Progress (2026-02-07, latest update)
+- ✅ Added runtime settings UI for demo app API base URL override:
+  - root container + gear-button sheet
+  - URL validation and persistent storage via `@AppStorage`
+  - host-flow rebuild on apply so new backend config takes effect immediately
+  - files:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+- ✅ Updated app entry to launch configurable root container:
+  - `native/apple/AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+- ✅ Regenerated Xcode project with new source files via `xcodegen`.
+- ✅ Validation rerun:
+  - `swift test` passed
+  - iOS simulator build for `SecurePastebinDemoApp` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+- ⚠️ Android Gradle validation remains blocked by missing SDK config:
+  - `gradle :feature:history:testDebugUnitTest`
+  - `gradle :app:compileDebugKotlin`
+
+### Updated Immediate Next Step
+- Continue parity hardening for native clients:
+  - add small environment profile presets (local/staging/prod) to Apple demo settings
+  - add automated UI coverage for Android history->decrypt handoff path
+  - begin v1 cloud sync adapters (iCloud + Google Drive)
+
 ### Historical Snapshot
 - Initial planning phase captured here for handoff traceability (now superseded by latest production crypto progress section above).
 

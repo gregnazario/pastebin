@@ -459,6 +459,39 @@ Each entry should include:
   - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: A runnable Xcode iOS demo app target scaffold now exists in-repo and launches the host flow shell directly.
 
+**Apple Demo Runtime Settings Screen (API Base URL Override)**
+- **Prompt**: "sure" (after suggestion to add a demo settings screen for runtime API base URL override)
+- **Action**:
+  - Added runtime root container and settings sheet for demo app:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+  - Updated app entry to launch `DemoRootContainerView`:
+    - `native/apple/AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+  - Behavior:
+    - gear button opens settings sheet
+    - validates and stores API base URL (`@AppStorage`)
+    - applying changes rebuilds host flow so new networking dependencies are used immediately
+  - Regenerated Xcode project via:
+    - `xcodegen generate --spec project.yml`
+  - Updated Apple README to document runtime settings availability.
+- **Files Modified**:
+  - `native/apple/AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+  - `native/apple/README.md`
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+- **Files Created**:
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+- **Validation**:
+  - `swift test` ✅
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: The Apple demo app can now switch backend API base URL at runtime from an in-app settings sheet, removing hardcoded endpoint friction during testing.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
