@@ -201,25 +201,14 @@ public struct HistoryFlowView: View {
 
             if viewModel.hasCloudSync {
                 Section("Cloud Sync") {
-                    Button(cloudSyncActionTitle) {
+                    Button(HistoryFlowCloudSyncPresentation.actionTitle(for: viewModel.cloudSyncState)) {
                         viewModel.syncCloud()
                     }
                     .disabled(viewModel.isLoading || viewModel.cloudSyncState == .syncing)
 
-                    switch viewModel.cloudSyncState {
-                    case .idle:
-                        Text("Not synced yet.")
-                            .foregroundStyle(.secondary)
-                    case .syncing:
-                        Text("Syncing with iCloud...")
-                            .foregroundStyle(.secondary)
-                    case let .success(summary):
-                        Text(summary)
-                            .foregroundStyle(.secondary)
-                    case let .failure(message):
-                        Text(message)
-                            .foregroundStyle(.red)
-                    }
+                    let syncStatus = HistoryFlowCloudSyncPresentation.status(for: viewModel.cloudSyncState)
+                    Text(syncStatus.text)
+                        .foregroundStyle(syncStatus.isError ? .red : .secondary)
                 }
             }
 
@@ -313,12 +302,40 @@ public struct HistoryFlowView: View {
         return HistoryFlowDateFormatter.shared.string(from: date)
     }
 
-    private var cloudSyncActionTitle: String {
-        switch viewModel.cloudSyncState {
+}
+
+/// Presentation payload for cloud-sync status text and semantic error styling.
+public struct HistoryFlowCloudSyncStatusPresentation: Equatable, Sendable {
+    public let text: String
+    public let isError: Bool
+
+    public init(text: String, isError: Bool) {
+        self.text = text
+        self.isError = isError
+    }
+}
+
+/// Shared UI messaging mappings used by history cloud-sync section rendering.
+public enum HistoryFlowCloudSyncPresentation {
+    public static func actionTitle(for state: HistoryFlowViewModel.CloudSyncState) -> String {
+        switch state {
         case .syncing:
             return "Syncing..."
         default:
             return "Sync iCloud"
+        }
+    }
+
+    public static func status(for state: HistoryFlowViewModel.CloudSyncState) -> HistoryFlowCloudSyncStatusPresentation {
+        switch state {
+        case .idle:
+            return .init(text: "Not synced yet.", isError: false)
+        case .syncing:
+            return .init(text: "Syncing with iCloud...", isError: false)
+        case let .success(summary):
+            return .init(text: summary, isError: false)
+        case let .failure(message):
+            return .init(text: message, isError: true)
         }
     }
 }

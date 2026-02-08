@@ -17,6 +17,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,14 +36,14 @@ class HistoryUiCoverageTest {
     private val historyPreferenceName = "secure_pastebin_history_store_v1"
     private val cloudSyncPreferenceName = "secure_pastebin_cloud_sync_v1"
     private val cloudSyncDocumentURIKey = "google_drive_sync_document_uri"
-    private val driveSyncFixtureFileName = "android-test-drive-sync.json"
     private val includeExpiredSwitchTag = "history-include-expired-switch"
+    private val trackedDriveSyncFixtures = mutableSetOf<File>()
 
     @After
     fun tearDown() {
         clearHistoryStore()
         clearCloudSyncConfig()
-        deleteDriveSyncFixtureFile()
+        deleteDriveSyncFixtureFiles()
     }
 
     @Test
@@ -215,6 +216,93 @@ class HistoryUiCoverageTest {
         assertFalse("Local conflict entry should be replaced by remote winner.", localEntryStillVisible)
     }
 
+    @Test
+    fun historyCloudSyncConfiguredFileReselectionUsesUpdatedFixtureURI() {
+        clearHistoryStore()
+        val now = System.currentTimeMillis()
+        configureDriveSyncFixture(
+            remoteEntries = listOf(
+                HistoryEntry(
+                    id = "switch-entry",
+                    fileName = "first-source.txt",
+                    createdAtMillis = now,
+                    expiresAtMillis = now + 600_000,
+                ),
+            ),
+            fixtureFileName = "drive-sync-first.json",
+        )
+
+        composeRule.onNodeWithText("History").performClick()
+        composeRule.onNodeWithText("Sync Now").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithText("first-source.txt", useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithText("first-source.txt").assertIsDisplayed()
+        composeRule.onNodeWithText("Change File").assertIsDisplayed()
+
+        configureDriveSyncFixture(
+            remoteEntries = listOf(
+                HistoryEntry(
+                    id = "switch-entry",
+                    fileName = "second-source.txt",
+                    createdAtMillis = now + 1_000,
+                    expiresAtMillis = now + 600_000,
+                ),
+            ),
+            fixtureFileName = "drive-sync-second.json",
+        )
+        composeRule.onNodeWithText("History").performClick()
+        composeRule.onNodeWithText("Sync Now").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithText("Synced: 0 added, 1 updated, 1 conflicts.", useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+
+        composeRule.onNodeWithText("second-source.txt").assertIsDisplayed()
+        val staleEntryVisible = composeRule
+            .onAllNodesWithText("first-source.txt", useUnmergedTree = true)
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+        assertFalse("Entry from previously configured Drive sync file should not remain visible.", staleEntryVisible)
+    }
+
+    @Test
+    fun historyCloudSyncMalformedPayloadShowsFailureErrorMessage() {
+        clearHistoryStore()
+        configureDriveSyncFixtureRaw(
+            rawPayload = "this-is-not-json",
+            fixtureFileName = "drive-sync-malformed.json",
+        )
+
+        composeRule.onNodeWithText("History").performClick()
+        composeRule.onNodeWithText("Sync Now").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithText(
+                    "Unable to parse Google Drive sync payload",
+                    substring = true,
+                    useUnmergedTree = true,
+                )
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+
+        val errorNodeExists = composeRule
+            .onAllNodesWithText(
+                "Unable to parse Google Drive sync payload",
+                substring = true,
+                useUnmergedTree = true,
+            )
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+        assertTrue("Malformed payload sync error should be rendered in the History screen.", errorNodeExists)
+    }
+
     private fun clearHistoryStore() {
         appContext
             .getSharedPreferences(historyPreferenceName, Context.MODE_PRIVATE)
@@ -234,8 +322,27 @@ class HistoryUiCoverageTest {
     /**
      * Seeds a local sync payload file and stores its URI in cloud-sync preferences.
      */
-    private fun configureDriveSyncFixture(remoteEntries: List<HistoryEntry>) {
-        val fixtureUri = writeDriveSyncFixture(remoteEntries)
+    private fun configureDriveSyncFixture(
+        remoteEntries: List<HistoryEntry>,
+        fixtureFileName: String = "android-test-drive-sync.json",
+    ) {
+        val fixtureUri = writeDriveSyncFixture(remoteEntries, fixtureFileName)
+        appContext
+            .getSharedPreferences(cloudSyncPreferenceName, Context.MODE_PRIVATE)
+            .edit()
+            .putString(cloudSyncDocumentURIKey, fixtureUri.toString())
+            .commit()
+        composeRule.activityRule.scenario.recreate()
+    }
+
+    /**
+     * Seeds a malformed sync payload fixture and stores its URI in cloud-sync preferences.
+     */
+    private fun configureDriveSyncFixtureRaw(
+        rawPayload: String,
+        fixtureFileName: String,
+    ) {
+        val fixtureUri = writeDriveSyncFixtureRaw(rawPayload, fixtureFileName)
         appContext
             .getSharedPreferences(cloudSyncPreferenceName, Context.MODE_PRIVATE)
             .edit()
@@ -247,7 +354,10 @@ class HistoryUiCoverageTest {
     /**
      * Writes a v1 cloud-sync payload fixture used by instrumentation tests.
      */
-    private fun writeDriveSyncFixture(remoteEntries: List<HistoryEntry>): Uri {
+    private fun writeDriveSyncFixture(
+        remoteEntries: List<HistoryEntry>,
+        fixtureFileName: String,
+    ): Uri {
         val payload = JSONObject().apply {
             put("version", 1)
             put("exportedAtMillis", System.currentTimeMillis())
@@ -267,15 +377,29 @@ class HistoryUiCoverageTest {
                 },
             )
         }
-        val fixtureFile = File(appContext.filesDir, driveSyncFixtureFileName)
+        val fixtureFile = File(appContext.filesDir, fixtureFileName)
         fixtureFile.writeText(payload.toString())
+        trackedDriveSyncFixtures += fixtureFile
         return Uri.fromFile(fixtureFile)
     }
 
     /**
-     * Deletes the instrumentation fixture file used for configured cloud-sync tests.
+     * Writes a raw sync payload fixture used to validate parse-failure error behavior.
      */
-    private fun deleteDriveSyncFixtureFile() {
-        File(appContext.filesDir, driveSyncFixtureFileName).delete()
+    private fun writeDriveSyncFixtureRaw(rawPayload: String, fixtureFileName: String): Uri {
+        val fixtureFile = File(appContext.filesDir, fixtureFileName)
+        fixtureFile.writeText(rawPayload)
+        trackedDriveSyncFixtures += fixtureFile
+        return Uri.fromFile(fixtureFile)
+    }
+
+    /**
+     * Deletes instrumentation fixture files used for configured cloud-sync tests.
+     */
+    private fun deleteDriveSyncFixtureFiles() {
+        trackedDriveSyncFixtures.forEach { fixture ->
+            fixture.delete()
+        }
+        trackedDriveSyncFixtures.clear()
     }
 }

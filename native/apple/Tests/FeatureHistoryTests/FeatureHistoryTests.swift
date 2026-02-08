@@ -143,6 +143,39 @@ struct FeatureHistoryFlowViewModelTests {
     }
 }
 
+/// History flow cloud-sync UI messaging tests for state-to-text mapping.
+struct HistoryFlowCloudSyncPresentationTests {
+    @Test func cloudSyncActionTitleMatchesSyncState() {
+        #expect(HistoryFlowCloudSyncPresentation.actionTitle(for: .idle) == "Sync iCloud")
+        #expect(HistoryFlowCloudSyncPresentation.actionTitle(for: .syncing) == "Syncing...")
+        #expect(
+            HistoryFlowCloudSyncPresentation.actionTitle(for: .success(summary: "done")) == "Sync iCloud"
+        )
+        #expect(
+            HistoryFlowCloudSyncPresentation.actionTitle(for: .failure(message: "failed")) == "Sync iCloud"
+        )
+    }
+
+    @Test func cloudSyncStatusPresentationMatchesAllStates() {
+        #expect(
+            HistoryFlowCloudSyncPresentation.status(for: .idle) ==
+                .init(text: "Not synced yet.", isError: false)
+        )
+        #expect(
+            HistoryFlowCloudSyncPresentation.status(for: .syncing) ==
+                .init(text: "Syncing with iCloud...", isError: false)
+        )
+        #expect(
+            HistoryFlowCloudSyncPresentation.status(for: .success(summary: "Synced 1 added.")) ==
+                .init(text: "Synced 1 added.", isError: false)
+        )
+        #expect(
+            HistoryFlowCloudSyncPresentation.status(for: .failure(message: "Cloud failed.")) ==
+                .init(text: "Cloud failed.", isError: true)
+        )
+    }
+}
+
 private actor FakeHistoryStore: HistoryStore {
     var entries: [HistoryEntry]
 

@@ -48,6 +48,8 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Verifies cloud-sync setup controls appear when Drive sync is unconfigured.
   - Verifies configured Drive sync `Sync Now` success summary and imported entry visibility.
   - Verifies configured Drive sync conflict summary path and remote-winner rendering.
+  - Verifies configured Drive sync URI re-selection path uses updated fixture state.
+  - Verifies malformed Drive sync payload path surfaces user-visible error messaging.
 - Run instrumentation tests (emulator/local device required):
   - `gradle :app:connectedDebugAndroidTest`
 
