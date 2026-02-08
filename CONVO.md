@@ -492,6 +492,36 @@ Each entry should include:
   - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
 - **Outcome**: The Apple demo app can now switch backend API base URL at runtime from an in-app settings sheet, removing hardcoded endpoint friction during testing.
 
+### 2026-02-08
+**Android SDK Unblock + First Full Android Gradle Pass**
+- **Prompt**: "yse start with that" (start with remaining Android unblock/build-validation work)
+- **Action**:
+  - Installed and configured local Android SDK requirements under:
+    - `/Users/greg/Library/Android/sdk`
+    - packages: `platform-tools`, `platforms;android-35`, `build-tools;35.0.0`
+  - Added local SDK pointer:
+    - `native/android/local.properties` with `sdk.dir=/Users/greg/Library/Android/sdk`
+  - Updated root ignore rules to keep machine-local SDK config untracked:
+    - `.gitignore` now includes `native/android/local.properties`
+  - Ran Android Gradle validation:
+    - `gradle :feature:history:testDebugUnitTest :feature:upload:testDebugUnitTest :feature:view:testDebugUnitTest :app:compileDebugKotlin`
+  - Fixed Android compile error discovered during first pass:
+    - Removed invalid explicit Compose import `androidx.compose.foundation.layout.weight`
+    - file: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - Re-ran Android Gradle validation after fix (all green).
+  - Re-ran project-wide validation suite:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+    - `swift test` ✅
+- **Files Modified**:
+  - `.gitignore`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- **Files Added (local machine config)**:
+  - `native/android/local.properties` (ignored)
+- **Outcome**: Android SDK is now configured locally and the previously blocked Android module tests + app Kotlin compile pass successfully.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

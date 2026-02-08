@@ -2,11 +2,41 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-02-07)
+## Current State (2026-02-08)
 
 ### Active Task
-- **Phase**: Phase 2 foundation hardening (native crypto parity delivery).
-- **Current Task**: Replace development crypto adapters with production-compatible native engines while preserving upload/decrypt feature interfaces.
+- **Phase**: Phase 2 foundation hardening (native parity + validation closure).
+- **Current Task**: Close remaining native parity gaps after Android environment unblock.
+
+### Android SDK Unblock + Validation Progress (2026-02-08, latest update)
+- ✅ Local Android SDK configured at:
+  - `/Users/greg/Library/Android/sdk`
+  - installed packages: `platform-tools`, `platforms;android-35`, `build-tools;35.0.0`
+- ✅ Added local SDK binding:
+  - `native/android/local.properties` with `sdk.dir=/Users/greg/Library/Android/sdk`
+- ✅ Added ignore rule for local SDK config:
+  - `.gitignore` includes `native/android/local.properties`
+- ✅ Android Gradle checks now pass in this environment:
+  - `gradle :feature:history:testDebugUnitTest`
+  - `gradle :feature:upload:testDebugUnitTest`
+  - `gradle :feature:view:testDebugUnitTest`
+  - `gradle :app:compileDebugKotlin`
+- ✅ Fixed Android compile issue during first full pass:
+  - removed invalid explicit Compose `weight` import in `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+
+### Current Verification Snapshot
+- ✅ `bun run lint`
+- ✅ `bun run typecheck`
+- ✅ `bun test`
+- ✅ `bun run build`
+- ✅ `swift test` in `native/apple`
+- ✅ `gradle :feature:history:testDebugUnitTest :feature:upload:testDebugUnitTest :feature:view:testDebugUnitTest :app:compileDebugKotlin` in `native/android`
+
+### Immediate Next Step
+- Continue parity hardening for native clients:
+  - add Android UI/instrumentation coverage for history -> decrypt handoff path
+  - add Apple demo environment profile presets (local/staging/prod)
+  - start v1 cloud sync adapters (iCloud + Google Drive)
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:
@@ -521,4 +551,4 @@ bun run typecheck # Type checking
 
 ---
 
-*Last updated: 2026-02-07*
+*Last updated: 2026-02-08*

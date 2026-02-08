@@ -4,6 +4,18 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-08] Android Compose Build Import Issue
+
+### Issue 1: Explicit `weight` Import Broke Kotlin Compile in App Host
+- **Context**: Running the first full Android Gradle compile pass after SDK setup failed in `MainActivity.kt`.
+- **Root Cause**: `import androidx.compose.foundation.layout.weight` resolved to an internal API symbol under the current Compose/Kotlin toolchain combination.
+- **Fix**:
+  - Removed the explicit import from `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`.
+  - Kept `Modifier.weight(1f)` usage inside `Row` scope, which resolves correctly without the direct import.
+  - Re-ran:
+    - `gradle :feature:history:testDebugUnitTest :feature:upload:testDebugUnitTest :feature:view:testDebugUnitTest :app:compileDebugKotlin`
+- **Result**: Android module tests and app Kotlin compile now pass in the local environment.
+
 ## [2026-02-07] Native Crypto Adapter Build/Logic Issues
 
 ### Issue 1: Swift Argon2 Dependency Linked `genkat.c` (`_main`) Into Test Binary

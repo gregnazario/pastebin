@@ -3,6 +3,7 @@ node_modules
 dist
 dist-ssr
 *.local
+native/android/local.properties
 count.txt
 .env
 .nitro
