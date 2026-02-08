@@ -98,9 +98,27 @@ This file maintains the current state of the project for smooth conversation han
   - `gradle :app:connectedDebugAndroidTest` passed (`4/4` tests, `0` failures)
   - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
 
+### Apple Demo Environment Presets Progress (2026-02-08, latest update)
+- ✅ Added plan + design docs:
+  - `plans/apple-demo-environment-presets.md`
+  - `design-docs/apple-demo-environment-presets.md`
+- ✅ Implemented environment presets in demo settings:
+  - file: `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+  - presets:
+    - Local (`http://127.0.0.1:3000`)
+    - Staging (`https://staging.pastebin.sed.fyi`)
+    - Production (`https://pastebin.sed.fyi`)
+- ✅ Presets update draft URL; app config still changes only on explicit `Apply`.
+- ✅ Manual URL override and validation preserved.
+- ✅ Updated docs:
+  - `native/apple/README.md`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `xcodebuild` iOS simulator build for `SecurePastebinDemoApp` passed
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
+
 ### Immediate Next Step
 - Continue parity hardening for native clients:
-  - add Apple demo environment profile presets (local/staging/prod)
   - add Android instrumentation coverage for Drive sync happy-path (select + sync summary) with test fixture URI
   - add Apple tests covering HistoryFlowView cloud sync state transitions
 

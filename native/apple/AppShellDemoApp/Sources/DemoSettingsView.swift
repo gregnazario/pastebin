@@ -3,18 +3,63 @@ import Foundation
 import SwiftUI
 
 struct DemoSettingsView: View {
+    private enum DemoEnvironmentPreset: String, CaseIterable, Identifiable {
+        case local
+        case staging
+        case production
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .local:
+                return "Local"
+            case .staging:
+                return "Staging"
+            case .production:
+                return "Production"
+            }
+        }
+
+        var baseURLString: String {
+            switch self {
+            case .local:
+                return "http://127.0.0.1:3000"
+            case .staging:
+                return "https://staging.pastebin.sed.fyi"
+            case .production:
+                return "https://pastebin.sed.fyi"
+            }
+        }
+
+        static func matching(urlString: String) -> DemoEnvironmentPreset? {
+            let normalized = normalize(urlString)
+            return allCases.first { normalize($0.baseURLString) == normalized }
+        }
+
+        private static func normalize(_ value: String) -> String {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.hasSuffix("/") {
+                return String(trimmed.dropLast())
+            }
+            return trimmed
+        }
+    }
+
     @Environment(\.dismiss) private var dismiss
 
+    @State private var selectedEnvironmentPreset: DemoEnvironmentPreset
     @State private var draftAPIBaseURLString: String
     @State private var validationMessage: String?
 
     private let onApply: (String) -> Void
-    private let defaultAPIBaseURLString = "http://127.0.0.1:3000"
 
     init(
         currentAPIBaseURLString: String,
         onApply: @escaping (String) -> Void
     ) {
+        let initialPreset = DemoEnvironmentPreset.matching(urlString: currentAPIBaseURLString) ?? .local
+        _selectedEnvironmentPreset = State(initialValue: initialPreset)
         _draftAPIBaseURLString = State(initialValue: currentAPIBaseURLString)
         self.onApply = onApply
     }
@@ -22,12 +67,29 @@ struct DemoSettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section("Environment") {
+                    Picker("Preset", selection: $selectedEnvironmentPreset) {
+                        ForEach(DemoEnvironmentPreset.allCases) { preset in
+                            Text(preset.title).tag(preset)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    Button("Use Selected Preset") {
+                        draftAPIBaseURLString = selectedEnvironmentPreset.baseURLString
+                        validationMessage = nil
+                    }
+                    Text(selectedEnvironmentPreset.baseURLString)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("API") {
                     TextField("Base URL", text: $draftAPIBaseURLString)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled(true)
                         .keyboardType(.URL)
-                    Text("Example: \(defaultAPIBaseURLString)")
+                    Text("Example: \(DemoEnvironmentPreset.local.baseURLString)")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -39,14 +101,13 @@ struct DemoSettingsView: View {
                     }
                 }
 
-                Section("Actions") {
-                    Button("Use Local Default") {
-                        draftAPIBaseURLString = defaultAPIBaseURLString
-                        validationMessage = nil
-                    }
-                }
             }
             .navigationTitle("Demo Settings")
+            .onChange(of: draftAPIBaseURLString) { _, updatedValue in
+                if let matched = DemoEnvironmentPreset.matching(urlString: updatedValue) {
+                    selectedEnvironmentPreset = matched
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

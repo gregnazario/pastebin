@@ -635,6 +635,31 @@ Each entry should include:
     - `bun run build` ✅
 - **Outcome**: Android instrumentation coverage now includes core History UI behavior and cloud-sync setup state, beyond the initial handoff-only test.
 
+**Apple Demo Environment Presets (Local/Staging/Production)**
+- **Prompt**: "do 1" (implement Apple demo environment presets)
+- **Action**:
+  - Added plan/design artifacts:
+    - `plans/apple-demo-environment-presets.md`
+    - `design-docs/apple-demo-environment-presets.md`
+  - Updated demo settings UI in:
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+  - Added preset environment model and one-tap preset application for:
+    - `Local` → `http://127.0.0.1:3000`
+    - `Staging` → `https://staging.pastebin.sed.fyi`
+    - `Production` → `https://pastebin.sed.fyi`
+  - Preset changes update the URL draft; global settings still change only on `Apply`.
+  - Manual URL editing and validation behavior preserved.
+  - Updated Apple README scaffold docs:
+    - `native/apple/README.md`
+  - Validation run:
+    - `swift test` ✅
+    - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build` ✅
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Outcome**: Apple demo settings now provide runtime environment presets for local/staging/production while retaining manual override support.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."

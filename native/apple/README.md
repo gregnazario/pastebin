@@ -52,6 +52,10 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - App project: `SecurePastebinAppleDemo.xcodeproj`
 - The app launches `DemoAppFactory.makeRootView()` which wires `AppHostFlowView` with local API defaults.
 - The demo app includes a runtime settings sheet (gear button) to update API base URL without rebuilding.
+- Demo settings include environment presets:
+  - `Local` (`http://127.0.0.1:3000`)
+  - `Staging` (`https://staging.pastebin.sed.fyi`)
+  - `Production` (`https://pastebin.sed.fyi`)
 - To regenerate project files after target/spec edits:
   - `xcodegen generate --spec project.yml`
 
