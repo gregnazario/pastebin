@@ -116,6 +116,7 @@ private const val apiSettingsApplyButtonTestTag = "api-settings-apply-button"
 private const val uploadNoteInputTestTag = "upload-note-input"
 private const val uploadPasswordInputTestTag = "upload-password-input"
 private const val uploadSubmitButtonTestTag = "upload-submit-button"
+private const val uploadChooseFileButtonTestTag = "upload-choose-file-button"
 private const val decryptShareURLInputTestTag = "decrypt-share-url-input"
 private const val decryptPasswordInputTestTag = "decrypt-password-input"
 private const val decryptSubmitButtonTestTag = "decrypt-submit-button"
@@ -460,7 +461,10 @@ private fun UploadFlowScreen(
                 minLines = 6,
             )
         } else {
-            Button(onClick = { filePickerLauncher.launch(arrayOf("*/*")) }) {
+            Button(
+                onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
+                modifier = Modifier.testTag(uploadChooseFileButtonTestTag),
+            ) {
                 Text("Choose File")
             }
 

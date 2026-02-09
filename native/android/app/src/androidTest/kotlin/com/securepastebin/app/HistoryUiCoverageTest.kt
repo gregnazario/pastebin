@@ -397,6 +397,53 @@ class HistoryUiCoverageTest {
         assertTrue("Malformed payload sync error should be rendered in the History screen.", errorNodeExists)
     }
 
+    @Test
+    fun historyCloudSyncFailureThenRetryWithValidFixtureShowsSuccess() {
+        clearHistoryStore()
+        val now = System.currentTimeMillis()
+        configureDriveSyncFixtureRaw(
+            rawPayload = "this-is-not-json",
+            fixtureFileName = "drive-sync-failure-then-retry-malformed.json",
+        )
+
+        composeRule.onNodeWithText("History").performClick()
+        composeRule.onNodeWithText("Sync Now").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithText(
+                    "Unable to parse Google Drive sync payload",
+                    substring = true,
+                    useUnmergedTree = true,
+                )
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+
+        configureDriveSyncFixture(
+            remoteEntries = listOf(
+                HistoryEntry(
+                    id = "retry-id",
+                    fileName = "retry-success.txt",
+                    createdAtMillis = now,
+                    expiresAtMillis = now + 600_000,
+                ),
+            ),
+            fixtureFileName = "drive-sync-failure-then-retry-valid.json",
+        )
+
+        composeRule.onNodeWithText("History").performClick()
+        composeRule.onNodeWithText("Sync Now").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithText("Synced: 1 added, 0 updated, 0 conflicts.", useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+
+        composeRule.onNodeWithText("Synced: 1 added, 0 updated, 0 conflicts.").assertIsDisplayed()
+        composeRule.onNodeWithText("retry-success.txt").assertIsDisplayed()
+    }
+
     private fun clearHistoryStore() {
         appContext
             .getSharedPreferences(historyPreferenceName, Context.MODE_PRIVATE)

@@ -54,6 +54,7 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Verifies configured Drive sync conflict summary path and remote-winner rendering.
   - Verifies configured Drive sync URI re-selection path uses updated fixture state.
   - Verifies malformed Drive sync payload path surfaces user-visible error messaging.
+  - Verifies sync failure on malformed payload can recover via retry with valid fixture.
   - Verifies Drive create-picker cancel path keeps sync in unconfigured state.
   - Verifies create/open picker invalid-authority results surface setup error messaging.
 - `app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
@@ -61,11 +62,18 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Verifies preset apply updates current API base and persists across activity recreation.
 - `app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
   - Verifies file-mode upload remains disabled without a selected file.
+  - Verifies upload picker cancel path keeps selection empty and submit disabled.
+  - Verifies upload picker invalid URI path does not create selected-file state and keeps submit disabled.
   - Verifies note-mode draft input is cleared after activity recreation.
+  - Verifies decrypt draft input is cleared after activity recreation.
   - Verifies decrypt invalid-share/missing-key errors surface deterministic validation messaging.
   - Verifies configured cloud-sync controls remain available after activity recreation.
 - Run instrumentation tests (emulator/local device required):
   - `gradle :app:connectedDebugAndroidTest`
+
+## Phase 4 Hardening Baseline
+- Hardening checklist and profiling protocol:
+  - `design-docs/native-phase4-hardening-baseline.md`
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.
