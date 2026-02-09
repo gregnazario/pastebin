@@ -74,6 +74,8 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 ## Phase 4 Hardening Baseline
 - Hardening checklist and profiling protocol:
   - `design-docs/native-phase4-hardening-baseline.md`
+- Latest execution report:
+  - `design-docs/native-phase4-hardening-report-2026-02-09.md`
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.

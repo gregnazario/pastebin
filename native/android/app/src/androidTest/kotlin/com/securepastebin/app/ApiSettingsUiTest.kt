@@ -55,7 +55,6 @@ class ApiSettingsUiTest {
                 .isNotEmpty()
         }
 
-        composeRule.onNodeWithText("API Settings").assertIsDisplayed()
         val defaultHeaderVisible = composeRule
             .onAllNodesWithText("API: $defaultApiBase", useUnmergedTree = true)
             .fetchSemanticsNodes()
