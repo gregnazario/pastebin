@@ -13,6 +13,33 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-02-09
+**Remaining Work Execution (Items 1 + 2)**
+- **Prompt**: "please do 1, 2" (Android runtime settings UI instrumentation + Apple history-row no-share fallback coverage)
+- **Action**:
+  - Added plan + design docs for this final parity test-hardening pair.
+  - Added Android instrumentation suite for runtime API settings:
+    - invalid manual URL validation path
+    - staging preset apply + persistence across activity recreation
+  - Added Android UI test tags in app shell/settings dialog for deterministic instrumentation targeting.
+  - Added Apple row-action presentation mapping and tests verifying fallback behavior when `shareURL` is unavailable.
+  - Updated Android README instrumentation coverage list.
+- **Files Created**:
+  - `plans/android-settings-ui-and-apple-history-row-fallback-coverage.md`
+  - `design-docs/android-settings-ui-and-apple-history-row-fallback-coverage.md`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+- **Commands Run**:
+  - `swift test`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `gradle :app:connectedDebugAndroidTest`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Remaining items `1` and `2` are implemented with passing Apple, Android unit/instrumentation, and web validation.
+
 ### 2026-02-08
 **Android Picker Edge Coverage + Runtime API Settings**
 - **Prompt**: "yes do 1 and 2" (Android picker edge-case instrumentation + Android runtime API settings)

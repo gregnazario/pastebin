@@ -2,11 +2,38 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-02-08)
+## Current State (2026-02-09)
 
 ### Active Task
 - **Phase**: Phase 2 foundation hardening (native parity + validation closure).
-- **Current Task**: Close remaining native parity gaps after Android environment unblock.
+- **Current Task**: Runtime settings + history fallback parity hardening closure.
+
+### Remaining Work Execution (Items 1 + 2) Progress (2026-02-09, latest update)
+- ✅ Added plan/design docs:
+  - `plans/android-settings-ui-and-apple-history-row-fallback-coverage.md`
+  - `design-docs/android-settings-ui-and-apple-history-row-fallback-coverage.md`
+- ✅ Added Android runtime settings instrumentation coverage:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - coverage:
+    - invalid manual URL validation/error path
+    - staging preset apply path + persisted API base across activity recreation
+- ✅ Added deterministic API settings UI test tags:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Added Apple history row-action fallback presentation mapping/tests:
+  - implementation:
+    - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - tests:
+    - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - coverage:
+    - no-share URL rows hide `Open`/`Share`, keep `Delete`
+    - share URL rows show `Open`/`Share`/`Delete`
+- ✅ Updated Android instrumentation docs:
+  - `native/android/README.md`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed
+  - `gradle :app:connectedDebugAndroidTest` passed (`13/13` tests)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
 
 ### Android Picker Edge + Runtime API Settings Progress (2026-02-08, latest update)
 - ✅ Added plan/design docs:
@@ -190,9 +217,9 @@ This file maintains the current state of the project for smooth conversation han
   - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
 
 ### Immediate Next Step
-- Continue parity hardening for native clients:
-  - add Android instrumentation for runtime API settings dialog behavior (invalid manual URL, preset apply persistence)
-  - add Apple UI-level coverage for history row action rendering fallbacks when share URL is unavailable
+- Continue native parity completion:
+  - expand Android instrumentation around upload/decrypt/history error edges and device-state transitions
+  - add Apple SwiftUI-level interaction/UI tests (beyond presentation mapping/unit assertions) for parity-risk paths
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:

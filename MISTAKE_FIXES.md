@@ -4,6 +4,27 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-09] Runtime Settings Instrumentation Build/Assertion Issues
+
+### Issue 1: Missing Compose text-query import in new settings UI test
+- **Context**: New `ApiSettingsUiTest` failed Android instrumentation test compile.
+- **Root Cause**: `onNodeWithText` was used without importing the Compose testing extension.
+- **Fix**:
+  - Added `import androidx.compose.ui.test.onNodeWithText` in:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - Re-ran:
+    - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+- **Result**: Android instrumentation test sources compile and package successfully.
+
+### Issue 2: API header assertion used brittle semantics target
+- **Context**: `ApiSettingsUiTest` failed when asserting settings-header text with tagged-node text semantics.
+- **Root Cause**: The tagged header node did not expose stable merged text semantics for `assertTextContains` under emulator rendering.
+- **Fix**:
+  - Replaced header assertions with visible/existence checks using `onNodeWithText("API: ...")` and `onAllNodesWithText(...)`.
+  - Re-ran:
+    - `gradle :app:connectedDebugAndroidTest`
+- **Result**: Instrumentation suite passes with stable assertions (`13/13` tests).
+
 ## [2026-02-08] Android Picker Edge Instrumentation Visibility Assertion Flake
 
 ### Issue 1: Invalid-authority picker tests failed on `assertIsDisplayed`
