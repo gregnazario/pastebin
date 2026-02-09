@@ -4,6 +4,20 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-09] Android Release Build Lint-Vital Failure in Store-Readiness Pass
+
+### Issue 1: `:app:assembleRelease` failed on lint-vital tasks
+- **Context**: During Phase 5 store-readiness validation, Android release assembly was executed to verify packaging readiness.
+- **Root Cause**: `lintVitalAnalyzeRelease` and related lint-vital tasks failed with missing/invalid lint intermediate expectations (`25.0.2` tooling error path), preventing a default release assembly path.
+- **Fix**:
+  - Captured failure details in:
+    - `design-docs/native-phase4-phase5-execution-report-2026-02-09.md`
+  - Verified packaging output using temporary task exclusions:
+    - `gradle :app:assembleRelease -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease`
+  - Added explicit release checklist gate for unskipped CI release assembly:
+    - `native/release/android/release-checklist.md`
+- **Result**: Release APK packaging can be validated short-term, but lint-vital configuration remains an explicit blocker to close before production CI release sign-off.
+
 ## [2026-02-09] Large-Font Android Settings UI Assertion Fragility
 
 ### Issue 1: `ApiSettingsUiTest` failed at font scale `1.5` on strict title visibility

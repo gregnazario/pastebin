@@ -5,8 +5,38 @@ This file maintains the current state of the project for smooth conversation han
 ## Current State (2026-02-09)
 
 ### Active Task
-- **Phase**: Phase 2 foundation hardening (native parity + validation closure).
-- **Current Task**: Executed remaining items `1` and `2` (Apple integration coverage expansion + Phase 4 checklist execution).
+- **Phase**: Phase 4/5 release hardening and store-readiness.
+- **Current Task**: Executed both remaining tracks (Phase 4 physical-device sign-off workflow + Phase 5 store packaging artifacts).
+
+### Phase 4 + Phase 5 Execution Progress (2026-02-09, latest update)
+- ✅ Added required plan/design docs:
+  - `plans/native-phase4-signoff-and-phase5-store-readiness.md`
+  - `design-docs/native-phase4-signoff-and-phase5-store-readiness.md`
+- ✅ Added full Phase 4 QA/sign-off pack:
+  - `native/qa/phase4/README.md`
+  - `native/qa/phase4/device-matrix.md`
+  - `native/qa/phase4/accessibility-checklist.md`
+  - `native/qa/phase4/profiling-metrics.md`
+  - `native/qa/phase4/privacy-audit-evidence.md`
+  - `native/qa/phase4/evidence/` placeholders
+- ✅ Added full Phase 5 store-readiness pack:
+  - `native/release/release-gate-checklist.md`
+  - `native/release/rollout-plan.md`
+  - `native/release/apple/*` templates/checklist
+  - `native/release/android/*` templates/checklist
+- ✅ Native docs wired to new packs:
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- ✅ Validation evidence captured and logged:
+  - privacy scan evidence files in `native/qa/phase4/evidence/privacy/`
+  - Apple Release simulator build (`xcodebuild`) success
+  - Android `assembleRelease` lint-vital failure captured; excluded-lint workaround build succeeded
+  - report: `design-docs/native-phase4-phase5-execution-report-2026-02-09.md`
+- ⚠️ Remaining manual closure:
+  - fill physical-device VoiceOver/TalkBack checklist rows
+  - capture Instruments/Android Profiler evidence for 25/50/100MB scenarios
+  - complete App Store Connect and Play Console submission metadata with real values
+  - resolve Android lint-vital release configuration for unskipped CI release builds
 
 ### Remaining Items 1 + 2 Execution Progress (2026-02-09, latest update)
 - ✅ Added execution plan/design docs:

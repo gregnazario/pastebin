@@ -14,6 +14,43 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-09
+**Execution of Remaining Manual/Release Work (Both Tracks)**
+- **Prompt**: "can we do both of those please" (1: Phase 4 physical-device hardening sign-off workflow, 2: Phase 5 store-readiness packaging artifacts)
+- **Action**:
+  - Added plan/design docs for the combined Phase 4+5 execution pass.
+  - Added a full Phase 4 QA evidence pack:
+    - runbook, device matrix template, accessibility checklist, profiling metrics table, privacy audit template
+    - evidence directory placeholders for Apple, Android, and privacy outputs
+  - Added a full Phase 5 release packaging pack:
+    - unified release gate checklist
+    - Apple release checklist + App Store metadata/privacy templates
+    - Android release checklist + Play metadata/data safety templates
+    - staged rollout/rollback plan
+  - Ran concrete validation tasks and recorded results:
+    - privacy telemetry/logging scans with evidence files
+    - Apple Release simulator build check
+    - Android release assembly check, including lint-vital blocker capture and workaround build path
+  - Added dated execution report for Phase 4+5 results and remaining manual actions.
+- **Files Created**:
+  - `plans/native-phase4-signoff-and-phase5-store-readiness.md`
+  - `design-docs/native-phase4-signoff-and-phase5-store-readiness.md`
+  - `design-docs/native-phase4-phase5-execution-report-2026-02-09.md`
+  - `native/qa/phase4/*` pack
+  - `native/release/*` pack
+- **Files Modified**:
+  - `native/apple/README.md`
+  - `native/android/README.md`
+  - `native/qa/phase4/privacy-audit-evidence.md`
+  - `native/release/android/release-checklist.md`
+- **Commands Run**:
+  - `rg -n "analytics|telemetry|track\\(|logEvent|eventName" native/apple native/android shared src/server src`
+  - `rg -n "print\\(|Log\\.|println\\(" native/apple native/android`
+  - `xcodebuild -project SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Release -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:assembleRelease` (fails on lint-vital tasks)
+  - `gradle :app:assembleRelease -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease` (passes)
+- **Outcome**: Both tracks are implemented as executable artifact packs with recorded validation evidence; remaining work is now primarily manual sign-off completion and Android lint-vital CI release configuration.
+
+### 2026-02-09
 **Execution of Remaining Items 1 + 2**
 - **Prompt**: "can you do 1 and 2" (1: Apple UI-level integration coverage expansion, 2: execute Phase 4 hardening checklist)
 - **Action**:
