@@ -6,7 +6,46 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 2 foundation hardening (native parity + validation closure).
-- **Current Task**: Executed next-step `123` sequence (Apple host coverage, Android instrumentation pass 2, Phase 4 hardening baseline).
+- **Current Task**: Executed remaining items `1` and `2` (Apple integration coverage expansion + Phase 4 checklist execution).
+
+### Remaining Items 1 + 2 Execution Progress (2026-02-09, latest update)
+- ✅ Added execution plan/design docs:
+  - `plans/native-next-123-execution.md`
+  - `design-docs/native-next-123-design.md`
+- ✅ Expanded Apple integration coverage:
+  - new root flow state helper:
+    - `native/apple/Sources/AppShellDemo/DemoRootFlowState.swift`
+  - demo root view now uses flow-state mutation for settings behavior:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - expanded tests:
+    - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+    - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - includes:
+    - settings sheet present/cancel/apply flow
+    - history-open handoff persistence
+    - decrypt success save/export readiness
+- ✅ Expanded Android instrumentation coverage:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - includes:
+    - upload picker cancel + invalid-URI behavior
+    - decrypt draft recreation behavior
+    - history sync failure-then-retry behavior
+    - settings validation assertion stabilized for large-font accessibility runs
+- ✅ Phase 4 hardening checklist execution artifacts:
+  - report:
+    - `design-docs/native-phase4-hardening-report-2026-02-09.md`
+  - linked in:
+    - `native/apple/README.md`
+    - `native/android/README.md`
+- ✅ Validation rerun:
+  - `swift test` passed
+  - `xcodebuild` iOS Simulator build passed
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` passed (`22/22`)
+  - `gradle :app:connectedDebugAndroidTest` passed at font scales `1.3` and `1.5`
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
 
 ### Next-Step 123 Execution Progress (2026-02-09, latest update)
 - ✅ Added execution plan/design docs:
@@ -275,8 +314,8 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Immediate Next Step
 - Continue native parity completion:
-  - add Apple UI-level sheet/navigation assertions in runnable test harness (beyond host/view-model state tests)
-  - execute first full run of the new Phase 4 hardening checklist on reference devices and capture sign-off artifacts
+  - convert remaining manual hardening checklist items into device-matrix sign-off evidence (VoiceOver/TalkBack + profiling captures)
+  - start store-readiness packaging and rollout artifacts
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:

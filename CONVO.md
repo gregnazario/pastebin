@@ -14,6 +14,45 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-09
+**Execution of Remaining Items 1 + 2**
+- **Prompt**: "can you do 1 and 2" (1: Apple UI-level integration coverage expansion, 2: execute Phase 4 hardening checklist)
+- **Action**:
+  - Added plan/design docs for this 1+2 execution pass.
+  - Expanded Apple integration coverage with testable root flow state:
+    - settings sheet present/cancel/apply behavior
+    - repeated history-open handoff persistence
+    - decrypt success `Save As`/`Export` readiness assertions
+  - Expanded Android instrumentation pass 2:
+    - upload picker cancel and invalid-URI behavior
+    - decrypt draft recreation behavior
+    - history sync failure-then-retry success behavior
+  - Executed Phase 4 hardening baseline tasks available in local environment:
+    - Android accessibility regression runs at font scales `1.3` and `1.5`
+    - Apple iOS Simulator build check
+    - privacy/analytics surface audit scans
+  - Added dated Phase 4 hardening execution report.
+- **Files Created**:
+  - `design-docs/native-phase4-hardening-report-2026-02-09.md`
+  - `native/apple/Sources/AppShellDemo/DemoRootFlowState.swift`
+- **Files Modified**:
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/apple/README.md`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+- **Commands Run**:
+  - `swift test`
+  - `xcodebuild -project SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - `gradle :app:connectedDebugAndroidTest` at Android font scales `1.3` and `1.5`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Requested items `1` and `2` completed, with passing Apple/Android/repo validation and a published hardening execution report.
+
+### 2026-02-09
 **Execution of "123" (Next Work Items 1, 2, 3)**
 - **Prompt**: "123" (execute item 1 then 2 then 3 from remaining-next list)
 - **Action**:
