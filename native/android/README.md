@@ -59,6 +59,11 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - `app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
   - Verifies invalid manual API base URL is rejected with validation messaging.
   - Verifies preset apply updates current API base and persists across activity recreation.
+- `app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - Verifies file-mode upload remains disabled without a selected file.
+  - Verifies note-mode draft input is cleared after activity recreation.
+  - Verifies decrypt invalid-share/missing-key errors surface deterministic validation messaging.
+  - Verifies configured cloud-sync controls remain available after activity recreation.
 - Run instrumentation tests (emulator/local device required):
   - `gradle :app:connectedDebugAndroidTest`
 

@@ -113,6 +113,12 @@ private const val apiSettingsOpenButtonTestTag = "api-settings-open-button"
 private const val apiSettingsCurrentApiLabelTestTag = "api-settings-current-api-label"
 private const val apiSettingsInputTestTag = "api-settings-input"
 private const val apiSettingsApplyButtonTestTag = "api-settings-apply-button"
+private const val uploadNoteInputTestTag = "upload-note-input"
+private const val uploadPasswordInputTestTag = "upload-password-input"
+private const val uploadSubmitButtonTestTag = "upload-submit-button"
+private const val decryptShareURLInputTestTag = "decrypt-share-url-input"
+private const val decryptPasswordInputTestTag = "decrypt-password-input"
+private const val decryptSubmitButtonTestTag = "decrypt-submit-button"
 
 /**
  * Main Android entry activity with Compose screens for upload, decrypt, and history flows.
@@ -445,7 +451,9 @@ private fun UploadFlowScreen(
             )
 
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(uploadNoteInputTestTag),
                 value = noteText,
                 onValueChange = { noteText = it },
                 label = { Text("Note") },
@@ -466,7 +474,9 @@ private fun UploadFlowScreen(
         }
 
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(uploadPasswordInputTestTag),
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
@@ -520,6 +530,7 @@ private fun UploadFlowScreen(
                     (inputMode == UploadInputMode.NOTE && noteText.isNotBlank()) ||
                         (inputMode == UploadInputMode.FILE && selectedFile != null)
                     ),
+            modifier = Modifier.testTag(uploadSubmitButtonTestTag),
         ) {
             Text(if (isUploading) "Uploading..." else "Encrypt and Upload")
         }
@@ -623,7 +634,9 @@ private fun DecryptFlowScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(decryptShareURLInputTestTag),
             value = shareUrl,
             onValueChange = { shareUrl = it },
             label = { Text("Share URL") },
@@ -635,7 +648,9 @@ private fun DecryptFlowScreen(
         )
 
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(decryptPasswordInputTestTag),
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
@@ -685,6 +700,7 @@ private fun DecryptFlowScreen(
                     }
                 },
                 enabled = !isDecrypting && shareUrl.isNotBlank() && password.isNotBlank(),
+                modifier = Modifier.testTag(decryptSubmitButtonTestTag),
             ) {
                 Text(if (isDecrypting) "Decrypting..." else "Download and Decrypt")
             }
