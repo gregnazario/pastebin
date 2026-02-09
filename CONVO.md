@@ -14,6 +14,48 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-09
+**Execution of "123" (Next Work Items 1, 2, 3)**
+- **Prompt**: "123" (execute item 1 then 2 then 3 from remaining-next list)
+- **Action**:
+  - Added plan/design docs for `123` execution.
+  - **Item 1 (Apple host/shell coverage)**:
+    - Added testable host runtime settings helper (`HostRuntimeSettingsState`) in `AppShellDemo`.
+    - Wired demo root settings apply/rebuild flow to helper logic.
+    - Expanded `AppShellDemoTests` with:
+      - repeated history-open handoff coverage
+      - runtime settings apply/rebuild coverage
+  - **Item 2 (Android instrumentation expansion, second pass)**:
+    - Added upload picker cancel/invalid-URI edge coverage.
+    - Added decrypt draft recreation coverage.
+    - Added history sync failure-then-retry-success coverage.
+    - Added deterministic upload file-picker test tag in app UI.
+  - **Item 3 (Phase 4 hardening baseline)**:
+    - Added hardening baseline plan/design artifacts with:
+      - accessibility checklist
+      - privacy/analytics denylist+allowlist audit protocol
+      - large-file profiling scenarios and baseline targets
+    - Linked hardening baseline docs from Apple/Android READMEs.
+- **Files Created**:
+  - `plans/native-next-123-execution.md`
+  - `design-docs/native-next-123-design.md`
+  - `plans/native-phase4-hardening-baseline.md`
+  - `design-docs/native-phase4-hardening-baseline.md`
+  - `native/apple/Sources/AppShellDemo/HostRuntimeSettings.swift`
+- **Files Modified**:
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - `native/apple/README.md`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+- **Commands Run**:
+  - `swift test`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Items `1`, `2`, and `3` are implemented with passing Apple, Android, and repo-wide validation.
+
+### 2026-02-09
 **Native UI Coverage Expansion (Do 1 Then 2)**
 - **Prompt**: "do 1 then 2" (1: Android instrumentation expansion, 2: Apple interaction/UI-level coverage)
 - **Action**:

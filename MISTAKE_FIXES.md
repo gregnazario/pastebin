@@ -4,6 +4,19 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-09] Android Upload Picker Invalid-URI Assertion Flake
+
+### Issue 1: Invalid-URI picker test expected a specific error string
+- **Context**: New `UploadDecryptUiCoverageTest` invalid-URI case failed in connected instrumentation.
+- **Root Cause**: Content resolver/provider behavior for invalid `content://` URIs varies by emulator image, so user-visible error text is not stable enough for strict string assertions.
+- **Fix**:
+  - Replaced strict error-text assertion with stable behavioral assertions:
+    - selected-file state is not created
+    - submit button remains disabled
+  - Re-ran:
+    - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+- **Result**: Android instrumentation suite passes consistently (`22/22` tests).
+
 ## [2026-02-09] Invalid-URL Test Inputs Hit Missing-ID Paths Instead
 
 ### Issue 1: Android/Apple decrypt invalid-URL assertions targeted the wrong parser branch

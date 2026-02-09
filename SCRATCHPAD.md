@@ -6,7 +6,37 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 2 foundation hardening (native parity + validation closure).
-- **Current Task**: Native UI coverage expansion round 3 (Android then Apple) completed.
+- **Current Task**: Executed next-step `123` sequence (Apple host coverage, Android instrumentation pass 2, Phase 4 hardening baseline).
+
+### Next-Step 123 Execution Progress (2026-02-09, latest update)
+- ✅ Added execution plan/design docs:
+  - `plans/native-next-123-execution.md`
+  - `design-docs/native-next-123-design.md`
+- ✅ Item 1 complete (Apple host/shell integration coverage):
+  - added host runtime settings helper:
+    - `native/apple/Sources/AppShellDemo/HostRuntimeSettings.swift`
+  - wired demo root apply/rebuild behavior through helper:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - expanded host tests:
+    - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+- ✅ Item 2 complete (Android instrumentation expansion pass 2):
+  - added upload file-picker test tag:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - expanded upload/decrypt instrumentation:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+    - includes picker cancel/invalid URI + decrypt recreation coverage
+  - expanded history sync failure/retry instrumentation:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+- ✅ Item 3 complete (Phase 4 hardening baseline artifacts):
+  - `plans/native-phase4-hardening-baseline.md`
+  - `design-docs/native-phase4-hardening-baseline.md`
+  - linked from:
+    - `native/android/README.md`
+    - `native/apple/README.md`
+- ✅ Validation rerun:
+  - `swift test` passed (`30` tests)
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` passed (`22/22` tests)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
 
 ### Native UI Coverage Expansion Round 3 Progress (2026-02-09, latest update)
 - ✅ Added plan/design docs:
@@ -245,8 +275,8 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Immediate Next Step
 - Continue native parity completion:
-  - expand Apple UI interaction coverage beyond view-model state to include host-level/sheet integration assertions
-  - continue Phase 4 hardening items (accessibility, privacy analytics audit, performance profiling)
+  - add Apple UI-level sheet/navigation assertions in runnable test harness (beyond host/view-model state tests)
+  - execute first full run of the new Phase 4 hardening checklist on reference devices and capture sign-off artifacts
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:
