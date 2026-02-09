@@ -109,6 +109,10 @@ private data class DecryptPreviewBuild(
 private const val defaultApiBaseURL = "http://10.0.2.2:3000"
 private const val defaultDriveSyncFileName = "secure-pastebin-history-sync.json"
 private const val historyIncludeExpiredSwitchTestTag = "history-include-expired-switch"
+private const val apiSettingsOpenButtonTestTag = "api-settings-open-button"
+private const val apiSettingsCurrentApiLabelTestTag = "api-settings-current-api-label"
+private const val apiSettingsInputTestTag = "api-settings-input"
+private const val apiSettingsApplyButtonTestTag = "api-settings-apply-button"
 
 /**
  * Main Android entry activity with Compose screens for upload, decrypt, and history flows.
@@ -245,9 +249,14 @@ private fun NativeFlowApp() {
             Text(
                 text = "API: $apiBase",
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag(apiSettingsCurrentApiLabelTestTag),
             )
-            Button(onClick = { isApiSettingsPresented = true }) {
+            Button(
+                onClick = { isApiSettingsPresented = true },
+                modifier = Modifier.testTag(apiSettingsOpenButtonTestTag),
+            ) {
                 Text("Settings")
             }
         }
@@ -325,14 +334,18 @@ private fun ApiBaseSettingsDialog(
                             draftApiBase = preset.baseUrl
                             validationErrorMessage = null
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("api-settings-preset-${preset.name.lowercase()}"),
                     ) {
                         Text("${preset.label}: ${preset.baseUrl}")
                     }
                 }
 
                 OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(apiSettingsInputTestTag),
                     value = draftApiBase,
                     onValueChange = {
                         draftApiBase = it
@@ -357,6 +370,7 @@ private fun ApiBaseSettingsDialog(
                     }
                     onApply(normalized)
                 },
+                modifier = Modifier.testTag(apiSettingsApplyButtonTestTag),
             ) {
                 Text("Apply")
             }

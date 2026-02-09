@@ -243,6 +243,7 @@ public struct HistoryFlowView: View {
 
     @ViewBuilder
     private func rowView(_ entry: HistoryListItem) -> some View {
+        let actionPresentation = HistoryFlowRowActionPresentation.actionState(for: entry)
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.fileName)
@@ -261,23 +262,29 @@ public struct HistoryFlowView: View {
             Spacer(minLength: 12)
             VStack(alignment: .trailing, spacing: 6) {
                 if let shareURL = entry.shareURL {
-                    Button("Open") {
-                        if let onOpenInDecrypt {
-                            onOpenInDecrypt(shareURL)
-                        } else {
-                            openURL(shareURL)
+                    if actionPresentation.showsOpenAction {
+                        Button("Open") {
+                            if let onOpenInDecrypt {
+                                onOpenInDecrypt(shareURL)
+                            } else {
+                                openURL(shareURL)
+                            }
                         }
-                    }
-                    .font(.callout)
-
-                    ShareLink("Share", item: shareURL)
                         .font(.callout)
+                    }
+
+                    if actionPresentation.showsShareAction {
+                        ShareLink("Share", item: shareURL)
+                            .font(.callout)
+                    }
                 }
 
-                Button("Delete", role: .destructive) {
-                    viewModel.delete(id: entry.id)
+                if actionPresentation.showsDeleteAction {
+                    Button("Delete", role: .destructive) {
+                        viewModel.delete(id: entry.id)
+                    }
+                    .disabled(viewModel.isLoading)
                 }
-                .disabled(viewModel.isLoading)
             }
         }
     }
@@ -302,6 +309,32 @@ public struct HistoryFlowView: View {
         return HistoryFlowDateFormatter.shared.string(from: date)
     }
 
+}
+
+/// Presentation mapping for history row action visibility and fallback behavior.
+public struct HistoryFlowRowActionPresentation: Equatable, Sendable {
+    public let showsOpenAction: Bool
+    public let showsShareAction: Bool
+    public let showsDeleteAction: Bool
+
+    public init(
+        showsOpenAction: Bool,
+        showsShareAction: Bool,
+        showsDeleteAction: Bool
+    ) {
+        self.showsOpenAction = showsOpenAction
+        self.showsShareAction = showsShareAction
+        self.showsDeleteAction = showsDeleteAction
+    }
+
+    public static func actionState(for entry: HistoryListItem) -> HistoryFlowRowActionPresentation {
+        let hasShareURL = entry.shareURL != nil
+        return .init(
+            showsOpenAction: hasShareURL,
+            showsShareAction: hasShareURL,
+            showsDeleteAction: true
+        )
+    }
 }
 
 /// Presentation payload for cloud-sync status text and semantic error styling.

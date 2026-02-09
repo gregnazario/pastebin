@@ -56,6 +56,9 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Verifies malformed Drive sync payload path surfaces user-visible error messaging.
   - Verifies Drive create-picker cancel path keeps sync in unconfigured state.
   - Verifies create/open picker invalid-authority results surface setup error messaging.
+- `app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - Verifies invalid manual API base URL is rejected with validation messaging.
+  - Verifies preset apply updates current API base and persists across activity recreation.
 - Run instrumentation tests (emulator/local device required):
   - `gradle :app:connectedDebugAndroidTest`
 

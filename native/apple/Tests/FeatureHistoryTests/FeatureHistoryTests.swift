@@ -176,6 +176,47 @@ struct HistoryFlowCloudSyncPresentationTests {
     }
 }
 
+/// History row-action fallback tests for entries with and without share URLs.
+struct HistoryFlowRowActionPresentationTests {
+    @Test func rowActionsHideOpenAndShareWhenShareURLMissing() {
+        let item = HistoryListItem(
+            id: "no-share",
+            fileName: "no-share.txt",
+            createdAtMillis: 100,
+            expiresAtMillis: 0,
+            isExpired: false,
+            shareURL: nil
+        )
+
+        let actionState = HistoryFlowRowActionPresentation.actionState(for: item)
+
+        #expect(actionState == .init(
+            showsOpenAction: false,
+            showsShareAction: false,
+            showsDeleteAction: true
+        ))
+    }
+
+    @Test func rowActionsShowOpenAndShareWhenShareURLExists() {
+        let item = HistoryListItem(
+            id: "with-share",
+            fileName: "with-share.txt",
+            createdAtMillis: 100,
+            expiresAtMillis: 0,
+            isExpired: false,
+            shareURL: URL(string: "https://pastebin.sed.fyi/p/file-123")
+        )
+
+        let actionState = HistoryFlowRowActionPresentation.actionState(for: item)
+
+        #expect(actionState == .init(
+            showsOpenAction: true,
+            showsShareAction: true,
+            showsDeleteAction: true
+        ))
+    }
+}
+
 private actor FakeHistoryStore: HistoryStore {
     var entries: [HistoryEntry]
 
