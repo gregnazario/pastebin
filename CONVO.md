@@ -14,6 +14,37 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-09
+**Native UI Coverage Expansion (Do 1 Then 2)**
+- **Prompt**: "do 1 then 2" (1: Android instrumentation expansion, 2: Apple interaction/UI-level coverage)
+- **Action**:
+  - Added plan + design docs for this round-3 native coverage expansion.
+  - Implemented Android instrumentation expansion for upload/decrypt/history:
+    - upload file-mode submit disabled when no file selected
+    - upload draft clears after activity recreation
+    - decrypt malformed URL and missing-key validation errors
+    - configured cloud-sync controls remain available after activity recreation
+  - Added deterministic Android UI test tags for upload/decrypt fields/actions.
+  - Implemented Apple SwiftUI interaction-level test coverage:
+    - `UploadFlowViewModel` interaction/state tests
+    - `DecryptFlowViewModel` interaction/state tests
+  - Updated native Android and Apple README test-coverage notes.
+- **Files Created**:
+  - `plans/native-ui-coverage-expansion-round3.md`
+  - `design-docs/native-ui-coverage-expansion-round3.md`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+  - `native/apple/Tests/FeatureUploadTests/FeatureUploadTests.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/apple/README.md`
+- **Commands Run**:
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - `swift test`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Android instrumentation expanded to `18/18` passing tests and Apple interaction-level tests expanded with all `swift test` suites passing.
+
+### 2026-02-09
 **Remaining Work Execution (Items 1 + 2)**
 - **Prompt**: "please do 1, 2" (Android runtime settings UI instrumentation + Apple history-row no-share fallback coverage)
 - **Action**:

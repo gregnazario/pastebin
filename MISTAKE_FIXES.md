@@ -4,6 +4,20 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-09] Invalid-URL Test Inputs Hit Missing-ID Paths Instead
+
+### Issue 1: Android/Apple decrypt invalid-URL assertions targeted the wrong parser branch
+- **Context**: New UI interaction/instrumentation tests expected `"Share URL is invalid."` for placeholder inputs (`not-a-url` / similarly permissive strings).
+- **Root Cause**: Platform URL parsers accepted those inputs as syntactically valid URLs, so decrypt parsing moved to the missing-file-ID branch instead of invalid-URL.
+- **Fix**:
+  - Replaced test inputs with truly malformed values that fail URL parsing deterministically:
+    - Android: malformed URL with illegal path space in `UploadDecryptUiCoverageTest`.
+    - Apple: malformed host string (`https://[bad`) in `FeatureViewTests`.
+  - Re-ran:
+    - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+    - `swift test`
+- **Result**: Validation now deterministically exercises invalid-URL error handling and all suites pass.
+
 ## [2026-02-09] Runtime Settings Instrumentation Build/Assertion Issues
 
 ### Issue 1: Missing Compose text-query import in new settings UI test

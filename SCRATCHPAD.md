@@ -6,7 +6,34 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 2 foundation hardening (native parity + validation closure).
-- **Current Task**: Runtime settings + history fallback parity hardening closure.
+- **Current Task**: Native UI coverage expansion round 3 (Android then Apple) completed.
+
+### Native UI Coverage Expansion Round 3 Progress (2026-02-09, latest update)
+- ✅ Added plan/design docs:
+  - `plans/native-ui-coverage-expansion-round3.md`
+  - `design-docs/native-ui-coverage-expansion-round3.md`
+- ✅ Expanded Android instrumentation coverage with a new suite:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - coverage:
+    - file-mode upload submit disabled when no file is selected
+    - note draft input clears after activity recreation
+    - decrypt malformed-share and missing-key validation errors
+    - configured cloud-sync controls persist after activity recreation
+- ✅ Added deterministic upload/decrypt test tags:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- ✅ Added Apple interaction-level SwiftUI view-model tests:
+  - `native/apple/Tests/FeatureUploadTests/FeatureUploadTests.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - coverage:
+    - upload canUpload/validation/success state transitions
+    - decrypt prefill/save-as guard/validation state transitions
+- ✅ Updated native docs:
+  - `native/android/README.md`
+  - `native/apple/README.md`
+- ✅ Validation rerun:
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` passed (`18/18` tests)
+  - `swift test` passed (`27` tests)
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed
 
 ### Remaining Work Execution (Items 1 + 2) Progress (2026-02-09, latest update)
 - ✅ Added plan/design docs:
@@ -218,8 +245,8 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Immediate Next Step
 - Continue native parity completion:
-  - expand Android instrumentation around upload/decrypt/history error edges and device-state transitions
-  - add Apple SwiftUI-level interaction/UI tests (beyond presentation mapping/unit assertions) for parity-risk paths
+  - expand Apple UI interaction coverage beyond view-model state to include host-level/sheet integration assertions
+  - continue Phase 4 hardening items (accessibility, privacy analytics audit, performance profiling)
 
 ### Production Crypto Progress (2026-02-07, latest update)
 - ✅ Apple production crypto engine implemented:
