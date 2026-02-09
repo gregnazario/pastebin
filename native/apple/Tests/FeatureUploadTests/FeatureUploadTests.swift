@@ -42,6 +42,90 @@ struct FeatureUploadTests {
     }
 }
 
+/// Upload flow SwiftUI view-model interaction tests.
+@MainActor
+struct UploadFlowViewModelTests {
+    @Test func fileModeUploadWithoutSelectionSetsValidationError() {
+        let viewModel = makeUploadFlowViewModel()
+        viewModel.inputMode = .file
+        viewModel.password = "StrongPass#2026"
+
+        viewModel.upload()
+
+        #expect(viewModel.errorMessage == "Choose a file before uploading.")
+        #expect(viewModel.isUploading == false)
+    }
+
+    @Test func successfulNoteUploadPublishesShareURL() async {
+        let viewModel = makeUploadFlowViewModel(uploadID: "view-model-upload")
+        viewModel.noteText = "hello from vm"
+        viewModel.filename = "note-from-vm.txt"
+        viewModel.password = "StrongPass#2026"
+
+        viewModel.upload()
+        #expect(viewModel.isUploading == true)
+
+        await waitForUploadCompletion(viewModel: viewModel)
+
+        #expect(viewModel.isUploading == false)
+        #expect(
+            viewModel.shareURLString ==
+                "https://pastebin.sed.fyi/p/view-model-upload#private_key_fragment"
+        )
+        #expect(viewModel.errorMessage == nil)
+    }
+
+    @Test func handleFileImportSuccessPopulatesSelectionState() throws {
+        let viewModel = makeUploadFlowViewModel()
+        viewModel.inputMode = .file
+        viewModel.password = "StrongPass#2026"
+
+        let temporaryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("upload-flow-import-test.txt")
+        try Data("abc".utf8).write(to: temporaryURL, options: .atomic)
+        defer { try? FileManager.default.removeItem(at: temporaryURL) }
+
+        viewModel.handleFileImport(result: .success(temporaryURL))
+
+        #expect(viewModel.selectedFileName == "upload-flow-import-test.txt")
+        #expect(viewModel.selectedFileSizeBytes == 3)
+        #expect(viewModel.canUpload == true)
+        #expect(viewModel.errorMessage == nil)
+    }
+}
+
+@MainActor
+private func makeUploadFlowViewModel(uploadID: String = "file-123") -> UploadFlowViewModel {
+    let service = UploadFeature(
+        apiClient: FakeAPIClient(uploadResponse: .init(id: uploadID, expiresAt: 1_740_000_000_000)),
+        cryptoEngine: FakeCryptoEngine(
+            encryptionResult: .init(
+                serializedPayload: [1, 2, 3, 4],
+                privateKeyBase64Url: "private_key_fragment"
+            )
+        ),
+        shareBaseURL: URL(string: "https://pastebin.sed.fyi")!,
+        nowMillis: { 1_738_886_400_000 }
+    )
+    return UploadFlowViewModel(uploadService: service)
+}
+
+/// Waits until upload task completes and clears the uploading state.
+@MainActor
+private func waitForUploadCompletion(
+    viewModel: UploadFlowViewModel,
+    timeoutIterations: Int = 100,
+    pollNanoseconds: UInt64 = 10_000_000
+) async {
+    for _ in 0..<timeoutIterations {
+        if !viewModel.isUploading {
+            return
+        }
+        try? await Task.sleep(nanoseconds: pollNanoseconds)
+    }
+    Issue.record("UploadFlowViewModel did not finish upload within timeout.")
+}
+
 private final class FakeAPIClient: APIClient {
     let uploadResponse: UploadResponse
     var uploadedData: [UInt8] = []

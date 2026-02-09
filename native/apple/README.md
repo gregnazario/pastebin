@@ -44,6 +44,9 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - Upload / Decrypt / History tab composition
   - in-app History `Open` -> Decrypt prefill handoff
   - source: `Sources/AppShellDemo/AppHostFlowView.swift`
+- Interaction-level SwiftUI view-model coverage is implemented in tests:
+  - `Tests/FeatureUploadTests/FeatureUploadTests.swift`
+  - `Tests/FeatureViewTests/FeatureViewTests.swift`
 
 ## Xcode Demo App Scaffold
 - A runnable iOS demo app scaffold is included:

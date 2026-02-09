@@ -53,6 +53,97 @@ struct FeatureViewTests {
     }
 }
 
+/// Decrypt SwiftUI view-model interaction tests.
+@MainActor
+struct DecryptFlowViewModelTests {
+    @Test func prefillShareURLUpdatesFieldAndClearsError() {
+        let viewModel = makeDecryptFlowViewModel()
+        viewModel.errorMessage = "Old error"
+        let prefillURL = URL(string: "https://pastebin.sed.fyi/p/file-prefill#key")!
+
+        viewModel.prefillShareURL(prefillURL)
+
+        #expect(viewModel.shareURLString == prefillURL.absoluteString)
+        #expect(viewModel.errorMessage == nil)
+    }
+
+    @Test func startSaveAsWithoutDecryptShowsValidationError() {
+        let viewModel = makeDecryptFlowViewModel()
+
+        viewModel.startSaveAs()
+
+        #expect(viewModel.errorMessage == "Decrypt a file before saving.")
+        #expect(viewModel.isFileExporterPresented == false)
+    }
+
+    @Test func decryptWithInvalidURLShowsErrorAndStopsBusyState() async {
+        let viewModel = makeDecryptFlowViewModel()
+        viewModel.shareURLString = "https://[bad"
+        viewModel.password = "StrongPass#2026"
+
+        viewModel.decrypt()
+        #expect(viewModel.isDecrypting == true)
+
+        await waitForDecryptCompletion(viewModel: viewModel)
+
+        #expect(viewModel.isDecrypting == false)
+        #expect(viewModel.errorMessage == "Share URL is invalid.")
+    }
+
+    @Test func decryptWithoutKeyFragmentShowsErrorAndStopsBusyState() async {
+        let viewModel = makeDecryptFlowViewModel()
+        viewModel.shareURLString = "https://pastebin.sed.fyi/p/file-no-fragment"
+        viewModel.password = "StrongPass#2026"
+
+        viewModel.decrypt()
+        #expect(viewModel.isDecrypting == true)
+
+        await waitForDecryptCompletion(viewModel: viewModel)
+
+        #expect(viewModel.isDecrypting == false)
+        #expect(viewModel.errorMessage == "Share URL does not include a private key fragment.")
+    }
+}
+
+@MainActor
+private func makeDecryptFlowViewModel() -> DecryptFlowViewModel {
+    let viewService = ViewFeature(
+        apiClient: FakeAPIClient(downloadResponse: .init(data: [9, 9, 9])),
+        cryptoEngine: FakeCryptoEngine(
+            decryptionResult: .init(
+                plaintext: [72, 73],
+                metadata: .init(
+                    name: "vector.txt",
+                    size: 2,
+                    mimeType: "text/plain",
+                    uploadDate: 1,
+                    expirationDate: nil,
+                    encryptionConfig: .init(encryptMetadata: false, algorithm: "Kyber768+AES256-GCM")
+                )
+            )
+        ),
+        historyStore: nil,
+        nowMillis: { 1234 }
+    )
+    return DecryptFlowViewModel(viewService: viewService)
+}
+
+/// Waits until decrypt task completes and clears the decrypting state.
+@MainActor
+private func waitForDecryptCompletion(
+    viewModel: DecryptFlowViewModel,
+    timeoutIterations: Int = 100,
+    pollNanoseconds: UInt64 = 10_000_000
+) async {
+    for _ in 0..<timeoutIterations {
+        if !viewModel.isDecrypting {
+            return
+        }
+        try? await Task.sleep(nanoseconds: pollNanoseconds)
+    }
+    Issue.record("DecryptFlowViewModel did not finish decrypt within timeout.")
+}
+
 private actor FakeHistoryStore: HistoryStore {
     var upsertedEntries: [HistoryEntry] = []
 
