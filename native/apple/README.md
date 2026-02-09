@@ -75,3 +75,13 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - `design-docs/native-phase4-hardening-baseline.md`
 - Latest execution report:
   - `design-docs/native-phase4-hardening-report-2026-02-09.md`
+- Physical-device sign-off runbook and evidence templates:
+  - `native/qa/phase4/README.md`
+
+## Phase 5 Store Readiness
+- Apple packaging templates and checklist:
+  - `native/release/apple/release-checklist.md`
+  - `native/release/apple/app-store-connect-metadata.md`
+  - `native/release/apple/privacy-nutrition-label-template.md`
+- Unified release gate:
+  - `native/release/release-gate-checklist.md`

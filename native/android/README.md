@@ -76,6 +76,16 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - `design-docs/native-phase4-hardening-baseline.md`
 - Latest execution report:
   - `design-docs/native-phase4-hardening-report-2026-02-09.md`
+- Physical-device sign-off runbook and evidence templates:
+  - `native/qa/phase4/README.md`
+
+## Phase 5 Store Readiness
+- Android packaging templates and checklist:
+  - `native/release/android/release-checklist.md`
+  - `native/release/android/play-console-metadata.md`
+  - `native/release/android/data-safety-template.md`
+- Unified release gate:
+  - `native/release/release-gate-checklist.md`
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine used by `:app`.
