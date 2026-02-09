@@ -47,6 +47,9 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
 - Interaction-level SwiftUI view-model coverage is implemented in tests:
   - `Tests/FeatureUploadTests/FeatureUploadTests.swift`
   - `Tests/FeatureViewTests/FeatureViewTests.swift`
+- Host-shell integration coverage is implemented in:
+  - `Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - includes history handoff behavior and runtime settings apply/rebuild state.
 
 ## Xcode Demo App Scaffold
 - A runnable iOS demo app scaffold is included:
@@ -65,3 +68,7 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.
 - `DevelopmentNativeCryptoEngine` remains available for isolated wiring tests only and is non-production.
+
+## Phase 4 Hardening Baseline
+- Hardening checklist and profiling protocol:
+  - `design-docs/native-phase4-hardening-baseline.md`

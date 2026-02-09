@@ -29,17 +29,19 @@ struct DemoRootContainerView: View {
             DemoSettingsView(
                 currentAPIBaseURLString: apiBaseURLString,
                 onApply: { updatedValue in
-                    apiBaseURLString = updatedValue
-                    rebuildToken += 1
+                    let nextState = HostRuntimeSettingsState(
+                        apiBaseURLString: apiBaseURLString,
+                        rebuildToken: rebuildToken
+                    ).applying(apiBaseURLString: updatedValue)
+                    apiBaseURLString = nextState.apiBaseURLString
+                    rebuildToken = nextState.rebuildToken
                 }
             )
         }
     }
 
     private var resolvedAPIBaseURL: URL {
-        if let parsed = URL(string: apiBaseURLString), parsed.scheme != nil, parsed.host != nil {
-            return parsed
-        }
-        return URL(string: "http://127.0.0.1:3000")!
+        HostRuntimeSettingsState(apiBaseURLString: apiBaseURLString)
+            .resolvedAPIBaseURL()
     }
 }
