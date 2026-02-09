@@ -14,7 +14,9 @@ struct DemoRootContainerView: View {
                 .id(rebuildToken)
 
             Button {
-                isSettingsPresented = true
+                mutateFlowState { state in
+                    state.presentSettings()
+                }
             } label: {
                 Image(systemName: "gearshape.fill")
                     .font(.title3)
@@ -29,12 +31,9 @@ struct DemoRootContainerView: View {
             DemoSettingsView(
                 currentAPIBaseURLString: apiBaseURLString,
                 onApply: { updatedValue in
-                    let nextState = HostRuntimeSettingsState(
-                        apiBaseURLString: apiBaseURLString,
-                        rebuildToken: rebuildToken
-                    ).applying(apiBaseURLString: updatedValue)
-                    apiBaseURLString = nextState.apiBaseURLString
-                    rebuildToken = nextState.rebuildToken
+                    mutateFlowState { state in
+                        state.applySettings(apiBaseURLString: updatedValue)
+                    }
                 }
             )
         }
@@ -43,5 +42,19 @@ struct DemoRootContainerView: View {
     private var resolvedAPIBaseURL: URL {
         HostRuntimeSettingsState(apiBaseURLString: apiBaseURLString)
             .resolvedAPIBaseURL()
+    }
+
+    private func mutateFlowState(_ update: (inout DemoRootFlowState) -> Void) {
+        var state = DemoRootFlowState(
+            runtimeSettings: HostRuntimeSettingsState(
+                apiBaseURLString: apiBaseURLString,
+                rebuildToken: rebuildToken
+            ),
+            isSettingsPresented: isSettingsPresented
+        )
+        update(&state)
+        apiBaseURLString = state.runtimeSettings.apiBaseURLString
+        rebuildToken = state.runtimeSettings.rebuildToken
+        isSettingsPresented = state.isSettingsPresented
     }
 }

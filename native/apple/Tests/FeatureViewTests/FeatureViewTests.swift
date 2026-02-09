@@ -103,6 +103,23 @@ struct DecryptFlowViewModelTests {
         #expect(viewModel.isDecrypting == false)
         #expect(viewModel.errorMessage == "Share URL does not include a private key fragment.")
     }
+
+    @Test func decryptSuccessEnablesExportAndSaveAsActions() async {
+        let viewModel = makeDecryptFlowViewModel()
+        viewModel.shareURLString = "https://pastebin.sed.fyi/p/file-abc#key_fragment"
+        viewModel.password = "StrongPass#2026"
+
+        viewModel.decrypt()
+        await waitForDecryptCompletion(viewModel: viewModel)
+
+        #expect(viewModel.errorMessage == nil)
+        #expect(viewModel.hasDecryptedFile == true)
+        #expect(viewModel.shareExportURL != nil)
+
+        viewModel.startSaveAs()
+        #expect(viewModel.isFileExporterPresented == true)
+        #expect(viewModel.exportDocument != nil)
+    }
 }
 
 @MainActor

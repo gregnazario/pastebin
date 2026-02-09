@@ -55,3 +55,34 @@ struct HostRuntimeSettingsStateTests {
         #expect(resolved.absoluteString == "http://127.0.0.1:3000")
     }
 }
+
+/// Root-container settings sheet flow tests.
+struct DemoRootFlowStateTests {
+    @Test func presentAndCancelSettingsTogglesSheetWithoutRebuild() {
+        var state = DemoRootFlowState(
+            runtimeSettings: .init(apiBaseURLString: "http://127.0.0.1:3000", rebuildToken: 5),
+            isSettingsPresented: false
+        )
+
+        state.presentSettings()
+        #expect(state.isSettingsPresented == true)
+        #expect(state.runtimeSettings.rebuildToken == 5)
+
+        state.cancelSettings()
+        #expect(state.isSettingsPresented == false)
+        #expect(state.runtimeSettings.rebuildToken == 5)
+    }
+
+    @Test func applySettingsDismissesSheetAndIncrementsRebuildToken() {
+        var state = DemoRootFlowState(
+            runtimeSettings: .init(apiBaseURLString: "http://127.0.0.1:3000", rebuildToken: 1),
+            isSettingsPresented: true
+        )
+
+        state.applySettings(apiBaseURLString: "https://staging.pastebin.sed.fyi")
+
+        #expect(state.isSettingsPresented == false)
+        #expect(state.runtimeSettings.apiBaseURLString == "https://staging.pastebin.sed.fyi")
+        #expect(state.runtimeSettings.rebuildToken == 2)
+    }
+}

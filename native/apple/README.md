@@ -49,7 +49,8 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - `Tests/FeatureViewTests/FeatureViewTests.swift`
 - Host-shell integration coverage is implemented in:
   - `Tests/AppShellDemoTests/AppShellDemoTests.swift`
-  - includes history handoff behavior and runtime settings apply/rebuild state.
+  - includes history handoff persistence and runtime settings sheet/apply/cancel flow state.
+  - `Tests/FeatureViewTests/FeatureViewTests.swift` includes decrypt success action coverage for `Save As`/`Export` readiness.
 
 ## Xcode Demo App Scaffold
 - A runnable iOS demo app scaffold is included:
@@ -72,3 +73,5 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
 ## Phase 4 Hardening Baseline
 - Hardening checklist and profiling protocol:
   - `design-docs/native-phase4-hardening-baseline.md`
+- Latest execution report:
+  - `design-docs/native-phase4-hardening-report-2026-02-09.md`
