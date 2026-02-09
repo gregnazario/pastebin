@@ -14,9 +14,9 @@ This file tracks denylist audit evidence for native builds.
 - Command:
   - `rg -n "analytics|telemetry|track\\(|logEvent|eventName" native/apple native/android shared src/server src`
 - Date:
-  - YYYY-MM-DD
+  - 2026-02-09
 - Result:
-  - Pending
+  - Pass (no matches)
 - Evidence path:
   - `native/qa/phase4/evidence/privacy/telemetry-scan.txt`
 
@@ -24,9 +24,9 @@ This file tracks denylist audit evidence for native builds.
 - Command:
   - `rg -n "print\\(|Log\\.|println\\(" native/apple native/android`
 - Date:
-  - YYYY-MM-DD
+  - 2026-02-09
 - Result:
-  - Pending
+  - Pass (no matches)
 - Evidence path:
   - `native/qa/phase4/evidence/privacy/logging-scan.txt`
 
@@ -36,9 +36,9 @@ This file tracks denylist audit evidence for native builds.
   - URL fragment examples (`#private_key_fragment`)
   - decrypted content keywords
 - Date:
-  - YYYY-MM-DD
+  - 2026-02-09
 - Result:
-  - Pending
+  - In progress (template created; physical-device pass pending)
 - Evidence path:
   - `native/qa/phase4/evidence/privacy/manual-spot-check.txt`
 

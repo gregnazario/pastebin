@@ -85,3 +85,5 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - `native/release/apple/privacy-nutrition-label-template.md`
 - Unified release gate:
   - `native/release/release-gate-checklist.md`
+- Latest Phase 4/5 execution report:
+  - `design-docs/native-phase4-phase5-execution-report-2026-02-09.md`

@@ -6,6 +6,7 @@ This checklist tracks Play Store submission readiness.
 | --- | --- | --- | --- | --- |
 | `versionCode` and `versionName` updated | TBD | Pending | YYYY-MM-DD | path/to/evidence |
 | Release build signing configured and verified | TBD | Pending | YYYY-MM-DD | path/to/evidence |
+| `assembleRelease` passes in CI without lint task exclusions | TBD | Pending | YYYY-MM-DD | path/to/evidence |
 | R8/Proguard and release shrink behavior validated | TBD | Pending | YYYY-MM-DD | path/to/evidence |
 | Target SDK and policy requirements validated | TBD | Pending | YYYY-MM-DD | path/to/evidence |
 | Data safety form completed and reviewed | TBD | Pending | YYYY-MM-DD | path/to/evidence |

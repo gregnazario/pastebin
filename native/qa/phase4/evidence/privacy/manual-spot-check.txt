@@ -1,0 +1,1 @@
+Manual spot check placeholder: verify shared URLs, passwords, and decrypted text are absent from telemetry/log outputs.
