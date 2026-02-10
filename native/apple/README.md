@@ -66,6 +66,18 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
 - To regenerate project files after target/spec edits:
   - `xcodegen generate --spec project.yml`
 
+## Premium Minimal Design System
+- Shared Apple shell design tokens and modifiers:
+  - `Sources/AppShellDemo/PremiumMinimalDesignSystem.swift`
+- Applied in host shell:
+  - `Sources/AppShellDemo/AppHostFlowView.swift`
+  - `AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `AppShellDemoApp/Sources/DemoSettingsView.swift`
+- Core flow action styling updates:
+  - `Sources/FeatureUpload/UploadFlowView.swift`
+  - `Sources/FeatureView/DecryptFlowView.swift`
+  - `Sources/FeatureHistory/HistoryFeature.swift`
+
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.
 - `DevelopmentNativeCryptoEngine` remains available for isolated wiring tests only and is non-production.

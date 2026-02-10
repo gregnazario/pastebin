@@ -43,6 +43,13 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
     - connect/create Drive-backed sync JSON file
     - run conflict-aware one-shot sync with summary state
 
+## Premium Minimal Design System
+- Shared Compose theme tokens and reusable surfaces:
+  - `app/src/main/java/com/securepastebin/app/PremiumMinimalDesignSystem.kt`
+- Applied in app shell and flow screens:
+  - `app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- Existing instrumentation selectors/tags are preserved during styling pass.
+
 ## Instrumentation Coverage
 - `app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
   - Verifies history `Open` switches to Decrypt and pre-fills share URL.
