@@ -18,10 +18,11 @@ struct DemoRootContainerView: View {
                     state.presentSettings()
                 }
             } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.title3)
-                    .padding(10)
-                    .background(.ultraThinMaterial, in: Circle())
+                PremiumMinimalCard {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.headline)
+                        .foregroundStyle(PremiumMinimalPalette.accent)
+                }
             }
             .padding(.top, 12)
             .padding(.trailing, 16)

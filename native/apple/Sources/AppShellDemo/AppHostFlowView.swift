@@ -59,6 +59,7 @@ public struct AppHostFlowView: View {
         TabView(selection: $handoffCoordinator.selectedTab) {
             NavigationStack {
                 UploadFlowView(viewModel: uploadViewModel)
+                    .premiumMinimalFormStyle()
             }
             .tabItem {
                 Label("Upload", systemImage: "square.and.arrow.up")
@@ -67,6 +68,7 @@ public struct AppHostFlowView: View {
 
             NavigationStack {
                 DecryptFlowView(viewModel: decryptViewModel)
+                    .premiumMinimalFormStyle()
             }
             .tabItem {
                 Label("Decrypt", systemImage: "lock.open")
@@ -80,11 +82,13 @@ public struct AppHostFlowView: View {
                         handoffCoordinator.handleHistoryOpen(shareURL)
                     }
                 )
+                .premiumMinimalFormStyle()
             }
             .tabItem {
                 Label("History", systemImage: "clock.arrow.circlepath")
             }
             .tag(AppHostTab.history)
         }
+        .premiumMinimalRootStyle()
     }
 }

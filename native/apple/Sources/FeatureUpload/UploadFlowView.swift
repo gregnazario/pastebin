@@ -163,6 +163,7 @@ public struct UploadFlowView: View {
                     Button("Choose File") {
                         viewModel.presentFileImporter()
                     }
+                    .buttonStyle(.bordered)
 
                     if let selectedFileName = viewModel.selectedFileName {
                         Text(selectedFileName)
@@ -186,6 +187,7 @@ public struct UploadFlowView: View {
                 Button(viewModel.isUploading ? "Uploading..." : "Encrypt and Upload") {
                     viewModel.upload()
                 }
+                .buttonStyle(.borderedProminent)
                 .disabled(viewModel.isUploading || !viewModel.canUpload)
             }
 

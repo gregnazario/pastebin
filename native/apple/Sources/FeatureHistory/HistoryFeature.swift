@@ -196,6 +196,7 @@ public struct HistoryFlowView: View {
                 Button(viewModel.isLoading ? "Refreshing..." : "Refresh") {
                     viewModel.load()
                 }
+                .buttonStyle(.borderedProminent)
                 .disabled(viewModel.isLoading)
             }
 
@@ -204,6 +205,7 @@ public struct HistoryFlowView: View {
                     Button(HistoryFlowCloudSyncPresentation.actionTitle(for: viewModel.cloudSyncState)) {
                         viewModel.syncCloud()
                     }
+                    .buttonStyle(.borderedProminent)
                     .disabled(viewModel.isLoading || viewModel.cloudSyncState == .syncing)
 
                     let syncStatus = HistoryFlowCloudSyncPresentation.status(for: viewModel.cloudSyncState)
@@ -270,6 +272,7 @@ public struct HistoryFlowView: View {
                                 openURL(shareURL)
                             }
                         }
+                        .buttonStyle(.bordered)
                         .font(.callout)
                     }
 
@@ -283,6 +286,7 @@ public struct HistoryFlowView: View {
                     Button("Delete", role: .destructive) {
                         viewModel.delete(id: entry.id)
                     }
+                    .buttonStyle(.bordered)
                     .disabled(viewModel.isLoading)
                 }
             }

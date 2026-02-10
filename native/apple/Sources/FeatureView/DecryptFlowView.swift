@@ -269,6 +269,7 @@ public struct DecryptFlowView: View {
                 Button(viewModel.isDecrypting ? "Decrypting..." : "Download and Decrypt") {
                     viewModel.decrypt()
                 }
+                .buttonStyle(.borderedProminent)
                 .disabled(viewModel.isDecrypting || viewModel.shareURLString.isEmpty || viewModel.password.isEmpty)
             }
 
@@ -284,6 +285,7 @@ public struct DecryptFlowView: View {
                     Button("Save As") {
                         viewModel.startSaveAs()
                     }
+                    .buttonStyle(.borderedProminent)
 
                     if let shareURL = viewModel.shareExportURL {
                         ShareLink("Export", item: shareURL)

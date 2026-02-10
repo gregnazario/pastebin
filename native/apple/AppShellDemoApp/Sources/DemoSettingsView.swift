@@ -1,4 +1,5 @@
 /// Runtime settings sheet for configuring demo app connectivity.
+import AppShellDemo
 import Foundation
 import SwiftUI
 
@@ -79,6 +80,7 @@ struct DemoSettingsView: View {
                         draftAPIBaseURLString = selectedEnvironmentPreset.baseURLString
                         validationMessage = nil
                     }
+                    .buttonStyle(.borderedProminent)
                     Text(selectedEnvironmentPreset.baseURLString)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -103,6 +105,7 @@ struct DemoSettingsView: View {
 
             }
             .navigationTitle("Demo Settings")
+            .premiumMinimalFormStyle()
             .onChange(of: draftAPIBaseURLString) { _, updatedValue in
                 if let matched = DemoEnvironmentPreset.matching(urlString: updatedValue) {
                     selectedEnvironmentPreset = matched
@@ -118,6 +121,7 @@ struct DemoSettingsView: View {
                     Button("Apply") {
                         apply()
                     }
+                    .buttonStyle(.borderedProminent)
                 }
             }
         }
