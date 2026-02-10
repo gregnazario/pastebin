@@ -6,7 +6,23 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 4/5 release hardening and store-readiness.
-- **Current Task**: Implemented native premium minimal design system across Apple and Android shells.
+- **Current Task**: Executed repo hygiene cleanup for generated artifacts committed in prior catch-all commit.
+
+### Repo Hygiene Cleanup Progress (2026-02-09, latest update)
+- ✅ Added cleanup plan/design docs:
+  - `plans/repo-hygiene-generated-artifact-cleanup.md`
+  - `design-docs/repo-hygiene-generated-artifact-cleanup.md`
+- ✅ Hardened `.gitignore` with generated-output patterns:
+  - `.vercel/output/`
+  - `native/android/.gradle/`, `native/android/.kotlin/`, `native/android/**/build/`
+  - `native/apple/.build/`, `native/apple/.swiftpm/`, `native/apple/**/xcuserdata/`
+  - `src-tauri/target/`, `mobile/node_modules/`
+- ✅ Untracked generated artifacts previously committed:
+  - Vercel output bundle
+  - Android build/cache outputs
+  - Apple SwiftPM/Xcode derived outputs (including embedded `.build/checkouts/*`)
+- ✅ Verification:
+  - tracked generated-artifact pattern matches reduced to `0` via `git ls-files` audit
 
 ### Premium Minimal Design System Progress (2026-02-09, latest update)
 - ✅ Added planning/design artifacts:

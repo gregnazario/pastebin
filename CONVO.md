@@ -14,6 +14,29 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-09
+**Repo Hygiene Cleanup (Option 1)**
+- **Prompt**: `"1"` (execute repo hygiene cleanup for generated artifacts)
+- **Action**:
+  - Added cleanup planning docs:
+    - `plans/repo-hygiene-generated-artifact-cleanup.md`
+    - `design-docs/repo-hygiene-generated-artifact-cleanup.md`
+  - Hardened root ignore rules for generated outputs:
+    - `.vercel/output/`
+    - `native/android/.gradle/`, `native/android/.kotlin/`, `native/android/**/build/`
+    - `native/apple/.build/`, `native/apple/.swiftpm/`, `native/apple/**/xcuserdata/`
+    - `src-tauri/target/`, `mobile/node_modules/`
+  - Untracked previously committed generated artifacts from git index, including:
+    - Vercel output bundle
+    - Android build/cache trees
+    - Apple SwiftPM/Xcode derived trees and embedded build checkouts
+- **Commands Run**:
+  - `git ls-files | rg 'generated-path-patterns'`
+  - `git rm -r --cached ...` (via filtered tracked-file sweep)
+- **Outcome**:
+  - Generated artifact matches in tracked files reduced to `0`.
+  - Large cleanup commit created removing tracked build artifacts.
+
+### 2026-02-09
 **Premium Minimal Native Design System Implementation**
 - **Prompt**: "Can you make us a premium minmal design system then"
 - **Action**:
