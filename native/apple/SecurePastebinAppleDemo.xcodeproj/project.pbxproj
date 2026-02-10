@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,7 +15,7 @@
 
 /* Begin PBXFileReference section */
 		239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSettingsView.swift; sourceTree = "<group>"; };
-		2FBD9AFC8CB77B51AED53E04 /* SecurePastebinDemoApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SecurePastebinDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FBD9AFC8CB77B51AED53E04 /* SecurePastebinDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SecurePastebinDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F69F6E40480230F8C94931 /* DemoRootContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoRootContainerView.swift; sourceTree = "<group>"; };
 		9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurePastebinDemoApp.swift; sourceTree = "<group>"; };
 		A7E0A77D256D03A0A301987E /* apple */ = {isa = PBXFileReference; lastKnownFileType = folder; name = apple; path = .; sourceTree = SOURCE_ROOT; };
@@ -118,7 +118,6 @@
 			packageReferences = (
 				AAA19448CB1AB4A43A89F165 /* XCLocalSwiftPackageReference "." */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -147,13 +146,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4SRDAWJ9G7;
 				INFOPLIST_FILE = AppShellDemoApp/Support/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.securepastebin.demo.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.noop.securepastebin.demo.ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.1;
@@ -167,13 +167,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4SRDAWJ9G7;
 				INFOPLIST_FILE = AppShellDemoApp/Support/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.securepastebin.demo.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.noop.securepastebin.demo.ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.1;

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Info plist for the Secure Pastebin Apple host-shell demo app target. -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -23,7 +22,6 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<!-- Demo app allows local HTTP host during development. -->
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
