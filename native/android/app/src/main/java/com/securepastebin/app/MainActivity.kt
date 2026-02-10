@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -49,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -128,7 +130,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            SecurePastebinPremiumTheme {
                 NativeFlowApp()
             }
         }
@@ -247,40 +249,64 @@ private fun NativeFlowApp() {
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    PremiumMinimalBackdrop {
+        PremiumSectionCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            contentPadding = 10.dp,
         ) {
-            Text(
-                text = "API: $apiBase",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag(apiSettingsCurrentApiLabelTestTag),
-            )
-            Button(
-                onClick = { isApiSettingsPresented = true },
-                modifier = Modifier.testTag(apiSettingsOpenButtonTestTag),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Settings")
+                Text(
+                    text = "API: $apiBase",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag(apiSettingsCurrentApiLabelTestTag),
+                )
+                PremiumPrimaryButton(
+                    text = "Settings",
+                    onClick = { isApiSettingsPresented = true },
+                    enabled = true,
+                    modifier = Modifier.testTag(apiSettingsOpenButtonTestTag),
+                )
             }
         }
 
-        TabRow(selectedTabIndex = selectedTab) {
-            Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Upload") })
-            Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Decrypt") })
-            Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("History") })
+        PremiumSectionCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            contentPadding = 0.dp,
+        ) {
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = Color.Transparent,
+            ) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Upload") })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Decrypt") })
+                Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("History") })
+            }
         }
 
         when (selectedTab) {
-            0 -> UploadFlowScreen(uploadFeature = uploadFeature, modifier = Modifier.fillMaxSize())
+            0 -> UploadFlowScreen(
+                uploadFeature = uploadFeature,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            )
             1 -> DecryptFlowScreen(
                 viewFeature = viewFeature,
                 prefilledShareUrl = pendingDecryptShareUrl,
                 onPrefilledShareUrlConsumed = { pendingDecryptShareUrl = null },
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
             )
             else -> HistoryFlowScreen(
                 historyFeature = historyFeature,
@@ -303,7 +329,9 @@ private fun NativeFlowApp() {
                 },
                 setupErrorMessage = driveSyncError,
                 onSetupErrorConsumed = { driveSyncError = null },
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
             )
         }
     }
@@ -323,6 +351,7 @@ private fun ApiBaseSettingsDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
+        shape = MaterialTheme.shapes.large,
         title = { Text("API Settings") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -336,17 +365,17 @@ private fun ApiBaseSettingsDialog(
                 )
 
                 ApiBaseEnvironmentPreset.entries.forEach { preset ->
-                    Button(
+                    PremiumPrimaryButton(
+                        text = "${preset.label}: ${preset.baseUrl}",
                         onClick = {
                             draftApiBase = preset.baseUrl
                             validationErrorMessage = null
                         },
+                        enabled = true,
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("api-settings-preset-${preset.name.lowercase()}"),
-                    ) {
-                        Text("${preset.label}: ${preset.baseUrl}")
-                    }
+                    )
                 }
 
                 OutlinedTextField(
@@ -368,19 +397,19 @@ private fun ApiBaseSettingsDialog(
             }
         },
         confirmButton = {
-            Button(
+            PremiumPrimaryButton(
+                text = "Apply",
                 onClick = {
                     val normalized = normalizeApiBaseUrlCandidate(draftApiBase)
                     if (!isValidApiBaseUrl(normalized)) {
                         validationErrorMessage = "Enter a valid http(s) API base URL."
-                        return@Button
+                        return@PremiumPrimaryButton
                     }
                     onApply(normalized)
                 },
+                enabled = true,
                 modifier = Modifier.testTag(apiSettingsApplyButtonTestTag),
-            ) {
-                Text("Apply")
-            }
+            )
         },
         dismissButton = {
             Button(onClick = onDismissRequest) {
@@ -422,130 +451,139 @@ private fun UploadFlowScreen(
     val scope = rememberCoroutineScope()
 
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TabRow(selectedTabIndex = if (inputMode == UploadInputMode.NOTE) 0 else 1) {
-            Tab(
-                selected = inputMode == UploadInputMode.NOTE,
-                onClick = { inputMode = UploadInputMode.NOTE },
-                text = { Text("Note") },
-            )
-            Tab(
-                selected = inputMode == UploadInputMode.FILE,
-                onClick = { inputMode = UploadInputMode.FILE },
-                text = { Text("File") },
-            )
+        PremiumSectionCard(title = "Input") {
+            TabRow(
+                selectedTabIndex = if (inputMode == UploadInputMode.NOTE) 0 else 1,
+                containerColor = Color.Transparent,
+            ) {
+                Tab(
+                    selected = inputMode == UploadInputMode.NOTE,
+                    onClick = { inputMode = UploadInputMode.NOTE },
+                    text = { Text("Note") },
+                )
+                Tab(
+                    selected = inputMode == UploadInputMode.FILE,
+                    onClick = { inputMode = UploadInputMode.FILE },
+                    text = { Text("File") },
+                )
+            }
+
+            if (inputMode == UploadInputMode.NOTE) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = filename,
+                    onValueChange = { filename = it },
+                    label = { Text("Filename") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        capitalization = KeyboardCapitalization.None,
+                    ),
+                    singleLine = true,
+                )
+
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(uploadNoteInputTestTag),
+                    value = noteText,
+                    onValueChange = { noteText = it },
+                    label = { Text("Note") },
+                    minLines = 6,
+                )
+            } else {
+                PremiumPrimaryButton(
+                    text = "Choose File",
+                    onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
+                    enabled = true,
+                    modifier = Modifier.testTag(uploadChooseFileButtonTestTag),
+                )
+
+                selectedFile?.let { file ->
+                    Text("Selected: ${file.name}", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "${file.bytes.size} bytes • ${file.mimeType}",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
         }
 
-        if (inputMode == UploadInputMode.NOTE) {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = filename,
-                onValueChange = { filename = it },
-                label = { Text("Filename") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    capitalization = KeyboardCapitalization.None,
-                ),
-                singleLine = true,
-            )
-
+        PremiumSectionCard(title = "Security") {
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag(uploadNoteInputTestTag),
-                value = noteText,
-                onValueChange = { noteText = it },
-                label = { Text("Note") },
-                minLines = 6,
+                    .testTag(uploadPasswordInputTestTag),
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
             )
-        } else {
-            Button(
-                onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
-                modifier = Modifier.testTag(uploadChooseFileButtonTestTag),
-            ) {
-                Text("Choose File")
-            }
 
-            selectedFile?.let { file ->
-                Text("Selected: ${file.name}", style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    "${file.bytes.size} bytes • ${file.mimeType}",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-        }
-
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(uploadPasswordInputTestTag),
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-        )
-
-        Button(
-            onClick = {
-                val uploadPayload = when (inputMode) {
-                    UploadInputMode.NOTE -> UploadRequest(
-                        plaintext = noteText.toByteArray(Charsets.UTF_8),
-                        filename = if (filename.isBlank()) "note.txt" else filename,
-                        mimeType = "text/plain",
-                        password = password,
-                        encryptMetadata = false,
-                    )
-                    UploadInputMode.FILE -> {
-                        val file = selectedFile
-                        if (file == null) {
-                            error = "Choose a file before uploading."
-                            return@Button
-                        }
-                        UploadRequest(
-                            plaintext = file.bytes,
-                            filename = file.name,
-                            mimeType = file.mimeType,
+            PremiumPrimaryButton(
+                text = if (isUploading) "Uploading..." else "Encrypt and Upload",
+                onClick = {
+                    val uploadPayload = when (inputMode) {
+                        UploadInputMode.NOTE -> UploadRequest(
+                            plaintext = noteText.toByteArray(Charsets.UTF_8),
+                            filename = if (filename.isBlank()) "note.txt" else filename,
+                            mimeType = "text/plain",
                             password = password,
                             encryptMetadata = false,
                         )
+                        UploadInputMode.FILE -> {
+                            val file = selectedFile
+                            if (file == null) {
+                                error = "Choose a file before uploading."
+                                return@PremiumPrimaryButton
+                            }
+                            UploadRequest(
+                                plaintext = file.bytes,
+                                filename = file.name,
+                                mimeType = file.mimeType,
+                                password = password,
+                                encryptMetadata = false,
+                            )
+                        }
                     }
-                }
 
-                isUploading = true
-                error = null
-                shareLink = null
-                scope.launch {
-                    try {
-                        val result = uploadFeature.upload(uploadPayload)
-                        shareLink = result.shareUrl
-                    } catch (e: Exception) {
-                        error = e.message
-                    } finally {
-                        isUploading = false
+                    isUploading = true
+                    error = null
+                    shareLink = null
+                    scope.launch {
+                        try {
+                            val result = uploadFeature.upload(uploadPayload)
+                            shareLink = result.shareUrl
+                        } catch (e: Exception) {
+                            error = e.message
+                        } finally {
+                            isUploading = false
+                        }
                     }
-                }
-            },
-            enabled = !isUploading &&
-                password.isNotBlank() &&
-                (
-                    (inputMode == UploadInputMode.NOTE && noteText.isNotBlank()) ||
-                        (inputMode == UploadInputMode.FILE && selectedFile != null)
-                    ),
-            modifier = Modifier.testTag(uploadSubmitButtonTestTag),
-        ) {
-            Text(if (isUploading) "Uploading..." else "Encrypt and Upload")
+                },
+                enabled = !isUploading &&
+                    password.isNotBlank() &&
+                    (
+                        (inputMode == UploadInputMode.NOTE && noteText.isNotBlank()) ||
+                            (inputMode == UploadInputMode.FILE && selectedFile != null)
+                        ),
+                modifier = Modifier.testTag(uploadSubmitButtonTestTag),
+            )
         }
 
         shareLink?.let { link ->
-            Text("Share Link", style = MaterialTheme.typography.titleMedium)
-            Text(link, style = MaterialTheme.typography.bodySmall)
+            PremiumSectionCard(title = "Share Link") {
+                Text(link, style = MaterialTheme.typography.bodySmall)
+            }
         }
 
         error?.let { message ->
-            Text("Error: $message", color = MaterialTheme.colorScheme.error)
+            PremiumSectionCard(title = "Error") {
+                Text("Error: $message", color = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
@@ -634,36 +672,37 @@ private fun DecryptFlowScreen(
     val scope = rememberCoroutineScope()
 
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(decryptShareURLInputTestTag),
-            value = shareUrl,
-            onValueChange = { shareUrl = it },
-            label = { Text("Share URL") },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Uri,
-                capitalization = KeyboardCapitalization.None,
-            ),
-            singleLine = true,
-        )
+        PremiumSectionCard(title = "Decrypt") {
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(decryptShareURLInputTestTag),
+                value = shareUrl,
+                onValueChange = { shareUrl = it },
+                label = { Text("Share URL") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Uri,
+                    capitalization = KeyboardCapitalization.None,
+                ),
+                singleLine = true,
+            )
 
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(decryptPasswordInputTestTag),
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-        )
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(decryptPasswordInputTestTag),
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+            )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
+            PremiumPrimaryButton(
+                text = if (isDecrypting) "Decrypting..." else "Download and Decrypt",
                 onClick = {
                     isDecrypting = true
                     fileName = null
@@ -705,73 +744,80 @@ private fun DecryptFlowScreen(
                 },
                 enabled = !isDecrypting && shareUrl.isNotBlank() && password.isNotBlank(),
                 modifier = Modifier.testTag(decryptSubmitButtonTestTag),
-            ) {
-                Text(if (isDecrypting) "Decrypting..." else "Download and Decrypt")
-            }
+            )
         }
 
         fileName?.let {
-            Text("File: $it", style = MaterialTheme.typography.titleMedium)
+            PremiumSectionCard(title = "Decrypted File") {
+                Text("File: $it", style = MaterialTheme.typography.titleSmall)
+            }
         }
 
         decryptedPayload?.let { payload ->
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = { saveFileLauncher.launch(payload.name) }) {
-                    Text("Save As")
-                }
+            PremiumSectionCard(title = "Actions") {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    PremiumPrimaryButton(
+                        text = "Save As",
+                        onClick = { saveFileLauncher.launch(payload.name) },
+                        enabled = true,
+                    )
 
-                Button(
-                    onClick = {
-                        runCatching {
-                            exportTempFile?.delete()
-                            val exportFile = writePreviewFile(
-                                context = context,
-                                fileName = payload.name,
-                                mimeType = payload.mimeType,
-                                bytes = payload.bytes,
-                                prefix = "decrypt-export-",
-                            )
-                            exportTempFile = exportFile
-                            shareDecryptedFile(context, exportFile, payload.mimeType)
-                        }.onFailure { throwable ->
-                            error = throwable.message ?: "Failed to export decrypted file."
-                        }
-                    },
-                ) {
-                    Text("Export")
+                    PremiumPrimaryButton(
+                        text = "Export",
+                        onClick = {
+                            runCatching {
+                                exportTempFile?.delete()
+                                val exportFile = writePreviewFile(
+                                    context = context,
+                                    fileName = payload.name,
+                                    mimeType = payload.mimeType,
+                                    bytes = payload.bytes,
+                                    prefix = "decrypt-export-",
+                                )
+                                exportTempFile = exportFile
+                                shareDecryptedFile(context, exportFile, payload.mimeType)
+                            }.onFailure { throwable ->
+                                error = throwable.message ?: "Failed to export decrypted file."
+                            }
+                        },
+                        enabled = true,
+                    )
                 }
             }
         }
 
         preview?.let { content ->
-            Text("Preview", style = MaterialTheme.typography.titleMedium)
-            when (content) {
-                is DecryptPreview.Text -> {
-                    Text(content.value, style = MaterialTheme.typography.bodySmall)
-                }
-                is DecryptPreview.Image -> {
-                    Image(
-                        bitmap = content.bitmap.asImageBitmap(),
-                        contentDescription = "Decrypted image preview",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 320.dp),
-                    )
-                }
-                is DecryptPreview.Pdf -> {
-                    PdfFirstPagePreview(file = content.file)
-                }
-                is DecryptPreview.Media -> {
-                    MediaPreview(uri = content.uri)
-                }
-                is DecryptPreview.Unsupported -> {
-                    Text(content.message, style = MaterialTheme.typography.bodySmall)
+            PremiumSectionCard(title = "Preview") {
+                when (content) {
+                    is DecryptPreview.Text -> {
+                        Text(content.value, style = MaterialTheme.typography.bodySmall)
+                    }
+                    is DecryptPreview.Image -> {
+                        Image(
+                            bitmap = content.bitmap.asImageBitmap(),
+                            contentDescription = "Decrypted image preview",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 320.dp),
+                        )
+                    }
+                    is DecryptPreview.Pdf -> {
+                        PdfFirstPagePreview(file = content.file)
+                    }
+                    is DecryptPreview.Media -> {
+                        MediaPreview(uri = content.uri)
+                    }
+                    is DecryptPreview.Unsupported -> {
+                        Text(content.message, style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
         }
 
         error?.let {
-            Text("Error: $it", color = MaterialTheme.colorScheme.error)
+            PremiumSectionCard(title = "Error") {
+                Text("Error: $it", color = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
@@ -818,96 +864,102 @@ private fun HistoryFlowScreen(
     }
 
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text("Include expired")
-            Switch(
-                modifier = Modifier.testTag(historyIncludeExpiredSwitchTestTag),
-                checked = includeExpired,
-                onCheckedChange = { includeExpired = it },
-            )
-        }
-
-        Button(
-            onClick = {
-                scope.launch {
-                    isLoading = true
-                    error = null
-                    try {
-                        entries = historyFeature.list(includeExpired = includeExpired)
-                    } catch (e: Exception) {
-                        error = e.message ?: "Failed to load history."
-                    } finally {
-                        isLoading = false
-                    }
-                }
-            },
-            enabled = !isLoading,
-        ) {
-            Text(if (isLoading) "Refreshing..." else "Refresh")
-        }
-
-        Text("Cloud Sync", style = MaterialTheme.typography.titleMedium)
-        if (!isCloudSyncConfigured) {
-            Text(
-                "Google Drive sync file is not configured yet.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onCreateDriveSyncFile, enabled = !isLoading && !isSyncing) {
-                    Text("Create Drive File")
-                }
-                Button(onClick = onSelectDriveSyncFile, enabled = !isLoading && !isSyncing) {
-                    Text("Use Existing File")
-                }
+        PremiumSectionCard(title = "Controls") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Include expired")
+                Switch(
+                    modifier = Modifier.testTag(historyIncludeExpiredSwitchTestTag),
+                    checked = includeExpired,
+                    onCheckedChange = { includeExpired = it },
+                )
             }
-        } else {
-            driveSyncDocumentURIString?.let { uriString ->
-                Text(uriString, style = MaterialTheme.typography.bodySmall)
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isSyncing = true
-                            error = null
-                            syncSummary = null
-                            try {
-                                val result = onSyncNow()
-                                entries = historyFeature.list(includeExpired = includeExpired)
-                                syncSummary = formatCloudSyncSummary(result)
-                            } catch (e: Exception) {
-                                error = e.message ?: "Cloud sync failed."
-                            } finally {
-                                isSyncing = false
-                            }
+
+            PremiumPrimaryButton(
+                text = if (isLoading) "Refreshing..." else "Refresh",
+                onClick = {
+                    scope.launch {
+                        isLoading = true
+                        error = null
+                        try {
+                            entries = historyFeature.list(includeExpired = includeExpired)
+                        } catch (e: Exception) {
+                            error = e.message ?: "Failed to load history."
+                        } finally {
+                            isLoading = false
                         }
-                    },
-                    enabled = !isLoading && !isSyncing,
-                ) {
-                    Text(if (isSyncing) "Syncing..." else "Sync Now")
-                }
-
-                Button(
-                    onClick = onSelectDriveSyncFile,
-                    enabled = !isLoading && !isSyncing,
-                ) {
-                    Text("Change File")
-                }
-            }
+                    }
+                },
+                enabled = !isLoading,
+            )
         }
 
-        syncSummary?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall)
+        PremiumSectionCard(title = "Cloud Sync") {
+            if (!isCloudSyncConfigured) {
+                Text(
+                    "Google Drive sync file is not configured yet.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PremiumPrimaryButton(
+                        text = "Create Drive File",
+                        onClick = onCreateDriveSyncFile,
+                        enabled = !isLoading && !isSyncing,
+                    )
+                    PremiumPrimaryButton(
+                        text = "Use Existing File",
+                        onClick = onSelectDriveSyncFile,
+                        enabled = !isLoading && !isSyncing,
+                    )
+                }
+            } else {
+                driveSyncDocumentURIString?.let { uriString ->
+                    Text(uriString, style = MaterialTheme.typography.bodySmall)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PremiumPrimaryButton(
+                        text = if (isSyncing) "Syncing..." else "Sync Now",
+                        onClick = {
+                            scope.launch {
+                                isSyncing = true
+                                error = null
+                                syncSummary = null
+                                try {
+                                    val result = onSyncNow()
+                                    entries = historyFeature.list(includeExpired = includeExpired)
+                                    syncSummary = formatCloudSyncSummary(result)
+                                } catch (e: Exception) {
+                                    error = e.message ?: "Cloud sync failed."
+                                } finally {
+                                    isSyncing = false
+                                }
+                            }
+                        },
+                        enabled = !isLoading && !isSyncing,
+                    )
+
+                    PremiumPrimaryButton(
+                        text = "Change File",
+                        onClick = onSelectDriveSyncFile,
+                        enabled = !isLoading && !isSyncing,
+                    )
+                }
+            }
+
+            syncSummary?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall)
+            }
         }
 
         if (entries.isEmpty() && !isLoading) {
-            Text("No history entries yet.", style = MaterialTheme.typography.bodyMedium)
+            PremiumSectionCard(title = "Recent Decrypts") {
+                Text("No history entries yet.", style = MaterialTheme.typography.bodyMedium)
+            }
         }
 
         LazyColumn(
@@ -915,80 +967,84 @@ private fun HistoryFlowScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(entries, key = { it.id }) { entry ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f).padding(end = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                PremiumSectionCard {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(entry.fileName, style = MaterialTheme.typography.titleSmall)
-                        Text("ID: ${entry.id}", style = MaterialTheme.typography.bodySmall)
-                        Text(
-                            "Created: ${formatHistoryMillis(entry.createdAtMillis)}",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            historyExpirationLabel(entry),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (entry.isExpired) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
-                    }
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        entry.shareUrl?.let { shareUrl ->
-                            Button(
-                                onClick = {
-                                    runCatching {
-                                        onOpenInDecrypt(shareUrl)
-                                    }.onFailure { throwable ->
-                                        error = throwable.message ?: "Failed to open history link."
-                                    }
+                        Column(
+                            modifier = Modifier.weight(1f).padding(end = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(entry.fileName, style = MaterialTheme.typography.titleSmall)
+                            Text("ID: ${entry.id}", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                "Created: ${formatHistoryMillis(entry.createdAtMillis)}",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Text(
+                                historyExpirationLabel(entry),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (entry.isExpired) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                                 },
-                                enabled = !isLoading,
-                            ) {
-                                Text("Open")
-                            }
-
-                            Button(
-                                onClick = {
-                                    runCatching {
-                                        shareHistoryLink(context, shareUrl)
-                                    }.onFailure { throwable ->
-                                        error = throwable.message ?: "Failed to share history link."
-                                    }
-                                },
-                                enabled = !isLoading,
-                            ) {
-                                Text("Share")
-                            }
+                            )
                         }
 
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    isLoading = true
-                                    error = null
-                                    try {
-                                        historyFeature.delete(entry.id)
-                                        entries = historyFeature.list(includeExpired = includeExpired)
-                                    } catch (e: Exception) {
-                                        error = e.message ?: "Failed to delete history entry."
-                                    } finally {
-                                        isLoading = false
-                                    }
-                                }
-                            },
-                            enabled = !isLoading,
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Text("Delete")
+                            entry.shareUrl?.let { shareUrl ->
+                                PremiumPrimaryButton(
+                                    text = "Open",
+                                    onClick = {
+                                        runCatching {
+                                            onOpenInDecrypt(shareUrl)
+                                        }.onFailure { throwable ->
+                                            error = throwable.message ?: "Failed to open history link."
+                                        }
+                                    },
+                                    enabled = !isLoading,
+                                )
+
+                                PremiumPrimaryButton(
+                                    text = "Share",
+                                    onClick = {
+                                        runCatching {
+                                            shareHistoryLink(context, shareUrl)
+                                        }.onFailure { throwable ->
+                                            error = throwable.message ?: "Failed to share history link."
+                                        }
+                                    },
+                                    enabled = !isLoading,
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        isLoading = true
+                                        error = null
+                                        try {
+                                            historyFeature.delete(entry.id)
+                                            entries = historyFeature.list(includeExpired = includeExpired)
+                                        } catch (e: Exception) {
+                                            error = e.message ?: "Failed to delete history entry."
+                                        } finally {
+                                            isLoading = false
+                                        }
+                                    }
+                                },
+                                enabled = !isLoading,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                            ) {
+                                Text("Delete")
+                            }
                         }
                     }
                 }
@@ -996,7 +1052,9 @@ private fun HistoryFlowScreen(
         }
 
         error?.let {
-            Text("Error: $it", color = MaterialTheme.colorScheme.error)
+            PremiumSectionCard(title = "Error") {
+                Text("Error: $it", color = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
