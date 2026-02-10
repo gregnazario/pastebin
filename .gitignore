@@ -22,4 +22,5 @@ native/apple/.build/
 native/apple/.swiftpm/
 native/apple/**/xcuserdata/
 src-tauri/target/
+src-tauri/gen/
 mobile/node_modules/
