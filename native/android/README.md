@@ -21,6 +21,10 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - Configure Android SDK before running Gradle tasks:
   - Set `ANDROID_HOME`, or
   - Create `native/android/local.properties` with `sdk.dir=/absolute/path/to/android/sdk`
+- Release build lint behavior:
+  - `gradle :app:assembleRelease` works without manual lint task exclusions.
+  - On JVM 24+ runtimes, release lint checks are automatically disabled because AGP `8.6.1` lint crashes during analysis.
+  - On supported JVMs (for example JVM 23), `lintVitalRelease` remains enabled.
 - Upload screen supports:
   - note input mode
   - native document picker mode via `OpenDocument`

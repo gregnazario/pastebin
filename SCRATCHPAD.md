@@ -2,11 +2,40 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-02-09)
+## Current State (2026-02-10)
 
 ### Active Task
 - **Phase**: Phase 4/5 release hardening and store-readiness.
-- **Current Task**: Executed repo hygiene cleanup for generated artifacts committed in prior catch-all commit.
+- **Current Task**: Completed requested item pair:
+  - Item 1: branch-history purge of generated-artifact catch-all commit lineage.
+  - Item 2: Android release lint-vital JVM compatibility fix for unexcluded `assembleRelease`.
+
+### Requested Items 1 + 2 Progress (2026-02-10, latest update)
+- ✅ Item 1 (history purge) completed:
+  - rewrote `mobile` lineage with:
+    - `git rebase --onto f00fc89 5748d4a mobile`
+  - verification:
+    - `git branch --contains 5748d4a` returned no active branches
+  - repo-hygiene docs updated:
+    - `plans/repo-hygiene-generated-artifact-cleanup.md`
+    - `design-docs/repo-hygiene-generated-artifact-cleanup.md`
+- ✅ Item 2 (Android release lint-vital path) completed:
+  - root cause captured:
+    - AGP `8.6.1` lint crash under JVM `25.0.2` with `IllegalArgumentException: 25.0.2`
+  - mitigation implemented:
+    - `native/android/build.gradle.kts`
+      - conditional `lint.checkReleaseBuilds` gating by JVM major version
+      - disabled only on JVM 24+, preserved on supported JVMs
+  - planning/design docs added:
+    - `plans/android-release-lint-vital-jvm-compatibility.md`
+    - `design-docs/android-release-lint-vital-jvm-compatibility.md`
+  - Android docs updated:
+    - `native/android/README.md`
+  - verification:
+    - `gradle :app:assembleRelease` passed on JVM 25 runtime (no task exclusions)
+    - `JAVA_HOME=/Users/greg/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home gradle :app:lintVitalRelease` passed
+- ✅ Ignore hygiene expansion:
+  - `.gitignore` now ignores `src-tauri/gen/` in addition to `src-tauri/target/`.
 
 ### Repo Hygiene Cleanup Progress (2026-02-09, latest update)
 - ✅ Added cleanup plan/design docs:

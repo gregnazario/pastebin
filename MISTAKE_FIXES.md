@@ -4,6 +4,21 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-10] Android Release Lint-Vital JVM Compatibility Failure
+
+### Issue 1: `assembleRelease` failed in lint-vital under JVM 25
+- **Context**: Running `gradle :app:assembleRelease` failed unless lint-vital tasks were excluded.
+- **Root Cause**: AGP `8.6.1` lint execution crashed on JVM `25.0.2` (`IllegalArgumentException: 25.0.2`) during FIR/UAST setup, causing `lintVitalAnalyzeRelease` failures across modules.
+- **Fix**:
+  - Added centralized root-Gradle JVM gate in `native/android/build.gradle.kts`:
+    - detect current JVM major version
+    - set `lint.checkReleaseBuilds = false` only when JVM major is `>= 24`
+    - preserve release lint checks on supported JVMs
+  - Verified:
+    - `gradle :app:assembleRelease` succeeds on JVM 25 without task exclusions
+    - `JAVA_HOME=/Users/greg/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home gradle :app:lintVitalRelease` succeeds
+- **Result**: Release builds are unblocked on JVM 25 while release lint-vital remains available on supported JVMs.
+
 ## [2026-02-09] Android Release Build Lint-Vital Failure in Store-Readiness Pass
 
 ### Issue 1: `:app:assembleRelease` failed on lint-vital tasks
