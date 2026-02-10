@@ -12,3 +12,14 @@ count.txt
 .output
 .vinxi
 todos.json
+
+# Generated deployment/build artifacts
+.vercel/output/
+native/android/.gradle/
+native/android/.kotlin/
+native/android/**/build/
+native/apple/.build/
+native/apple/.swiftpm/
+native/apple/**/xcuserdata/
+src-tauri/target/
+mobile/node_modules/
