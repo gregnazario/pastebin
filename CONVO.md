@@ -14,6 +14,35 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-10
+**Continuation: Android Instrumentation CI Gate**
+- **Prompt**: `"1"` (add Android instrumentation CI coverage)
+- **Action**:
+  - Added implementation plan + design docs:
+    - `plans/android-instrumentation-ci-gate.md`
+    - `design-docs/android-instrumentation-ci-gate.md`
+  - Extended CI workflow with a dedicated emulator-backed Android instrumentation job:
+    - `.github/workflows/ci.yml`
+    - new `android-instrumentation` job:
+      - JDK 23 setup
+      - Android SDK setup
+      - Gradle 9.3.1 setup
+      - KVM enable step
+      - `reactivecircus/android-emulator-runner@v2`
+      - instrumentation command:
+        - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - Kept existing `lint-and-typecheck`, `build`, `test`, and `android-release` jobs unchanged.
+- **Commands Run**:
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - CI now executes Android instrumentation tests on a managed emulator as part of the workflow.
+  - Local instrumentation compile/package path validated successfully.
+
+### 2026-02-10
 **Continuation: Push + Android CI Release Lint Enforcement**
 - **Prompt**: "continue"
 - **Action**:

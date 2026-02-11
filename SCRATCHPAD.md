@@ -6,7 +6,7 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 4/5 release hardening and store-readiness.
-- **Current Task**: Completed requested item pair, then continued with remote publication and Android CI release-lint enforcement.
+- **Current Task**: Completed requested item pair, then continued with remote publication, Android CI release-lint enforcement, and Android instrumentation CI gate.
   - Item 1: branch-history purge of generated-artifact catch-all commit lineage.
   - Item 2: Android release lint-vital JVM compatibility fix for unexcluded `assembleRelease`.
 
@@ -30,6 +30,22 @@ This file maintains the current state of the project for smooth conversation han
   - `bun test` passed
   - `bun run build` passed
   - `JAVA_HOME=/Users/greg/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home gradle :app:assembleRelease :app:lintVitalRelease` passed
+
+### Instrumentation CI Gate Progress (2026-02-10, latest update)
+- ✅ Added plan/design docs:
+  - `plans/android-instrumentation-ci-gate.md`
+  - `design-docs/android-instrumentation-ci-gate.md`
+- ✅ Extended CI workflow with emulator-backed instrumentation job:
+  - `.github/workflows/ci.yml`
+  - new `android-instrumentation` job:
+    - JDK 23 + Android SDK + Gradle 9.3.1 setup
+    - KVM enablement step
+    - `reactivecircus/android-emulator-runner@v2` execution
+    - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+- ✅ Validation:
+  - CI workflow YAML parse check passed.
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed locally.
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed.
 
 ### Requested Items 1 + 2 Progress (2026-02-10, latest update)
 - ✅ Item 1 (history purge) completed:
