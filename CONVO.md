@@ -14,6 +14,35 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-10
+**Continuation: Push + Android CI Release Lint Enforcement**
+- **Prompt**: "continue"
+- **Action**:
+  - Pushed rewritten/local `mobile` branch to remote and set upstream:
+    - `git push -u origin mobile`
+  - Added plan/design docs for Android CI release-lint enforcement:
+    - `plans/android-ci-release-lint-enforcement.md`
+    - `design-docs/android-ci-release-lint-enforcement.md`
+  - Extended CI workflow with Android release validation job on JDK 23:
+    - setup Java 23 + Android SDK + Gradle 9.3.1
+    - run `gradle :app:assembleRelease`
+    - run `gradle :app:lintVitalRelease`
+  - Kept existing Bun CI jobs unchanged.
+- **Files Modified**:
+  - `.github/workflows/ci.yml`
+- **Commands Run**:
+  - `git remote -v`
+  - `git branch -vv`
+  - `git push -u origin mobile`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+  - `JAVA_HOME=/Users/greg/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home gradle :app:assembleRelease :app:lintVitalRelease`
+- **Outcome**:
+  - Remote `mobile` branch published.
+  - CI now includes Android release and release-lint coverage on supported JVM runtime.
+
+### 2026-02-10
 **Execution of Requested Items 1 + 2**
 - **Prompt**: "1 and 2" / "do 1 then 2" (1: purge generated artifacts from branch history, 2: fix Android release lint-vital path without manual exclusions)
 - **Action**:

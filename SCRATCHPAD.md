@@ -6,9 +6,30 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 4/5 release hardening and store-readiness.
-- **Current Task**: Completed requested item pair:
+- **Current Task**: Completed requested item pair, then continued with remote publication and Android CI release-lint enforcement.
   - Item 1: branch-history purge of generated-artifact catch-all commit lineage.
   - Item 2: Android release lint-vital JVM compatibility fix for unexcluded `assembleRelease`.
+
+### Continuation Progress (2026-02-10, latest update)
+- ✅ Published `mobile` branch to remote:
+  - `git push -u origin mobile`
+- ✅ Added Android CI release-lint enforcement plan/design:
+  - `plans/android-ci-release-lint-enforcement.md`
+  - `design-docs/android-ci-release-lint-enforcement.md`
+- ✅ Extended CI workflow:
+  - `.github/workflows/ci.yml`
+  - new `android-release` job with:
+    - JDK 23 setup
+    - Android SDK setup
+    - Gradle 9.3.1 setup
+    - `gradle :app:assembleRelease`
+    - `gradle :app:lintVitalRelease`
+- ✅ Validation rerun:
+  - `bun run lint` passed
+  - `bun run typecheck` passed
+  - `bun test` passed
+  - `bun run build` passed
+  - `JAVA_HOME=/Users/greg/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home gradle :app:assembleRelease :app:lintVitalRelease` passed
 
 ### Requested Items 1 + 2 Progress (2026-02-10, latest update)
 - ✅ Item 1 (history purge) completed:
