@@ -144,11 +144,26 @@ private fun NativeFlowApp() {
     val apiBaseConfigStore = remember(context.applicationContext) {
         ApiBaseConfigurationStore(context.applicationContext)
     }
+    val appVersionName = remember(context.applicationContext) {
+        runCatching {
+            context.applicationContext
+                .packageManager
+                .getPackageInfo(context.applicationContext.packageName, 0)
+                .versionName
+                ?: "unknown"
+        }.getOrDefault("unknown")
+    }
     var apiBase by remember {
         mutableStateOf(apiBaseConfigStore.readApiBaseUrl(defaultApiBaseURL))
     }
     var isApiSettingsPresented by remember { mutableStateOf(false) }
-    val apiClient = remember(apiBase) { HttpApiClient(baseUrl = apiBase) }
+    val apiClient = remember(apiBase, appVersionName) {
+        HttpApiClient(
+            baseUrl = apiBase,
+            clientPlatform = "android",
+            clientVersion = appVersionName,
+        )
+    }
     val cryptoEngine = remember { ProductionNativeCryptoEngine() }
     val historyStore = remember(context.applicationContext) {
         SharedPreferencesHistoryStore(context.applicationContext)

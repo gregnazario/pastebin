@@ -59,6 +59,13 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - App project: `SecurePastebinAppleDemo.xcodeproj`
 - The app launches `DemoAppFactory.makeRootView()` which wires `AppHostFlowView` with the website production backend by default.
 - The demo app includes a runtime settings sheet (gear button) to update API base URL without rebuilding.
+- API requests include optional observability headers:
+  - `X-Client-Platform: ios|macos` (resolved by target)
+  - `X-Client-Version: <bundle short version>`
+  - `X-Request-Id: <per-request UUID>`
+- Transport hardening:
+  - App Transport Security no longer uses `NSAllowsArbitraryLoads`.
+  - Local development remains supported via `NSAllowsLocalNetworking`.
 - Demo settings include environment presets:
   - `Local` (`http://127.0.0.1:3000`)
   - `Staging` (`https://staging.pastebin.sed.fyi`)

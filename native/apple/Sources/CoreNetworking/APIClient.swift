@@ -101,15 +101,24 @@ public struct APIClientConfiguration: Sendable, Equatable {
 public final class URLSessionAPIClient: APIClient {
     private let configuration: APIClientConfiguration
     private let session: URLSession
+    private let clientPlatform: String
+    private let clientVersion: String
+    private let requestIDProvider: @Sendable () -> String
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
     public init(
         configuration: APIClientConfiguration,
-        session: URLSession = .shared
+        session: URLSession = .shared,
+        clientPlatform: String? = nil,
+        clientVersion: String = "unknown",
+        requestIDProvider: @escaping @Sendable () -> String = { UUID().uuidString }
     ) {
         self.configuration = configuration
         self.session = session
+        self.clientPlatform = clientPlatform ?? URLSessionAPIClient.currentPlatformIdentifier()
+        self.clientVersion = clientVersion
+        self.requestIDProvider = requestIDProvider
     }
 
     public func uploadEncryptedBlob(data: [UInt8], filename: String) async throws -> UploadResponse {
@@ -148,6 +157,9 @@ public final class URLSessionAPIClient: APIClient {
         request.httpMethod = method
         request.timeoutInterval = configuration.timeoutSeconds
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(clientPlatform, forHTTPHeaderField: "X-Client-Platform")
+        request.setValue(clientVersion, forHTTPHeaderField: "X-Client-Version")
+        request.setValue(requestIDProvider(), forHTTPHeaderField: "X-Request-Id")
 
         for (header, value) in configuration.defaultHeaders {
             request.setValue(value, forHTTPHeaderField: header)
@@ -218,5 +230,15 @@ public final class URLSessionAPIClient: APIClient {
             return text
         }
         return "Unknown server error"
+    }
+
+    private static func currentPlatformIdentifier() -> String {
+        #if os(iOS)
+        return "ios"
+        #elseif os(macOS)
+        return "macos"
+        #else
+        return "apple"
+        #endif
     }
 }

@@ -18,7 +18,8 @@ public enum DemoAppFactory {
         historyDefaults: UserDefaults = .standard
     ) -> some View {
         let apiClient = URLSessionAPIClient(
-            configuration: .init(baseURL: apiBaseURL)
+            configuration: .init(baseURL: apiBaseURL),
+            clientVersion: currentClientVersion()
         )
         let cryptoEngine = ProductionNativeCryptoEngine()
         let historyStore = UserDefaultsHistoryStore(defaults: historyDefaults)
@@ -53,5 +54,14 @@ public enum DemoAppFactory {
             ),
             initialTab: .upload
         )
+    }
+
+    private static func currentClientVersion() -> String {
+        let bundle = Bundle.main
+        if let shortVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+           !shortVersion.isEmpty {
+            return shortVersion
+        }
+        return "unknown"
     }
 }

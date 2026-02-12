@@ -1,0 +1,35 @@
+package com.securepastebin.core.network
+
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+/**
+ * Unit tests for HttpApiClient transport defaults and observability headers.
+ */
+class HttpApiClientTest {
+    @Test
+    fun `health request sends standard observability headers`() = runBlocking {
+        val client = HttpApiClient(
+            baseUrl = "http://127.0.0.1:65535",
+            clientPlatform = "android",
+            clientVersion = "0.1.0-test",
+            requestIdProvider = { "request-id-123" },
+            defaultHeaders = mapOf("X-Test-Header" to "present"),
+        )
+
+        val openConnection = HttpApiClient::class.java.getDeclaredMethod(
+            "openConnection",
+            String::class.java,
+            String::class.java,
+        )
+        openConnection.isAccessible = true
+        val connection = openConnection.invoke(client, "/api/v1/health", "GET") as java.net.HttpURLConnection
+
+        assertEquals("android", connection.getRequestProperty("X-Client-Platform"))
+        assertEquals("0.1.0-test", connection.getRequestProperty("X-Client-Version"))
+        assertEquals("request-id-123", connection.getRequestProperty("X-Request-Id"))
+        assertEquals("present", connection.getRequestProperty("X-Test-Header"))
+        connection.disconnect()
+    }
+}

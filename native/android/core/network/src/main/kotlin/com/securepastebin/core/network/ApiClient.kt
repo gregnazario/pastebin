@@ -8,6 +8,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.util.UUID
 
 /**
  * API contract and implementation for native Android calls to Secure Pastebin API v1.
@@ -38,6 +39,9 @@ class HttpApiClient(
     private val baseUrl: String,
     private val connectTimeoutMs: Int = 30_000,
     private val readTimeoutMs: Int = 30_000,
+    private val clientPlatform: String = "android",
+    private val clientVersion: String = "unknown",
+    private val requestIdProvider: () -> String = { UUID.randomUUID().toString() },
     private val defaultHeaders: Map<String, String> = emptyMap(),
 ) : ApiClient {
     override suspend fun uploadEncryptedBlob(data: ByteArray, filename: String): UploadResponse {
@@ -134,6 +138,9 @@ class HttpApiClient(
             connectTimeout = connectTimeoutMs
             readTimeout = readTimeoutMs
             setRequestProperty("Accept", "application/json")
+            setRequestProperty("X-Client-Platform", clientPlatform)
+            setRequestProperty("X-Client-Version", clientVersion)
+            setRequestProperty("X-Request-Id", requestIdProvider())
             defaultHeaders.forEach { (header, value) ->
                 setRequestProperty(header, value)
             }

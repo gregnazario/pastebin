@@ -18,6 +18,13 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - Presets: `Local`, `Staging`, `Production`
   - Manual API base URL override with validation
   - Selected API base persists across app launches
+- Network transport policy:
+  - Debug builds allow cleartext only for local development hosts (`10.0.2.2`, `127.0.0.1`, `localhost`).
+  - Release builds deny cleartext and require HTTPS endpoints.
+- API requests include optional observability headers:
+  - `X-Client-Platform: android`
+  - `X-Client-Version: <app version>`
+  - `X-Request-Id: <per-request UUID>`
 - Configure Android SDK before running Gradle tasks:
   - Set `ANDROID_HOME`, or
   - Create `native/android/local.properties` with `sdk.dir=/absolute/path/to/android/sdk`
