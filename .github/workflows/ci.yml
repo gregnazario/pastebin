@@ -176,3 +176,14 @@ jobs:
           script: |
             cd native/android
             gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest
+
+      - name: Upload Instrumentation Failure Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-instrumentation-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          path: |
+            native/android/app/build/reports/androidTests/connected/**
+            native/android/app/build/outputs/androidTest-results/connected/**
+            native/android/app/build/outputs/connected_android_test_additional_output/**
