@@ -28,7 +28,7 @@ class ApiSettingsUiTest {
     private val appContext = ApplicationProvider.getApplicationContext<Context>()
     private val preferenceName = "secure_pastebin_app_config_v1"
     private val apiBaseKey = "api_base_url"
-    private val defaultApiBase = "http://10.0.2.2:3000"
+    private val defaultApiBase = "https://pastebin.sed.fyi"
     private val stagingApiBase = "https://staging.pastebin.sed.fyi"
 
     @Before

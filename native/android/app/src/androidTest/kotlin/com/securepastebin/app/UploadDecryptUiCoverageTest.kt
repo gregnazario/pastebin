@@ -118,7 +118,7 @@ class UploadDecryptUiCoverageTest {
     fun decryptDraftInputsClearAfterActivityRecreation() {
         composeRule.onNodeWithText("Decrypt").performClick()
         composeRule.onNodeWithTag(decryptShareURLInputTag)
-            .performTextReplacement("http://10.0.2.2:3000/p/file-abc#fragment")
+            .performTextReplacement("https://pastebin.sed.fyi/p/file-abc#fragment")
         composeRule.onNodeWithTag(decryptPasswordInputTag).performTextInput("StrongPass#2026")
         composeRule.onNodeWithTag(decryptSubmitButtonTag).assertIsEnabled()
 
@@ -149,7 +149,7 @@ class UploadDecryptUiCoverageTest {
     fun decryptMissingKeyFragmentShowsValidationError() {
         composeRule.onNodeWithText("Decrypt").performClick()
         composeRule.onNodeWithTag(decryptShareURLInputTag)
-            .performTextReplacement("http://10.0.2.2:3000/p/file-abc")
+            .performTextReplacement("https://pastebin.sed.fyi/p/file-abc")
         composeRule.onNodeWithTag(decryptPasswordInputTag).performTextInput("StrongPass#2026")
         composeRule.onNodeWithTag(decryptSubmitButtonTag).performClick()
 

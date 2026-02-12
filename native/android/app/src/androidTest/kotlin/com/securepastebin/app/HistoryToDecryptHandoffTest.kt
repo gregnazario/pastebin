@@ -42,7 +42,7 @@ class HistoryToDecryptHandoffTest {
     @Test
     fun historyOpenActionSwitchesToDecryptAndPrefillsShareUrl() {
         val entryID = "ui-handoff-entry"
-        val expectedShareURL = "http://10.0.2.2:3000/p/$entryID"
+        val expectedShareURL = "https://pastebin.sed.fyi/p/$entryID"
         runBlocking {
             historyStore.upsert(
                 HistoryEntry(

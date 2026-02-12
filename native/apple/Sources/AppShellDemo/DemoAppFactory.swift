@@ -13,7 +13,7 @@ public enum DemoAppFactory {
     /// Creates a fully wired host shell view for iOS/iPadOS/macOS demo targets.
     @MainActor
     public static func makeRootView(
-        apiBaseURL: URL = URL(string: "http://127.0.0.1:3000")!,
+        apiBaseURL: URL = URL(string: "https://pastebin.sed.fyi")!,
         shareBaseURL: URL? = nil,
         historyDefaults: UserDefaults = .standard
     ) -> some View {

@@ -13,7 +13,7 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - `:feature:upload`, `:feature:view`, `:feature:history`
 
 ## Running the App
-- Default API base is local emulator via `http://10.0.2.2:3000`.
+- Default API base is website production backend via `https://pastebin.sed.fyi`.
 - Runtime API settings are available in-app via `Settings`:
   - Presets: `Local`, `Staging`, `Production`
   - Manual API base URL override with validation

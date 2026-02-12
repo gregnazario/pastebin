@@ -4,7 +4,7 @@ import Foundation
 import SwiftUI
 
 struct DemoRootContainerView: View {
-    @AppStorage("secure_pastebin_demo_api_base_url") private var apiBaseURLString: String = "http://127.0.0.1:3000"
+    @AppStorage("secure_pastebin_demo_api_base_url") private var apiBaseURLString: String = "https://pastebin.sed.fyi"
     @State private var isSettingsPresented: Bool = false
     @State private var rebuildToken: Int = 0
 

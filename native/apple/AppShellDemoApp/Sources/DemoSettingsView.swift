@@ -59,7 +59,7 @@ struct DemoSettingsView: View {
         currentAPIBaseURLString: String,
         onApply: @escaping (String) -> Void
     ) {
-        let initialPreset = DemoEnvironmentPreset.matching(urlString: currentAPIBaseURLString) ?? .local
+        let initialPreset = DemoEnvironmentPreset.matching(urlString: currentAPIBaseURLString) ?? .production
         _selectedEnvironmentPreset = State(initialValue: initialPreset)
         _draftAPIBaseURLString = State(initialValue: currentAPIBaseURLString)
         self.onApply = onApply

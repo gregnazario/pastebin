@@ -38,7 +38,7 @@ struct AppShellDemoTests {
 struct HostRuntimeSettingsStateTests {
     @Test func applyingSettingsUpdatesURLAndIncrementsRebuildToken() {
         let initial = HostRuntimeSettingsState(
-            apiBaseURLString: "http://127.0.0.1:3000",
+            apiBaseURLString: "https://pastebin.sed.fyi",
             rebuildToken: 2
         )
 
@@ -52,7 +52,7 @@ struct HostRuntimeSettingsStateTests {
         let state = HostRuntimeSettingsState(apiBaseURLString: "invalid-url")
         let resolved = state.resolvedAPIBaseURL()
 
-        #expect(resolved.absoluteString == "http://127.0.0.1:3000")
+        #expect(resolved.absoluteString == "https://pastebin.sed.fyi")
     }
 }
 
@@ -60,7 +60,7 @@ struct HostRuntimeSettingsStateTests {
 struct DemoRootFlowStateTests {
     @Test func presentAndCancelSettingsTogglesSheetWithoutRebuild() {
         var state = DemoRootFlowState(
-            runtimeSettings: .init(apiBaseURLString: "http://127.0.0.1:3000", rebuildToken: 5),
+            runtimeSettings: .init(apiBaseURLString: "https://pastebin.sed.fyi", rebuildToken: 5),
             isSettingsPresented: false
         )
 
@@ -75,7 +75,7 @@ struct DemoRootFlowStateTests {
 
     @Test func applySettingsDismissesSheetAndIncrementsRebuildToken() {
         var state = DemoRootFlowState(
-            runtimeSettings: .init(apiBaseURLString: "http://127.0.0.1:3000", rebuildToken: 1),
+            runtimeSettings: .init(apiBaseURLString: "https://pastebin.sed.fyi", rebuildToken: 1),
             isSettingsPresented: true
         )
 

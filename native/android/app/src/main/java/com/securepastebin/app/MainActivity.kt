@@ -108,7 +108,7 @@ private data class DecryptPreviewBuild(
     val temporaryFile: File?,
 )
 
-private const val defaultApiBaseURL = "http://10.0.2.2:3000"
+private val defaultApiBaseURL = ApiBaseEnvironmentPreset.PRODUCTION.baseUrl
 private const val defaultDriveSyncFileName = "secure-pastebin-history-sync.json"
 private const val historyIncludeExpiredSwitchTestTag = "history-include-expired-switch"
 private const val apiSettingsOpenButtonTestTag = "api-settings-open-button"

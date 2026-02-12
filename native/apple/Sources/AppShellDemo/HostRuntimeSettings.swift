@@ -21,7 +21,7 @@ public struct HostRuntimeSettingsState: Equatable, Sendable {
 
     /// Resolves user-provided API base URL to a safe URL with fallback.
     public func resolvedAPIBaseURL(
-        fallback: URL = URL(string: "http://127.0.0.1:3000")!
+        fallback: URL = URL(string: "https://pastebin.sed.fyi")!
     ) -> URL {
         if let parsed = URL(string: apiBaseURLString), parsed.scheme != nil, parsed.host != nil {
             return parsed
