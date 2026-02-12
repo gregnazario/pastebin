@@ -6,7 +6,7 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 4/5 release hardening and store-readiness.
-- **Current Task**: Completed requested item pair, then continued with remote publication, Android CI release-lint enforcement, Android instrumentation CI gate, and instrumentation failure artifact capture.
+- **Current Task**: Completed requested item pair, then continued with remote publication, Android CI release-lint enforcement, Android instrumentation CI gate, instrumentation failure artifact capture, and Apple CI parity.
   - Item 1: branch-history purge of generated-artifact catch-all commit lineage.
   - Item 2: Android release lint-vital JVM compatibility fix for unexcluded `assembleRelease`.
 
@@ -60,6 +60,21 @@ This file maintains the current state of the project for smooth conversation han
 - ✅ Validation:
   - CI workflow YAML parse check passed.
   - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed.
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed.
+
+### Apple CI Parity Progress (2026-02-11, latest update)
+- ✅ Added plan/design docs:
+  - `plans/apple-ci-native-gate.md`
+  - `design-docs/apple-ci-native-gate.md`
+- ✅ Extended CI workflow with native Apple gate:
+  - `.github/workflows/ci.yml`
+  - new `apple-native` job on `macos-latest`:
+    - `swift test` in `native/apple`
+    - iOS simulator build via `xcodebuild` for `SecurePastebinDemoApp`
+- ✅ Validation:
+  - CI workflow YAML parse check passed.
+  - `swift test` passed (`33` tests).
+  - `xcodebuild` iOS simulator build passed (`** BUILD SUCCEEDED **`).
   - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed.
 
 ### Requested Items 1 + 2 Progress (2026-02-10, latest update)

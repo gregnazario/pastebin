@@ -13,6 +13,30 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-02-11
+**Continuation: Apple Native CI Parity**
+- **Prompt**: `"2"` (add Apple CI parity)
+- **Action**:
+  - Added plan + design docs:
+    - `plans/apple-ci-native-gate.md`
+    - `design-docs/apple-ci-native-gate.md`
+  - Extended CI workflow with `apple-native` job:
+    - `.github/workflows/ci.yml`
+    - runner: `macos-latest`
+    - `swift test` in `native/apple`
+    - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - Kept existing web and Android jobs unchanged.
+- **Commands Run**:
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `swift test` (in `native/apple`)
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - CI now has Apple-native parity with Swift package tests and iOS Simulator build validation.
+
 ### 2026-02-10
 **Continuation: Instrumentation Failure Artifact Uploads**
 - **Prompt**: "yes" (add CI artifact upload for Android instrumentation failures)
