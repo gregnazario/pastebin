@@ -6,7 +6,7 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Phase 4/5 release hardening and store-readiness.
-- **Current Task**: Completed requested item pair, then continued with remote publication, Android CI release-lint enforcement, and Android instrumentation CI gate.
+- **Current Task**: Completed requested item pair, then continued with remote publication, Android CI release-lint enforcement, Android instrumentation CI gate, and instrumentation failure artifact capture.
   - Item 1: branch-history purge of generated-artifact catch-all commit lineage.
   - Item 2: Android release lint-vital JVM compatibility fix for unexcluded `assembleRelease`.
 
@@ -45,6 +45,21 @@ This file maintains the current state of the project for smooth conversation han
 - ✅ Validation:
   - CI workflow YAML parse check passed.
   - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed locally.
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed.
+
+### Instrumentation Failure Artifact Progress (2026-02-10, latest update)
+- ✅ Added plan/design docs:
+  - `plans/android-instrumentation-failure-artifacts.md`
+  - `design-docs/android-instrumentation-failure-artifacts.md`
+- ✅ Updated CI workflow to upload diagnostics only on failure:
+  - `.github/workflows/ci.yml`
+  - `Upload Instrumentation Failure Artifacts` step:
+    - `if: failure()`
+    - `actions/upload-artifact@v4`
+    - captures connected test reports/results/additional output paths
+- ✅ Validation:
+  - CI workflow YAML parse check passed.
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed.
   - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed.
 
 ### Requested Items 1 + 2 Progress (2026-02-10, latest update)

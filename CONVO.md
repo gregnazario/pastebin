@@ -14,6 +14,32 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-10
+**Continuation: Instrumentation Failure Artifact Uploads**
+- **Prompt**: "yes" (add CI artifact upload for Android instrumentation failures)
+- **Action**:
+  - Added plan + design docs:
+    - `plans/android-instrumentation-failure-artifacts.md`
+    - `design-docs/android-instrumentation-failure-artifacts.md`
+  - Extended `android-instrumentation` CI job to upload failure artifacts:
+    - `.github/workflows/ci.yml`
+    - added `Upload Instrumentation Failure Artifacts` step using `actions/upload-artifact@v4`
+    - step is guarded by `if: failure()`
+    - uploads:
+      - `native/android/app/build/reports/androidTests/connected/**`
+      - `native/android/app/build/outputs/androidTest-results/connected/**`
+      - `native/android/app/build/outputs/connected_android_test_additional_output/**`
+  - Kept existing success-path behavior unchanged.
+- **Commands Run**:
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - Failed instrumentation CI runs now retain Android test diagnostics as downloadable artifacts.
+
+### 2026-02-10
 **Continuation: Android Instrumentation CI Gate**
 - **Prompt**: `"1"` (add Android instrumentation CI coverage)
 - **Action**:
