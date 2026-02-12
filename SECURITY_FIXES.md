@@ -4,6 +4,43 @@ This document tracks security issues and their fixes for the pastebin project.
 
 ---
 
+## [2026-02-12] Shared Backend Transport Hardening
+
+### Issue 1: Apple ATS policy was overly permissive
+- **Severity**: Medium
+- **Description**: iOS demo app used `NSAllowsArbitraryLoads=true`, which broadly permits non-HTTPS transport and weakens default ATS protections.
+- **Fix**:
+  - Removed `NSAllowsArbitraryLoads`.
+  - Kept `NSAllowsLocalNetworking=true` to preserve local development connectivity.
+- **File**:
+  - `native/apple/AppShellDemoApp/Support/Info.plist`
+
+### Issue 2: Android cleartext policy was not explicitly constrained by build type
+- **Severity**: Medium
+- **Description**: Android app did not define explicit network security config separating debug local cleartext use from release HTTPS-only behavior.
+- **Fix**:
+  - Added `android:networkSecurityConfig="@xml/network_security_config"` and `android:usesCleartextTraffic="false"` in manifest.
+  - Added debug policy allowing cleartext only for local hosts (`10.0.2.2`, `127.0.0.1`, `localhost`).
+  - Added release policy denying cleartext globally.
+- **Files**:
+  - `native/android/app/src/main/AndroidManifest.xml`
+  - `native/android/app/src/debug/res/xml/network_security_config.xml`
+  - `native/android/app/src/release/res/xml/network_security_config.xml`
+
+### Issue 3: Missing standardized client observability headers reduced incident traceability
+- **Severity**: Low
+- **Description**: Native requests lacked normalized optional client metadata, making cross-platform incident triage harder.
+- **Fix**:
+  - Added request headers on native API clients:
+    - `X-Client-Platform`
+    - `X-Client-Version`
+    - `X-Request-Id`
+  - Added API response `X-Request-Id` header on `/api/v1/*` responses.
+- **Files**:
+  - `native/android/core/network/src/main/kotlin/com/securepastebin/core/network/ApiClient.kt`
+  - `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - `src/server/apiV1.ts`
+
 ## [2026-02-06] Security Audit Fixes
 
 ### Issue 1: HKDF Using Zero-Filled Salt

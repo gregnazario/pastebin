@@ -4,6 +4,31 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-02-12] Shared Backend Audit Implementation Gaps
+
+### Issue 1: Initial smoke-check assumptions did not match live environment routing
+- **Context**: New shared-backend smoke checks targeted `https://pastebin.sed.fyi/api/v1/*` and `https://staging.pastebin.sed.fyi/api/v1/*`.
+- **Root Cause**: Assumed production/staging were already serving API v1 routes; smoke checks showed production `404` and staging connectivity failures.
+- **Fix**:
+  - Added explicit drift findings and `NO-GO` recommendation to:
+    - `design-docs/shared-backend-risk-audit-report-2026-02-12.md`
+  - Added continuous scheduled/manual smoke workflow:
+    - `.github/workflows/backend-smoke.yml`
+  - Added release-gate checklist rows for shared-backend parity.
+- **Result**: Environment parity issues are now continuously detected instead of implicitly assumed.
+
+### Issue 2: New Apple/Android header wiring introduced first-pass compile/test regressions
+- **Context**: During initial implementation, Apple default-argument visibility and Android unit-test/runtime assumptions failed validation.
+- **Root Cause**:
+  - Swift default argument referenced a private helper.
+  - Android unit test used APIs unavailable in the local JVM/android unit environment.
+  - Android app version header initially relied on unresolved `BuildConfig`.
+- **Fix**:
+  - Apple: switched `clientPlatform` default to `nil` and resolved platform inside initializer.
+  - Android tests: replaced network-call based assertion with reflective connection-header inspection.
+  - Android app: resolved version via `PackageManager` lookup with `"unknown"` fallback.
+- **Result**: `swift test`, `xcodebuild`, and Android unit/androidTest compile/package checks pass.
+
 ## [2026-02-10] Android Release Lint-Vital JVM Compatibility Failure
 
 ### Issue 1: `assembleRelease` failed in lint-vital under JVM 25
