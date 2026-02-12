@@ -187,3 +187,18 @@ jobs:
             native/android/app/build/reports/androidTests/connected/**
             native/android/app/build/outputs/androidTest-results/connected/**
             native/android/app/build/outputs/connected_android_test_additional_output/**
+
+  apple-native:
+    name: Apple Native
+    runs-on: macos-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Swift Package Tests
+        working-directory: native/apple
+        run: swift test
+
+      - name: iOS Simulator Build
+        run: xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build
