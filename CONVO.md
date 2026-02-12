@@ -13,6 +13,41 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-02-12
+**Shared Backend Default Across Web + Native**
+- **Prompt**: `"Can we set it up so that the backend for the native apps is the same backend for the regular website? So it doesn't have to be configured separately"`
+- **Action**:
+  - Added plan + design docs:
+    - `plans/native-shared-backend-default.md`
+    - `design-docs/native-shared-backend-default.md`
+  - Updated Android to default to production website backend:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+    - default now resolves to `ApiBaseEnvironmentPreset.PRODUCTION.baseUrl` (`https://pastebin.sed.fyi`)
+  - Updated Android instrumentation coverage expectations to production default URLs:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - Updated Apple runtime defaults/fallbacks to production website backend:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+    - `native/apple/Sources/AppShellDemo/HostRuntimeSettings.swift`
+    - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift` (preset fallback behavior)
+  - Updated Apple test expectations for production fallback/default:
+    - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - Updated native documentation:
+    - `native/apple/README.md`
+    - `native/android/README.md`
+- **Commands Run**:
+  - `swift test` (in `native/apple`)
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - Native Apple and Android now default to the same production backend as the web app (`https://pastebin.sed.fyi`) with local/staging presets still available as optional overrides.
+
 ### 2026-02-11
 **Continuation: Apple Native CI Parity**
 - **Prompt**: `"2"` (add Apple CI parity)

@@ -2,13 +2,40 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-02-10)
+## Current State (2026-02-12)
 
 ### Active Task
-- **Phase**: Phase 4/5 release hardening and store-readiness.
-- **Current Task**: Completed requested item pair, then continued with remote publication, Android CI release-lint enforcement, Android instrumentation CI gate, instrumentation failure artifact capture, and Apple CI parity.
-  - Item 1: branch-history purge of generated-artifact catch-all commit lineage.
-  - Item 2: Android release lint-vital JVM compatibility fix for unexcluded `assembleRelease`.
+- **Phase**: Cross-platform native parity hardening.
+- **Current Task**: Shared backend default alignment so Apple and Android native apps use the same backend as the web app by default.
+
+### Shared Backend Default Progress (2026-02-12, latest update)
+- ✅ Added planning/design docs:
+  - `plans/native-shared-backend-default.md`
+  - `design-docs/native-shared-backend-default.md`
+- ✅ Android defaults updated to production website backend:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - default API base now uses `ApiBaseEnvironmentPreset.PRODUCTION.baseUrl`
+- ✅ Android instrumentation expectations updated:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+- ✅ Apple defaults/fallbacks updated to production website backend:
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/Sources/AppShellDemo/HostRuntimeSettings.swift`
+  - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+  - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+- ✅ Apple tests updated:
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+- ✅ Native docs updated:
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- ✅ Validation:
+  - `swift test` passed (`33` tests).
+  - `xcodebuild ... SecurePastebinDemoApp ... iOS Simulator` build passed.
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed.
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed.
+- ✅ Result:
+  - Native and web now share the same production backend default (`https://pastebin.sed.fyi`) without separate configuration.
 
 ### Continuation Progress (2026-02-10, latest update)
 - ✅ Published `mobile` branch to remote:
