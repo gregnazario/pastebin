@@ -40,6 +40,29 @@ describe('handleApiV1Request routing', () => {
     expect(response?.status).toBe(405)
   })
 
+  it('returns capabilities payload for GET /api/v1/capabilities', async () => {
+    const request = new Request('https://example.com/api/v1/capabilities', { method: 'GET' })
+    const response = await handleApiV1Request(request)
+    expect(response?.status).toBe(200)
+    expect(response?.headers.get('x-request-id')).toBeTruthy()
+
+    const payload = await response?.json()
+    expect(payload).toMatchObject({
+      apiVersion: expect.any(String),
+      maxUploadBytes: expect.any(Number),
+      maxFilenameLength: expect.any(Number),
+      rateLimitWindowMs: expect.any(Number),
+      maxUploadsPerWindow: expect.any(Number),
+      maxDownloadsPerWindow: expect.any(Number),
+    })
+  })
+
+  it('returns 405 for POST /api/v1/capabilities', async () => {
+    const request = new Request('https://example.com/api/v1/capabilities', { method: 'POST' })
+    const response = await handleApiV1Request(request)
+    expect(response?.status).toBe(405)
+  })
+
   it('returns 405 for GET /api/v1/upload', async () => {
     const request = new Request('https://example.com/api/v1/upload', { method: 'GET' })
     const response = await handleApiV1Request(request)

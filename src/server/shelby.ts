@@ -34,20 +34,23 @@ import { createServerFn } from '@tanstack/react-start'
 // Constants
 // ============================================================================
 
+/** API version exposed by `/api/v1/*` endpoints. */
+export const API_V1_VERSION = '1.1.0'
+
 /** Maximum upload size in bytes (100MB) */
-const MAX_UPLOAD_SIZE = 100 * 1024 * 1024
+export const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024
 
 /** Maximum filename length */
-const MAX_FILENAME_LENGTH = 255
+export const MAX_FILENAME_LENGTH = 255
 
 /** Rate limit window in milliseconds (1 hour) */
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
+export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
 
 /** Maximum uploads per IP per window */
-const MAX_UPLOADS_PER_WINDOW = 50
+export const MAX_UPLOADS_PER_WINDOW = 50
 
 /** Maximum downloads per IP per window */
-const MAX_DOWNLOADS_PER_WINDOW = 200
+export const MAX_DOWNLOADS_PER_WINDOW = 200
 
 // ============================================================================
 // Rate Limiting (Simple in-memory implementation)
@@ -262,6 +265,16 @@ export interface ShelbyHealthResponse {
   account: string | null
 }
 
+/** Capabilities response for `/api/v1/capabilities`. */
+export interface ShelbyCapabilitiesResponse {
+  apiVersion: string
+  maxUploadBytes: number
+  maxFilenameLength: number
+  rateLimitWindowMs: number
+  maxUploadsPerWindow: number
+  maxDownloadsPerWindow: number
+}
+
 let validatedConfig: ServerConfig | null = null
 
 /**
@@ -376,8 +389,8 @@ export function validateUploadBlobRequest(d: unknown): UploadBlobRequest {
     throw new Error('Invalid request: data cannot be empty')
   }
 
-  if (input.data.length > MAX_UPLOAD_SIZE) {
-    throw new Error(`Invalid request: data exceeds maximum size of ${MAX_UPLOAD_SIZE} bytes`)
+  if (input.data.length > MAX_UPLOAD_SIZE_BYTES) {
+    throw new Error(`Invalid request: data exceeds maximum size of ${MAX_UPLOAD_SIZE_BYTES} bytes`)
   }
 
   // Validate all array elements are numbers (bytes)
@@ -583,6 +596,20 @@ export async function checkHealthInternal(): Promise<ShelbyHealthResponse> {
       configured: false,
       account: null,
     }
+  }
+}
+
+/**
+ * Internal capabilities response shared by REST and potential future server functions.
+ */
+export function getCapabilitiesInternal(): ShelbyCapabilitiesResponse {
+  return {
+    apiVersion: API_V1_VERSION,
+    maxUploadBytes: MAX_UPLOAD_SIZE_BYTES,
+    maxFilenameLength: MAX_FILENAME_LENGTH,
+    rateLimitWindowMs: RATE_LIMIT_WINDOW_MS,
+    maxUploadsPerWindow: MAX_UPLOADS_PER_WINDOW,
+    maxDownloadsPerWindow: MAX_DOWNLOADS_PER_WINDOW,
   }
 }
 

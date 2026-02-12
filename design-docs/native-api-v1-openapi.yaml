@@ -4,7 +4,7 @@
 openapi: 3.1.0
 info:
   title: Secure Pastebin Native API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     Versioned REST API for native Swift and Kotlin clients.
 servers:
@@ -13,6 +13,17 @@ servers:
   - url: http://localhost:3000
     description: Local development
 paths:
+  /api/v1/capabilities:
+    get:
+      summary: API version and server capability limits for client drift detection
+      operationId: getCapabilities
+      responses:
+        '200':
+          description: Capability payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilitiesResponse'
   /api/v1/health:
     get:
       summary: Service health and Shelby configuration status
@@ -115,6 +126,28 @@ components:
           type: string
           nullable: true
       required: [configured, account]
+    CapabilitiesResponse:
+      type: object
+      properties:
+        apiVersion:
+          type: string
+        maxUploadBytes:
+          type: integer
+        maxFilenameLength:
+          type: integer
+        rateLimitWindowMs:
+          type: integer
+        maxUploadsPerWindow:
+          type: integer
+        maxDownloadsPerWindow:
+          type: integer
+      required:
+        - apiVersion
+        - maxUploadBytes
+        - maxFilenameLength
+        - rateLimitWindowMs
+        - maxUploadsPerWindow
+        - maxDownloadsPerWindow
     UploadRequest:
       type: object
       properties:

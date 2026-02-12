@@ -11,6 +11,7 @@
 import {
   checkHealthInternal,
   downloadBlobInternal,
+  getCapabilitiesInternal,
   validateDownloadBlobRequest,
   validateUploadBlobRequest,
   uploadBlobInternal,
@@ -36,14 +37,41 @@ export function mapApiErrorStatus(error: unknown): number {
 /**
  * Build a JSON response with standard headers.
  */
-function jsonResponse(data: unknown, status: number = 200, extraHeaders?: HeadersInit): Response {
+function jsonResponse(
+  data: unknown,
+  status: number = 200,
+  extraHeaders?: HeadersInit,
+  requestId?: string,
+): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
+      ...(requestId ? { 'X-Request-Id': requestId } : {}),
       ...extraHeaders,
     },
   })
+}
+
+interface APIRequestContext {
+  requestId: string
+  clientPlatform: string
+  clientVersion: string
+}
+
+/**
+ * Normalize optional observability headers from clients.
+ */
+function extractRequestContext(request: Request): APIRequestContext {
+  const requestIdHeader = request.headers.get('x-request-id')?.trim()
+  const platformHeader = request.headers.get('x-client-platform')?.trim()
+  const versionHeader = request.headers.get('x-client-version')?.trim()
+
+  return {
+    requestId: requestIdHeader || crypto.randomUUID(),
+    clientPlatform: platformHeader?.slice(0, 64) || 'unknown',
+    clientVersion: versionHeader?.slice(0, 64) || 'unknown',
+  }
 }
 
 /**
@@ -67,6 +95,7 @@ function extractDownloadId(url: URL): string | null {
  */
 export async function handleApiV1Request(request: Request): Promise<Response | null> {
   const url = new URL(request.url)
+  const context = extractRequestContext(request)
 
   if (!(url.pathname === API_V1_PREFIX || url.pathname.startsWith(`${API_V1_PREFIX}/`))) {
     return null
@@ -76,17 +105,27 @@ export async function handleApiV1Request(request: Request): Promise<Response | n
     // Health endpoint
     if (url.pathname === `${API_V1_PREFIX}/health`) {
       if (request.method !== 'GET') {
-        return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'GET' })
+        return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'GET' }, context.requestId)
       }
 
       const health = await checkHealthInternal()
-      return jsonResponse(health, 200)
+      return jsonResponse(health, 200, undefined, context.requestId)
+    }
+
+    // Capabilities endpoint
+    if (url.pathname === `${API_V1_PREFIX}/capabilities`) {
+      if (request.method !== 'GET') {
+        return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'GET' }, context.requestId)
+      }
+
+      const capabilities = getCapabilitiesInternal()
+      return jsonResponse(capabilities, 200, undefined, context.requestId)
     }
 
     // Upload endpoint
     if (url.pathname === `${API_V1_PREFIX}/upload`) {
       if (request.method !== 'POST') {
-        return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'POST' })
+        return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'POST' }, context.requestId)
       }
 
       const json = await request.json().catch(() => {
@@ -94,7 +133,7 @@ export async function handleApiV1Request(request: Request): Promise<Response | n
       })
       const input = validateUploadBlobRequest(json)
       const result = await uploadBlobInternal(input, request.headers)
-      return jsonResponse(result, 200)
+      return jsonResponse(result, 200, undefined, context.requestId)
     }
 
     // Download endpoint
@@ -103,16 +142,16 @@ export async function handleApiV1Request(request: Request): Promise<Response | n
       url.pathname.startsWith(`${API_V1_PREFIX}/download/`)
     ) {
       if (request.method !== 'GET') {
-        return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'GET' })
+        return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'GET' }, context.requestId)
       }
 
       const id = extractDownloadId(url)
       const input = validateDownloadBlobRequest({ id })
       const result = await downloadBlobInternal(input, request.headers)
-      return jsonResponse(result, 200)
+      return jsonResponse(result, 200, undefined, context.requestId)
     }
 
-    return jsonResponse({ error: 'Not found' }, 404)
+    return jsonResponse({ error: 'Not found' }, 404, undefined, context.requestId)
   } catch (error) {
     const status = mapApiErrorStatus(error)
     const message =
@@ -120,6 +159,6 @@ export async function handleApiV1Request(request: Request): Promise<Response | n
         ? error.message
         : 'Internal server error'
 
-    return jsonResponse({ error: message }, status)
+    return jsonResponse({ error: message }, status, undefined, context.requestId)
   }
 }
