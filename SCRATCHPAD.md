@@ -6,7 +6,61 @@ This file maintains the current state of the project for smooth conversation han
 
 ### Active Task
 - **Phase**: Cross-platform native parity hardening.
-- **Current Task**: Shared backend default alignment so Apple and Android native apps use the same backend as the web app by default.
+- **Current Task**: Shared backend risk discovery + hardening implementation with continuous CI/release gates.
+
+### Shared Backend Risk Audit + Hardening Progress (2026-02-12, latest update)
+- ✅ Added implementation plan/design/audit docs:
+  - `plans/shared-backend-risk-audit-and-hardening.md`
+  - `design-docs/shared-backend-risk-audit-and-hardening.md`
+  - `design-docs/shared-backend-risk-audit-report-2026-02-12.md`
+- ✅ Added additive API endpoint and contract update:
+  - `src/server/apiV1.ts` now serves `GET /api/v1/capabilities`.
+  - `src/server/shelby.ts` exposes capability payload constants for API v1.
+  - `design-docs/native-api-v1-openapi.yaml` bumped to `1.1.0` with capabilities schema.
+- ✅ Added API traceability and native observability headers:
+  - API v1 responses now include `X-Request-Id`.
+  - Android + Apple clients emit:
+    - `X-Client-Platform`
+    - `X-Client-Version`
+    - `X-Request-Id`
+- ✅ Hardened transport policies:
+  - Android:
+    - `native/android/app/src/main/AndroidManifest.xml`
+    - `native/android/app/src/debug/res/xml/network_security_config.xml`
+    - `native/android/app/src/release/res/xml/network_security_config.xml`
+  - Apple:
+    - `native/apple/AppShellDemoApp/Support/Info.plist` now uses `NSAllowsLocalNetworking` instead of broad arbitrary loads.
+- ✅ Added automated checks and CI gates:
+  - scripts:
+    - `scripts/check-api-v1-contract.ts`
+    - `scripts/backend-smoke-check.ts`
+  - package scripts:
+    - `check:api-contract`
+    - `check:backend-smoke`
+  - workflows:
+    - PR contract gate in `.github/workflows/ci.yml`
+    - scheduled/manual smoke gate in `.github/workflows/backend-smoke.yml`
+- ✅ Added/updated tests:
+  - `src/server/apiV1.test.ts`
+  - `native/apple/Tests/CoreNetworkingTests/CoreNetworkingTests.swift`
+  - `native/android/core/network/src/test/kotlin/com/securepastebin/core/network/HttpApiClientTest.kt`
+- ✅ Updated release/security/mistake tracking:
+  - `native/release/release-gate-checklist.md`
+  - `SECURITY_FIXES.md`
+  - `MISTAKE_FIXES.md`
+- ✅ Validation status:
+  - `bun run check:api-contract` passed.
+  - `bun run lint`, `bun run typecheck`, `bun test`, `bun run build` passed.
+  - `swift test` passed (`34` tests).
+  - `xcodebuild ... SecurePastebinDemoApp ... iOS Simulator` passed.
+  - `gradle :core:network:testDebugUnitTest :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` passed.
+  - `bun run check:backend-smoke` failed with environment drift findings:
+    - `https://pastebin.sed.fyi/api/v1/health` -> `404`
+    - `https://pastebin.sed.fyi/api/v1/capabilities` -> `404`
+    - `https://staging.pastebin.sed.fyi` unreachable
+- ⚠️ Current gating outcome:
+  - Local implementation checks are green.
+  - Shared-backend rollout status is `NO-GO` until production/staging endpoint parity is fixed.
 
 ### Shared Backend Default Progress (2026-02-12, latest update)
 - ✅ Added planning/design docs:

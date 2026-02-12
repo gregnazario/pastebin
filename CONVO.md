@@ -14,6 +14,67 @@ Each entry should include:
 ## Conversation History
 
 ### 2026-02-12
+**Implementation: Shared Backend Risk Audit + Hardening**
+- **Prompt**: `"PLEASE IMPLEMENT THIS PLAN: Shared Backend Risk Discovery And Hardening Plan (Web + Native)"`
+- **Action**:
+  - Added new execution/design/audit documents:
+    - `plans/shared-backend-risk-audit-and-hardening.md`
+    - `design-docs/shared-backend-risk-audit-and-hardening.md`
+    - `design-docs/shared-backend-risk-audit-report-2026-02-12.md`
+  - Added additive API v1 endpoint + capabilities payload:
+    - `GET /api/v1/capabilities`
+    - implemented in `src/server/apiV1.ts` + `src/server/shelby.ts`
+    - documented in `design-docs/native-api-v1-openapi.yaml` (v1.1.0)
+  - Added API response traceability:
+    - `X-Request-Id` on API v1 responses.
+  - Standardized native optional request observability headers:
+    - `X-Client-Platform`, `X-Client-Version`, `X-Request-Id`
+    - Android: `native/android/core/network/src/main/kotlin/com/securepastebin/core/network/ApiClient.kt`
+    - Apple: `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - Hardened native transport policy:
+    - Android debug/release cleartext split via network security config:
+      - `native/android/app/src/debug/res/xml/network_security_config.xml`
+      - `native/android/app/src/release/res/xml/network_security_config.xml`
+      - `native/android/app/src/main/AndroidManifest.xml`
+    - Apple ATS tightened (removed arbitrary loads):
+      - `native/apple/AppShellDemoApp/Support/Info.plist`
+  - Added regression tests for new behavior:
+    - `src/server/apiV1.test.ts` (capabilities + request-id)
+    - `native/apple/Tests/CoreNetworkingTests/CoreNetworkingTests.swift` (header emission)
+    - `native/android/core/network/src/test/kotlin/com/securepastebin/core/network/HttpApiClientTest.kt` (header emission)
+  - Added continuous gates:
+    - PR contract gate in `.github/workflows/ci.yml` (`bun run check:api-contract`)
+    - scheduled/manual backend smoke workflow:
+      - `.github/workflows/backend-smoke.yml`
+      - `bun run check:backend-smoke`
+  - Added scripts:
+    - `scripts/check-api-v1-contract.ts`
+    - `scripts/backend-smoke-check.ts`
+    - package scripts in `package.json`
+  - Updated release/security/mistake documentation:
+    - `native/release/release-gate-checklist.md`
+    - `SECURITY_FIXES.md`
+    - `MISTAKE_FIXES.md`
+    - `native/apple/README.md`
+    - `native/android/README.md`
+- **Commands Run**:
+  - `bun run check:api-contract`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+  - `swift test` (in `native/apple`)
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :core:network:testDebugUnitTest :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `bun run check:backend-smoke`
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/backend-smoke.yml")'`
+- **Outcome**:
+  - Local contract/hardening implementation is complete.
+  - Continuous contract/smoke gate automation is in place.
+  - Live smoke checks currently fail (`production /api/v1/*` returns 404, staging unreachable), and the report marks rollout status as `NO-GO` pending environment parity fixes.
+
+### 2026-02-12
 **Shared Backend Default Across Web + Native**
 - **Prompt**: `"Can we set it up so that the backend for the native apps is the same backend for the regular website? So it doesn't have to be configured separately"`
 - **Action**:
