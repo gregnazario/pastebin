@@ -32,6 +32,7 @@ struct CoreNetworkingTests {
 
         _ = try await client.health()
         let request = try #require(HeaderCaptureURLProtocol.lastRequest)
+        #expect(request.value(forHTTPHeaderField: "Accept") == "*/*")
         #expect(request.value(forHTTPHeaderField: "X-Client-Platform") == "ios")
         #expect(request.value(forHTTPHeaderField: "X-Client-Version") == "0.1.0-test")
         #expect(request.value(forHTTPHeaderField: "X-Request-Id") == "request-id-123")

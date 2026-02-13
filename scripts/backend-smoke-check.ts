@@ -75,6 +75,7 @@ async function runCheck(baseUrl: string, endpoint: string): Promise<EndpointResu
     const response = await fetch(`${baseUrl}${endpoint}`, {
       method: 'GET',
       headers: {
+        Accept: 'application/json',
         'X-Client-Platform': 'web',
         'X-Client-Version': 'smoke-check',
         'X-Request-Id': requestId,

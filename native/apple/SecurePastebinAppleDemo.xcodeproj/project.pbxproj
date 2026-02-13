@@ -8,18 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		676B9765B04D27AE93B512B0 /* DemoRootContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F69F6E40480230F8C94931 /* DemoRootContainerView.swift */; };
+		8FF4C3F724EC9D09658EDFB9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F4E415329A92A44435A3BBA /* Assets.xcassets */; };
 		A8C351934312929A5535C989 /* DemoSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */; };
 		C7F9D78F5C3D307C087B53E8 /* SecurePastebinDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */; };
 		DBB3FAB1DD70B0FF966F0C92 /* AppShellDemo in Frameworks */ = {isa = PBXBuildFile; productRef = 9DA83F00A2C5A1F74FF9AFE2 /* AppShellDemo */; };
-		F4E0D10297F539489AC2A432 /* pastebin-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 8C3585C273A9B507BB4F097B /* pastebin-logo.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSettingsView.swift; sourceTree = "<group>"; };
 		2FBD9AFC8CB77B51AED53E04 /* SecurePastebinDemoApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SecurePastebinDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F69F6E40480230F8C94931 /* DemoRootContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoRootContainerView.swift; sourceTree = "<group>"; };
-		8C3585C273A9B507BB4F097B /* pastebin-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pastebin-logo.png"; sourceTree = "<group>"; };
 		9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurePastebinDemoApp.swift; sourceTree = "<group>"; };
+		9F4E415329A92A44435A3BBA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A7E0A77D256D03A0A301987E /* apple */ = {isa = PBXFileReference; lastKnownFileType = folder; name = apple; path = .; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -35,14 +35,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1E49BBA2E6943A3B53E2BEA0 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				8C3585C273A9B507BB4F097B /* pastebin-logo.png */,
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
 		6192261BC358C26B05E854E5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -62,6 +54,7 @@
 		D9323B04BBC8839202150111 = {
 			isa = PBXGroup;
 			children = (
+				9F4E415329A92A44435A3BBA /* Assets.xcassets */,
 				9BA572B952CA1FF39B137B99 /* Packages */,
 				F69A7E7D589C0D23392EDB49 /* Sources */,
 				6192261BC358C26B05E854E5 /* Products */,
@@ -74,7 +67,6 @@
 				64F69F6E40480230F8C94931 /* DemoRootContainerView.swift */,
 				239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */,
 				9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */,
-				1E49BBA2E6943A3B53E2BEA0 /* Resources */,
 			);
 			name = Sources;
 			path = AppShellDemoApp/Sources;
@@ -146,7 +138,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F4E0D10297F539489AC2A432 /* pastebin-logo.png in Resources */,
+				8FF4C3F724EC9D09658EDFB9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,7 +161,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nSOURCE_LOGO=\"${SRCROOT}/../../public/logo192.png\"\nTARGET_LOGO=\"${SRCROOT}/AppShellDemoApp/Sources/Resources/pastebin-logo.png\"\n\nif [ ! -f \"${SOURCE_LOGO}\" ]; then\n  echo \"Missing source logo at ${SOURCE_LOGO}\" >&2\n  exit 1\nfi\n\nmkdir -p \"$(dirname \"${TARGET_LOGO}\")\"\ncp \"${SOURCE_LOGO}\" \"${TARGET_LOGO}\"\n";
+			shellScript = "set -euo pipefail\nSOURCE_LOGO=\"${SRCROOT}/../../public/logo512.png\"\nTARGET_LOGO=\"${SRCROOT}/Assets.xcassets/pastebin-logo.imageset/pastebin-logo.png\"\n\nif [ ! -f \"${SOURCE_LOGO}\" ]; then\n  echo \"Missing source logo at ${SOURCE_LOGO}\" >&2\n  exit 1\nfi\n\nmkdir -p \"$(dirname \"${TARGET_LOGO}\")\"\ncp \"${SOURCE_LOGO}\" \"${TARGET_LOGO}\"\n\nAPP_ICON_SET_DIR=\"${SRCROOT}/Assets.xcassets/AppIcon.appiconset\"\nmkdir -p \"${APP_ICON_SET_DIR}\"\n\ncreate_icon() {\n  local filename=\"$1\"\n  local pixels=\"$2\"\n  sips -s format png -z \"${pixels}\" \"${pixels}\" \"${SOURCE_LOGO}\" --out \"${APP_ICON_SET_DIR}/${filename}\" >/dev/null\n}\n\ncreate_icon \"Icon-App-20x20@2x.png\" 40\ncreate_icon \"Icon-App-20x20@3x.png\" 60\ncreate_icon \"Icon-App-29x29@2x.png\" 58\ncreate_icon \"Icon-App-29x29@3x.png\" 87\ncreate_icon \"Icon-App-40x40@2x.png\" 80\ncreate_icon \"Icon-App-40x40@3x.png\" 120\ncreate_icon \"Icon-App-60x60@2x.png\" 120\ncreate_icon \"Icon-App-60x60@3x.png\" 180\ncreate_icon \"Icon-App-20x20@1x~ipad.png\" 20\ncreate_icon \"Icon-App-20x20@2x~ipad.png\" 40\ncreate_icon \"Icon-App-29x29@1x~ipad.png\" 29\ncreate_icon \"Icon-App-29x29@2x~ipad.png\" 58\ncreate_icon \"Icon-App-40x40@1x~ipad.png\" 40\ncreate_icon \"Icon-App-40x40@2x~ipad.png\" 80\ncreate_icon \"Icon-App-76x76@1x~ipad.png\" 76\ncreate_icon \"Icon-App-76x76@2x~ipad.png\" 152\ncreate_icon \"Icon-App-83.5x83.5@2x~ipad.png\" 167\ncreate_icon \"Icon-App-1024x1024@1x.png\" 1024\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

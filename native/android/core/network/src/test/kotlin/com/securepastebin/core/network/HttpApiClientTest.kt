@@ -26,6 +26,7 @@ class HttpApiClientTest {
         openConnection.isAccessible = true
         val connection = openConnection.invoke(client, "/api/v1/health", "GET") as java.net.HttpURLConnection
 
+        assertEquals("*/*", connection.getRequestProperty("Accept"))
         assertEquals("android", connection.getRequestProperty("X-Client-Platform"))
         assertEquals("0.1.0-test", connection.getRequestProperty("X-Client-Version"))
         assertEquals("request-id-123", connection.getRequestProperty("X-Request-Id"))

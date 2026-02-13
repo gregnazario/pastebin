@@ -1534,3 +1534,31 @@ Each entry should include:
 - **Outcome**:
   - Invalid API base values are now blocked and normalized consistently.
   - Existing invalid values fall back safely to production root URL behavior.
+
+### 2026-02-13
+**Apple App Icon Asset Catalog Fix**
+- **Prompt**: "AppIcon wasn't working because of a missing Assets file, can we fix it now that we have that"
+- **Root Cause**:
+  - Apple app target was bundling loose PNG resources (`AppIcon`/`pastebin-logo.png`) instead of compiling `Assets.xcassets` into `Assets.car`.
+  - `ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon` was set, but `Assets.xcassets` was not in target resources.
+- **Action**:
+  - Added `Assets.xcassets` to iOS target sources/resources via XcodeGen spec:
+    - `native/apple/project.yml`
+    - regenerated `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+  - Added proper app icon catalog set:
+    - `native/apple/Assets.xcassets/AppIcon.appiconset/*`
+    - `native/apple/Assets.xcassets/AppIcon.appiconset/Contents.json`
+  - Removed legacy loose resource logo file:
+    - deleted `native/apple/AppShellDemoApp/Sources/Resources/pastebin-logo.png`
+  - Updated Apple logo sync path and docs:
+    - `scripts/sync-native-logo.ts`
+    - `native/apple/README.md`
+  - Updated pre-build script to copy logo to assets catalog and generate app icon sizes from `public/logo512.png`.
+- **Commands Used**:
+  - `xcodegen generate --spec project.yml`
+  - `bun run sync:logo:native`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `swift test`
+- **Outcome**:
+  - `Assets.car` and AppIcon assets are now emitted in app bundle.
+  - Info.plist now includes generated `CFBundleIcons`/`CFBundleIconName=AppIcon` entries.

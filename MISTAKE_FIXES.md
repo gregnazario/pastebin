@@ -120,6 +120,22 @@ This document tracks implementation mistakes discovered during development and t
     - `gradle :app:connectedDebugAndroidTest`
 - **Result**: Instrumentation suite passes with stable assertions (`13/13` tests).
 
+## [2026-02-13] Apple App Icon Packaging Misconfiguration
+
+### Issue 1: App icon not resolving because assets catalog was not compiled into target
+- **Context**: Apple app icon did not appear correctly on device/simulator despite `ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon`.
+- **Root Cause**:
+  - Project was including loose PNG resources (e.g., `AppIcon`) instead of compiling `Assets.xcassets`.
+  - `AppIcon.imageset` was used instead of a proper `AppIcon.appiconset`.
+- **Fix**:
+  - Included `Assets.xcassets` in iOS target resources via `native/apple/project.yml` and regenerated pbxproj.
+  - Added proper `AppIcon.appiconset` entries and generated icon files for iPhone/iPad/marketing slots.
+  - Removed legacy loose logo/app icon resource path usage and switched logo sync to `Assets.xcassets`.
+  - Updated Apple pre-build script to generate icon size variants from `public/logo512.png`.
+- **Result**:
+  - Build emits `Assets.car` and app icon files into `.app` bundle.
+  - `Info.plist` now contains `CFBundleIcons` entries with `CFBundleIconName = AppIcon`.
+
 ## [2026-02-08] Android Picker Edge Instrumentation Visibility Assertion Flake
 
 ### Issue 1: Invalid-authority picker tests failed on `assertIsDisplayed`
