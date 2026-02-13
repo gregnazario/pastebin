@@ -137,7 +137,8 @@ class HttpApiClient(
             requestMethod = method
             connectTimeout = connectTimeoutMs
             readTimeout = readTimeoutMs
-            setRequestProperty("Accept", "application/json")
+            // Use a broad accept header to avoid HTML-only route gates on some SSR runtimes.
+            setRequestProperty("Accept", "*/*")
             setRequestProperty("X-Client-Platform", clientPlatform)
             setRequestProperty("X-Client-Version", clientVersion)
             setRequestProperty("X-Request-Id", requestIdProvider())

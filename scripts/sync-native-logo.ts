@@ -8,19 +8,21 @@ import { dirname, resolve } from 'node:path'
 
 type LogoSyncTarget = {
   label: string
+  sourcePath: string
   path: string
 }
-
-const sourceLogoPath = resolve(process.cwd(), 'public/logo192.png')
 
 const logoTargets: LogoSyncTarget[] = [
   {
     label: 'android',
+    sourcePath: resolve(process.cwd(), 'public/logo192.png'),
     path: resolve(process.cwd(), 'native/android/app/src/main/res/drawable/pastebin_logo.png'),
   },
   {
     label: 'apple',
-    path: resolve(process.cwd(), 'native/apple/AppShellDemoApp/Sources/Resources/pastebin-logo.png'),
+    sourcePath: resolve(process.cwd(), 'public/logo512.png'),
+    // iOS app icon variants are generated from this source in the Xcode pre-build phase.
+    path: resolve(process.cwd(), 'native/apple/Assets.xcassets/pastebin-logo.imageset/pastebin-logo.png'),
   },
 ]
 
@@ -30,17 +32,16 @@ function ensureSourceExists(path: string): void {
   }
 }
 
-function copyLogoToTarget(sourcePath: string, target: LogoSyncTarget): void {
+function copyLogoToTarget(target: LogoSyncTarget): void {
+  ensureSourceExists(target.sourcePath)
   mkdirSync(dirname(target.path), { recursive: true })
-  copyFileSync(sourcePath, target.path)
+  copyFileSync(target.sourcePath, target.path)
   console.log(`Synced logo to ${target.label}: ${target.path}`)
 }
 
 function run(): void {
-  ensureSourceExists(sourceLogoPath)
-
   for (const target of logoTargets) {
-    copyLogoToTarget(sourceLogoPath, target)
+    copyLogoToTarget(target)
   }
 
   console.log('Native logo sync complete.')

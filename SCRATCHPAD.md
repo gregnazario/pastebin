@@ -1235,3 +1235,29 @@ bun run typecheck # Type checking
 ### Current State
 - Upload commitment generation no longer requires Node `Buffer`.
 - Shelby SDK usage is aligned with browser/backend runtime boundaries in the server module.
+## 2026-02-13 - Apple App Icon Asset Catalog Wiring
+
+### Completed This Session
+- Restored Xcode project generation/use at:
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj`
+- Added iOS target asset catalog resource wiring:
+  - `Assets.xcassets` now included in iOS target resources (via `project.yml` + regenerated pbxproj).
+- Added full `AppIcon.appiconset` with required iPhone/iPad/marketing icon slots:
+  - `native/apple/Assets.xcassets/AppIcon.appiconset/*`
+- Updated Apple pre-build logo/icon generation:
+  - copies from `public/logo512.png` to `pastebin-logo.imageset`
+  - generates app icon size variants with `sips`
+- Removed legacy loose logo resource:
+  - `native/apple/AppShellDemoApp/Sources/Resources/pastebin-logo.png`
+- Updated logo sync script and Apple README to match assets-catalog flow.
+
+### Validation Status
+- `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build` => pass
+- `swift test` => pass
+- Verified generated app bundle contains:
+  - `Assets.car`
+  - app icon files (`AppIcon60x60@2x.png`, `AppIcon76x76@2x~ipad.png`)
+  - Info.plist icon keys (`CFBundleIcons` with `CFBundleIconName = AppIcon`)
+
+### Current State
+- Apple app icon now resolves from compiled asset catalog and is no longer dependent on loose PNG resource files.

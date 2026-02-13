@@ -156,7 +156,8 @@ public final class URLSessionAPIClient: APIClient {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.timeoutInterval = configuration.timeoutSeconds
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        // Use a broad accept header to avoid HTML-only route gates on some SSR runtimes.
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
         request.setValue(clientPlatform, forHTTPHeaderField: "X-Client-Platform")
         request.setValue(clientVersion, forHTTPHeaderField: "X-Client-Version")
         request.setValue(requestIDProvider(), forHTTPHeaderField: "X-Request-Id")

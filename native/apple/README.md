@@ -89,11 +89,13 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
 
 ## Branding
 - Pastebin logo bundle asset:
-  - `AppShellDemoApp/Sources/Resources/pastebin-logo.png`
+  - `Assets.xcassets/pastebin-logo.imageset/pastebin-logo.png`
+- Pastebin app icon asset catalog:
+  - `Assets.xcassets/AppIcon.appiconset/*`
 - App shell rendering:
   - `AppShellDemoApp/Sources/DemoRootContainerView.swift`
 - Logo sync behavior:
-  - Apple build pre-script copies from `public/logo192.png`.
+  - Apple build pre-script copies from `public/logo512.png` and generates all iOS app-icon sizes.
   - Manual sync command from repo root: `bun run sync:logo:native`
 
 ## Security Note

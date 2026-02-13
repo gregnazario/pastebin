@@ -114,31 +114,46 @@ const SECURITY_HEADERS: Record<string, string> = {
 }
 
 /**
- * Custom handler that adds security headers to all responses
+ * Applies project-wide security headers while preserving existing response headers.
  */
-const securityHeadersHandler = defineHandlerCallback(async (ctx) => {
-  // Handle versioned API requests before SSR routing.
-  // This provides stable native-client contracts independent of route rendering.
-  const apiResponse = await handleApiV1Request(ctx.request)
-  const response = apiResponse ?? (await defaultStreamHandler(ctx))
-
-  // Clone headers from original response
+function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers)
 
-  // Add security headers
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
     headers.set(key, value)
   }
 
-  // Return new response with security headers
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers,
   })
+}
+
+/**
+ * Custom handler that renders SSR routes and applies security headers.
+ */
+const securityHeadersHandler = defineHandlerCallback(async (ctx) => {
+  const response = await defaultStreamHandler(ctx)
+  return withSecurityHeaders(response)
 })
 
-const fetch = createStartHandler(securityHeadersHandler)
+const startFetch = createStartHandler(securityHeadersHandler)
+
+/**
+ * Entry fetch wrapper that short-circuits versioned API routes before TanStack SSR routing.
+ *
+ * This avoids TanStack's HTML accept-header gate for non-HTML API clients while preserving
+ * the existing SSR handler behavior for web routes.
+ */
+const fetch = async (request: Request): Promise<Response> => {
+  const apiResponse = await handleApiV1Request(request)
+  if (apiResponse) {
+    return withSecurityHeaders(apiResponse)
+  }
+
+  return startFetch(request)
+}
 
 export default createServerEntry({
   fetch,

@@ -16,6 +16,7 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: AppShellDemoApp/Sources
+      - path: Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.securepastebin.demo.ios
@@ -32,8 +33,8 @@ targets:
       - name: Sync Pastebin Logo
         script: |
           set -euo pipefail
-          SOURCE_LOGO="${SRCROOT}/../../public/logo192.png"
-          TARGET_LOGO="${SRCROOT}/AppShellDemoApp/Sources/Resources/pastebin-logo.png"
+          SOURCE_LOGO="${SRCROOT}/../../public/logo512.png"
+          TARGET_LOGO="${SRCROOT}/Assets.xcassets/pastebin-logo.imageset/pastebin-logo.png"
 
           if [ ! -f "${SOURCE_LOGO}" ]; then
             echo "Missing source logo at ${SOURCE_LOGO}" >&2
@@ -42,3 +43,31 @@ targets:
 
           mkdir -p "$(dirname "${TARGET_LOGO}")"
           cp "${SOURCE_LOGO}" "${TARGET_LOGO}"
+
+          APP_ICON_SET_DIR="${SRCROOT}/Assets.xcassets/AppIcon.appiconset"
+          mkdir -p "${APP_ICON_SET_DIR}"
+
+          create_icon() {
+            local filename="$1"
+            local pixels="$2"
+            sips -s format png -z "${pixels}" "${pixels}" "${SOURCE_LOGO}" --out "${APP_ICON_SET_DIR}/${filename}" >/dev/null
+          }
+
+          create_icon "Icon-App-20x20@2x.png" 40
+          create_icon "Icon-App-20x20@3x.png" 60
+          create_icon "Icon-App-29x29@2x.png" 58
+          create_icon "Icon-App-29x29@3x.png" 87
+          create_icon "Icon-App-40x40@2x.png" 80
+          create_icon "Icon-App-40x40@3x.png" 120
+          create_icon "Icon-App-60x60@2x.png" 120
+          create_icon "Icon-App-60x60@3x.png" 180
+          create_icon "Icon-App-20x20@1x~ipad.png" 20
+          create_icon "Icon-App-20x20@2x~ipad.png" 40
+          create_icon "Icon-App-29x29@1x~ipad.png" 29
+          create_icon "Icon-App-29x29@2x~ipad.png" 58
+          create_icon "Icon-App-40x40@1x~ipad.png" 40
+          create_icon "Icon-App-40x40@2x~ipad.png" 80
+          create_icon "Icon-App-76x76@1x~ipad.png" 76
+          create_icon "Icon-App-76x76@2x~ipad.png" 152
+          create_icon "Icon-App-83.5x83.5@2x~ipad.png" 167
+          create_icon "Icon-App-1024x1024@1x.png" 1024
