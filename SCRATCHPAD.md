@@ -1172,3 +1172,18 @@ bun run typecheck # Type checking
 
 ### Current State
 - Native app text contrast has been strengthened against premium backgrounds for both Android and Apple shells.
+
+## 2026-02-13 - iOS Mobile Legibility Follow-Up
+
+### Completed This Session
+- Root-cause mitigation for mobile readability drift under dark device appearance:
+  - forced light appearance in premium shell root/form modifiers
+  - file: `native/apple/Sources/AppShellDemo/PremiumMinimalDesignSystem.swift`
+- Added semantic text token constants in Apple design palette for future explicit use.
+
+### Validation Status
+- `swift test`: pass
+- `xcodebuild ... SecurePastebinDemoApp ...`: pass
+
+### Current State
+- Apple host shell now renders in a deterministic light appearance to keep foreground text legible on light premium backgrounds across mobile devices.

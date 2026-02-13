@@ -8,6 +8,9 @@ public enum PremiumMinimalPalette {
     public static let backgroundEnd = Color(red: 0.88, green: 0.91, blue: 0.94)
     public static let cardFill = Color.white.opacity(0.96)
     public static let cardStroke = Color.black.opacity(0.10)
+    public static let textPrimary = Color(red: 0.09, green: 0.13, blue: 0.18)
+    public static let textSecondary = Color(red: 0.22, green: 0.28, blue: 0.34)
+    public static let textError = Color(red: 0.60, green: 0.13, blue: 0.12)
 }
 
 /// Shared premium minimal gradient background.
@@ -56,6 +59,7 @@ private struct PremiumMinimalRootStyleModifier: ViewModifier {
             PremiumMinimalBackground()
             content
         }
+        .environment(\.colorScheme, .light)
         .tint(PremiumMinimalPalette.accent)
         .fontDesign(.rounded)
     }
@@ -69,11 +73,13 @@ private struct PremiumMinimalFormStyleModifier: ViewModifier {
                 .scrollContentBackground(.hidden)
                 .listRowBackground(PremiumMinimalPalette.cardFill)
                 .background(PremiumMinimalBackground())
+                .environment(\.colorScheme, .light)
                 .tint(PremiumMinimalPalette.accent)
                 .fontDesign(.rounded)
         } else {
             content
                 .background(PremiumMinimalBackground())
+                .environment(\.colorScheme, .light)
                 .tint(PremiumMinimalPalette.accent)
                 .fontDesign(.rounded)
         }
