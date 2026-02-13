@@ -1397,3 +1397,42 @@ Each entry should include:
   - `src/styles.css` - Added styles for history UI
 - **Architecture**: Generic interface allows future implementations (IndexedDB, server-side, etc.)
 - **Outcome**: Paste history persisted in browser with clean, extensible architecture
+
+### 2026-02-13
+**Shared Backend Blockers 1/2 + Native Logo Integration**
+- **Prompt**: "can you fix 1 and 2\n\nThen ensure the pastebin logo ends up on the apps"
+- **Action**:
+  - Created implementation plan: `plans/shared-backend-deployment-and-native-logo.md`
+  - Created design doc: `design-docs/shared-backend-deployment-and-native-logo.md`
+  - Added Vercel deployment workflow for shared backend parity:
+    - production deploy from `main`
+    - staging deploy+alias from `staging`
+    - file: `.github/workflows/deploy-vercel.yml`
+  - Added Pastebin logo assets to native apps:
+    - Android: `native/android/app/src/main/res/drawable/pastebin_logo.png`
+    - Apple: `native/apple/AppShellDemoApp/Sources/Resources/pastebin-logo.png`
+  - Wired logo into Android app shell and launcher icon metadata:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+    - `native/android/app/src/main/AndroidManifest.xml`
+  - Added Android UI instrumentation assertion for brand logo:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - Wired logo into Apple app shell header:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - Regenerated Apple project for bundled resources:
+    - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+  - Updated native README docs for branding and deployment context.
+- **Commands Used**:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+  - `swift test`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `bun run check:backend-smoke`
+  - `curl -I https://pastebin.sed.fyi/`
+  - `curl -i https://pastebin.sed.fyi/api/v1/health`
+  - `curl -i https://staging.pastebin.sed.fyi/api/v1/health`
+- **Outcome**:
+  - Local code path now includes deployment automation and native branding.
+  - External completion dependency remains on repository Vercel secrets and staging DNS alias setup to fully clear live smoke checks.

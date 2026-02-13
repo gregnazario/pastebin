@@ -9,24 +9,34 @@ struct DemoRootContainerView: View {
     @State private var rebuildToken: Int = 0
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .top) {
             DemoAppFactory.makeRootView(apiBaseURL: resolvedAPIBaseURL)
                 .id(rebuildToken)
 
-            Button {
-                mutateFlowState { state in
-                    state.presentSettings()
-                }
-            } label: {
+            HStack(alignment: .top) {
                 PremiumMinimalCard {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.headline)
-                        .foregroundStyle(PremiumMinimalPalette.accent)
+                    Image("pastebin-logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+                        .accessibilityLabel("Pastebin logo")
                 }
+                Spacer()
+                Button {
+                    mutateFlowState { state in
+                        state.presentSettings()
+                    }
+                } label: {
+                    PremiumMinimalCard {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.headline)
+                            .foregroundStyle(PremiumMinimalPalette.accent)
+                    }
+                }
+                .accessibilityLabel("Demo Settings")
             }
             .padding(.top, 12)
-            .padding(.trailing, 16)
-            .accessibilityLabel("Demo Settings")
+            .padding(.horizontal, 16)
         }
         .sheet(isPresented: $isSettingsPresented) {
             DemoSettingsView(

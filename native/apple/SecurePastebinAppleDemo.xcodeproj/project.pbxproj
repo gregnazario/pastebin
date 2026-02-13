@@ -11,12 +11,14 @@
 		A8C351934312929A5535C989 /* DemoSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */; };
 		C7F9D78F5C3D307C087B53E8 /* SecurePastebinDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */; };
 		DBB3FAB1DD70B0FF966F0C92 /* AppShellDemo in Frameworks */ = {isa = PBXBuildFile; productRef = 9DA83F00A2C5A1F74FF9AFE2 /* AppShellDemo */; };
+		F4E0D10297F539489AC2A432 /* pastebin-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 8C3585C273A9B507BB4F097B /* pastebin-logo.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSettingsView.swift; sourceTree = "<group>"; };
 		2FBD9AFC8CB77B51AED53E04 /* SecurePastebinDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SecurePastebinDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F69F6E40480230F8C94931 /* DemoRootContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoRootContainerView.swift; sourceTree = "<group>"; };
+		8C3585C273A9B507BB4F097B /* pastebin-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pastebin-logo.png"; sourceTree = "<group>"; };
 		9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurePastebinDemoApp.swift; sourceTree = "<group>"; };
 		A7E0A77D256D03A0A301987E /* apple */ = {isa = PBXFileReference; lastKnownFileType = folder; name = apple; path = .; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -33,6 +35,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1E49BBA2E6943A3B53E2BEA0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8C3585C273A9B507BB4F097B /* pastebin-logo.png */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		6192261BC358C26B05E854E5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -64,6 +74,7 @@
 				64F69F6E40480230F8C94931 /* DemoRootContainerView.swift */,
 				239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */,
 				9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */,
+				1E49BBA2E6943A3B53E2BEA0 /* Resources */,
 			);
 			name = Sources;
 			path = AppShellDemoApp/Sources;
@@ -77,6 +88,7 @@
 			buildConfigurationList = 390FDFE7205A1E731359040C /* Build configuration list for PBXNativeTarget "SecurePastebinDemoApp" */;
 			buildPhases = (
 				D2B679671D9515465A53554D /* Sources */,
+				4437C6EA988ED7A25D1F46EE /* Resources */,
 				ACD3243B5510A079545CD415 /* Frameworks */,
 			);
 			buildRules = (
@@ -126,6 +138,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		4437C6EA988ED7A25D1F46EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4E0D10297F539489AC2A432 /* pastebin-logo.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		D2B679671D9515465A53554D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -153,7 +176,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.noop.securepastebin.demo.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.securepastebin.demo.ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.1;
@@ -174,7 +197,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.noop.securepastebin.demo.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = com.securepastebin.demo.ios;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.1;

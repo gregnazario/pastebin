@@ -52,6 +52,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -78,6 +80,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+private const val appBrandLogoTestTag = "app-brand-logo"
 private enum class UploadInputMode {
     NOTE,
     FILE,
@@ -276,6 +279,14 @@ private fun NativeFlowApp() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                Image(
+                    painter = painterResource(id = R.drawable.pastebin_logo),
+                    contentDescription = "Pastebin logo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .heightIn(max = 28.dp)
+                        .testTag(appBrandLogoTestTag),
+                )
                 Text(
                     text = "API: $apiBase",
                     style = MaterialTheme.typography.bodySmall,

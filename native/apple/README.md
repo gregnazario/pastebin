@@ -86,6 +86,12 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - `Sources/FeatureView/DecryptFlowView.swift`
   - `Sources/FeatureHistory/HistoryFeature.swift`
 
+## Branding
+- Pastebin logo bundle asset:
+  - `AppShellDemoApp/Sources/Resources/pastebin-logo.png`
+- App shell rendering:
+  - `AppShellDemoApp/Sources/DemoRootContainerView.swift`
+
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.
 - `DevelopmentNativeCryptoEngine` remains available for isolated wiring tests only and is non-production.

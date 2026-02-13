@@ -1083,3 +1083,37 @@ bun run typecheck # Type checking
 ---
 
 *Last updated: 2026-02-08*
+
+## 2026-02-13 - Shared Backend Blockers + Native Branding
+
+### Completed This Session
+- Added deployment workflow for shared backend parity:
+  - `.github/workflows/deploy-vercel.yml`
+  - `main` branch => production deploy (`vercel deploy --prebuilt --prod`)
+  - `staging` branch => preview deploy + alias (`vercel alias set`)
+- Added implementation + design docs:
+  - `plans/shared-backend-deployment-and-native-logo.md`
+  - `design-docs/shared-backend-deployment-and-native-logo.md`
+- Integrated Pastebin logo in native clients:
+  - Android drawable asset + launcher icon metadata + app header render.
+  - Apple bundled resource + app header render.
+- Added Android instrumentation check for brand logo visibility.
+
+### Current State
+- Shared backend architecture remains unified (web + native default to `https://pastebin.sed.fyi`).
+- Deployment automation is now codified in CI for production/staging parity.
+- Native shell branding is now visible on both Android and Apple app shells.
+
+### External Dependencies / Remaining To Fully Close Blockers
+- Repository secrets required for deploy workflow execution:
+  - `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_STAGING_ALIAS`
+- DNS/alias must resolve for staging host:
+  - `staging.pastebin.sed.fyi`
+- After secrets + DNS are configured, rerun smoke checks:
+  - `bun run check:backend-smoke`
+
+### Validation Status
+- Local lint/typecheck/tests/build: pass.
+- Apple Swift tests + iOS simulator build: pass.
+- Android unit + androidTest compile/assemble: pass.
+- Live smoke checks currently blocked by external deploy/domain configuration.

@@ -44,6 +44,8 @@ class ApiSettingsUiTest {
 
     @Test
     fun apiSettingsDialogRejectsInvalidManualApiBase() {
+        composeRule.onNodeWithTag("app-brand-logo").assertIsDisplayed()
+
         composeRule.onNodeWithTag("api-settings-open-button").performClick()
         composeRule.onNodeWithTag("api-settings-input").performTextReplacement("not-a-url")
         composeRule.onNodeWithTag("api-settings-apply-button").performClick()

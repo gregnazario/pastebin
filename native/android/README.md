@@ -61,6 +61,13 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - `app/src/main/java/com/securepastebin/app/MainActivity.kt`
 - Existing instrumentation selectors/tags are preserved during styling pass.
 
+## Branding
+- Pastebin logo is bundled at:
+  - `app/src/main/res/drawable/pastebin_logo.png`
+- Logo usage:
+  - top app shell brand row (test tag: `app-brand-logo`)
+  - launcher icon fields via Android manifest `android:icon` and `android:roundIcon`
+
 ## Instrumentation Coverage
 - `app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
   - Verifies history `Open` switches to Decrypt and pre-fills share URL.
