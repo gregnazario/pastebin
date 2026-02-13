@@ -91,6 +91,9 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - `AppShellDemoApp/Sources/Resources/pastebin-logo.png`
 - App shell rendering:
   - `AppShellDemoApp/Sources/DemoRootContainerView.swift`
+- Logo sync behavior:
+  - Apple build pre-script copies from `public/logo192.png`.
+  - Manual sync command from repo root: `bun run sync:logo:native`
 
 ## Security Note
 - `ProductionNativeCryptoEngine` is the default engine for app integrations.

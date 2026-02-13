@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,7 +16,7 @@
 
 /* Begin PBXFileReference section */
 		239EAFA6BE876AAD800840CE /* DemoSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSettingsView.swift; sourceTree = "<group>"; };
-		2FBD9AFC8CB77B51AED53E04 /* SecurePastebinDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SecurePastebinDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FBD9AFC8CB77B51AED53E04 /* SecurePastebinDemoApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SecurePastebinDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64F69F6E40480230F8C94931 /* DemoRootContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoRootContainerView.swift; sourceTree = "<group>"; };
 		8C3585C273A9B507BB4F097B /* pastebin-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pastebin-logo.png"; sourceTree = "<group>"; };
 		9F1D6D21364BCE999D6A62DB /* SecurePastebinDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurePastebinDemoApp.swift; sourceTree = "<group>"; };
@@ -87,6 +87,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 390FDFE7205A1E731359040C /* Build configuration list for PBXNativeTarget "SecurePastebinDemoApp" */;
 			buildPhases = (
+				9AC9E94EA42D94CD4C880A64 /* Sync Pastebin Logo */,
 				D2B679671D9515465A53554D /* Sources */,
 				4437C6EA988ED7A25D1F46EE /* Resources */,
 				ACD3243B5510A079545CD415 /* Frameworks */,
@@ -113,6 +114,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					AA2E832265FD9E666478B0BD = {
+						DevelopmentTeam = 4SRDAWJ9G7;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -130,6 +132,7 @@
 			packageReferences = (
 				AAA19448CB1AB4A43A89F165 /* XCLocalSwiftPackageReference "." */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -148,6 +151,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9AC9E94EA42D94CD4C880A64 /* Sync Pastebin Logo */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Sync Pastebin Logo";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\nSOURCE_LOGO=\"${SRCROOT}/../../public/logo192.png\"\nTARGET_LOGO=\"${SRCROOT}/AppShellDemoApp/Sources/Resources/pastebin-logo.png\"\n\nif [ ! -f \"${SOURCE_LOGO}\" ]; then\n  echo \"Missing source logo at ${SOURCE_LOGO}\" >&2\n  exit 1\nfi\n\nmkdir -p \"$(dirname \"${TARGET_LOGO}\")\"\ncp \"${SOURCE_LOGO}\" \"${TARGET_LOGO}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D2B679671D9515465A53554D /* Sources */ = {

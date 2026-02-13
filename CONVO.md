@@ -1436,3 +1436,30 @@ Each entry should include:
 - **Outcome**:
   - Local code path now includes deployment automation and native branding.
   - External completion dependency remains on repository Vercel secrets and staging DNS alias setup to fully clear live smoke checks.
+
+### 2026-02-13
+**Native Logo Sync Automation**
+- **Prompt**: "the pastebin logo isn't getting copied over"
+- **Action**:
+  - Added implementation plan: `plans/native-logo-sync-automation.md`
+  - Added design doc: `design-docs/native-logo-sync-automation.md`
+  - Added sync script: `scripts/sync-native-logo.ts`
+  - Added root command: `bun run sync:logo:native`
+  - Wired Android build to auto-sync logo before build:
+    - `native/android/app/build.gradle.kts` (`syncWebLogoForNative` + `preBuild` dependency)
+  - Wired Apple build pre-script via XcodeGen and regenerated project:
+    - `native/apple/project.yml`
+    - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+  - Updated native branding docs:
+    - `native/android/README.md`
+    - `native/apple/README.md`
+- **Commands Used**:
+  - `bun run sync:logo:native`
+  - `gradle :app:syncWebLogoForNative :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+- **Outcome**:
+  - Logo copy is now automated instead of manual for both native platforms.
+  - Native builds refresh logo from `public/logo192.png` by default.

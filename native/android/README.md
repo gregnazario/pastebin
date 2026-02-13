@@ -67,6 +67,9 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - Logo usage:
   - top app shell brand row (test tag: `app-brand-logo`)
   - launcher icon fields via Android manifest `android:icon` and `android:roundIcon`
+- Logo sync behavior:
+  - Android `preBuild` automatically copies from `public/logo192.png`.
+  - Manual sync command from repo root: `bun run sync:logo:native`
 
 ## Instrumentation Coverage
 - `app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`

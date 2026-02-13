@@ -1,9 +1,18 @@
 // Application module for Secure Pastebin Android client.
 
+import org.gradle.api.tasks.Copy
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+}
+
+val syncWebLogoForNative by tasks.registering(Copy::class) {
+    description = "Copies web logo192.png into Android drawable resources."
+    from(rootProject.file("../../public/logo192.png"))
+    into(layout.projectDirectory.dir("src/main/res/drawable"))
+    rename { "pastebin_logo.png" }
 }
 
 android {
@@ -75,4 +84,8 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+tasks.named("preBuild") {
+    dependsOn(syncWebLogoForNative)
 }

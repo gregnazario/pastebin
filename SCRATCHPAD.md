@@ -1117,3 +1117,33 @@ bun run typecheck # Type checking
 - Apple Swift tests + iOS simulator build: pass.
 - Android unit + androidTest compile/assemble: pass.
 - Live smoke checks currently blocked by external deploy/domain configuration.
+
+## 2026-02-13 - Native Logo Sync Automation
+
+### Completed This Session
+- Added plan + design docs:
+  - `plans/native-logo-sync-automation.md`
+  - `design-docs/native-logo-sync-automation.md`
+- Added script:
+  - `scripts/sync-native-logo.ts`
+- Added root command:
+  - `bun run sync:logo:native`
+- Android build now auto-syncs logo:
+  - `native/android/app/build.gradle.kts`
+  - `preBuild` depends on `syncWebLogoForNative`
+- Apple build now auto-syncs logo:
+  - `native/apple/project.yml` (pre-build script)
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj` regenerated
+- Updated native docs:
+  - `native/android/README.md`
+  - `native/apple/README.md`
+
+### Current State
+- `public/logo192.png` is the canonical logo source.
+- Native resource files are refreshed automatically during Android/iOS build flows.
+
+### Validation Status
+- `bun run sync:logo:native`: pass
+- Android unit + androidTest compile/assemble: pass
+- iOS simulator build: pass
+- `bun run lint`, `bun run typecheck`, `bun test`: pass

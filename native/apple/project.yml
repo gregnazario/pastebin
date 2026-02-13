@@ -24,6 +24,21 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: NO
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 4SRDAWJ9G7
     dependencies:
       - package: SecurePastebinNativeApple
         product: AppShellDemo
+    preBuildScripts:
+      - name: Sync Pastebin Logo
+        script: |
+          set -euo pipefail
+          SOURCE_LOGO="${SRCROOT}/../../public/logo192.png"
+          TARGET_LOGO="${SRCROOT}/AppShellDemoApp/Sources/Resources/pastebin-logo.png"
+
+          if [ ! -f "${SOURCE_LOGO}" ]; then
+            echo "Missing source logo at ${SOURCE_LOGO}" >&2
+            exit 1
+          fi
+
+          mkdir -p "$(dirname "${TARGET_LOGO}")"
+          cp "${SOURCE_LOGO}" "${TARGET_LOGO}"
