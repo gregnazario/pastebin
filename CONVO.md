@@ -13,6 +13,1214 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-02-12
+**Implementation: Shared Backend Risk Audit + Hardening**
+- **Prompt**: `"PLEASE IMPLEMENT THIS PLAN: Shared Backend Risk Discovery And Hardening Plan (Web + Native)"`
+- **Action**:
+  - Added new execution/design/audit documents:
+    - `plans/shared-backend-risk-audit-and-hardening.md`
+    - `design-docs/shared-backend-risk-audit-and-hardening.md`
+    - `design-docs/shared-backend-risk-audit-report-2026-02-12.md`
+  - Added additive API v1 endpoint + capabilities payload:
+    - `GET /api/v1/capabilities`
+    - implemented in `src/server/apiV1.ts` + `src/server/shelby.ts`
+    - documented in `design-docs/native-api-v1-openapi.yaml` (v1.1.0)
+  - Added API response traceability:
+    - `X-Request-Id` on API v1 responses.
+  - Standardized native optional request observability headers:
+    - `X-Client-Platform`, `X-Client-Version`, `X-Request-Id`
+    - Android: `native/android/core/network/src/main/kotlin/com/securepastebin/core/network/ApiClient.kt`
+    - Apple: `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - Hardened native transport policy:
+    - Android debug/release cleartext split via network security config:
+      - `native/android/app/src/debug/res/xml/network_security_config.xml`
+      - `native/android/app/src/release/res/xml/network_security_config.xml`
+      - `native/android/app/src/main/AndroidManifest.xml`
+    - Apple ATS tightened (removed arbitrary loads):
+      - `native/apple/AppShellDemoApp/Support/Info.plist`
+  - Added regression tests for new behavior:
+    - `src/server/apiV1.test.ts` (capabilities + request-id)
+    - `native/apple/Tests/CoreNetworkingTests/CoreNetworkingTests.swift` (header emission)
+    - `native/android/core/network/src/test/kotlin/com/securepastebin/core/network/HttpApiClientTest.kt` (header emission)
+  - Added continuous gates:
+    - PR contract gate in `.github/workflows/ci.yml` (`bun run check:api-contract`)
+    - scheduled/manual backend smoke workflow:
+      - `.github/workflows/backend-smoke.yml`
+      - `bun run check:backend-smoke`
+  - Added scripts:
+    - `scripts/check-api-v1-contract.ts`
+    - `scripts/backend-smoke-check.ts`
+    - package scripts in `package.json`
+  - Updated release/security/mistake documentation:
+    - `native/release/release-gate-checklist.md`
+    - `SECURITY_FIXES.md`
+    - `MISTAKE_FIXES.md`
+    - `native/apple/README.md`
+    - `native/android/README.md`
+- **Commands Run**:
+  - `bun run check:api-contract`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+  - `swift test` (in `native/apple`)
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :core:network:testDebugUnitTest :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `bun run check:backend-smoke`
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/backend-smoke.yml")'`
+- **Outcome**:
+  - Local contract/hardening implementation is complete.
+  - Continuous contract/smoke gate automation is in place.
+  - Live smoke checks currently fail (`production /api/v1/*` returns 404, staging unreachable), and the report marks rollout status as `NO-GO` pending environment parity fixes.
+
+### 2026-02-12
+**Shared Backend Default Across Web + Native**
+- **Prompt**: `"Can we set it up so that the backend for the native apps is the same backend for the regular website? So it doesn't have to be configured separately"`
+- **Action**:
+  - Added plan + design docs:
+    - `plans/native-shared-backend-default.md`
+    - `design-docs/native-shared-backend-default.md`
+  - Updated Android to default to production website backend:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+    - default now resolves to `ApiBaseEnvironmentPreset.PRODUCTION.baseUrl` (`https://pastebin.sed.fyi`)
+  - Updated Android instrumentation coverage expectations to production default URLs:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - Updated Apple runtime defaults/fallbacks to production website backend:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+    - `native/apple/Sources/AppShellDemo/HostRuntimeSettings.swift`
+    - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift` (preset fallback behavior)
+  - Updated Apple test expectations for production fallback/default:
+    - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - Updated native documentation:
+    - `native/apple/README.md`
+    - `native/android/README.md`
+- **Commands Run**:
+  - `swift test` (in `native/apple`)
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - Native Apple and Android now default to the same production backend as the web app (`https://pastebin.sed.fyi`) with local/staging presets still available as optional overrides.
+
+### 2026-02-11
+**Continuation: Apple Native CI Parity**
+- **Prompt**: `"2"` (add Apple CI parity)
+- **Action**:
+  - Added plan + design docs:
+    - `plans/apple-ci-native-gate.md`
+    - `design-docs/apple-ci-native-gate.md`
+  - Extended CI workflow with `apple-native` job:
+    - `.github/workflows/ci.yml`
+    - runner: `macos-latest`
+    - `swift test` in `native/apple`
+    - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - Kept existing web and Android jobs unchanged.
+- **Commands Run**:
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `swift test` (in `native/apple`)
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - CI now has Apple-native parity with Swift package tests and iOS Simulator build validation.
+
+### 2026-02-10
+**Continuation: Instrumentation Failure Artifact Uploads**
+- **Prompt**: "yes" (add CI artifact upload for Android instrumentation failures)
+- **Action**:
+  - Added plan + design docs:
+    - `plans/android-instrumentation-failure-artifacts.md`
+    - `design-docs/android-instrumentation-failure-artifacts.md`
+  - Extended `android-instrumentation` CI job to upload failure artifacts:
+    - `.github/workflows/ci.yml`
+    - added `Upload Instrumentation Failure Artifacts` step using `actions/upload-artifact@v4`
+    - step is guarded by `if: failure()`
+    - uploads:
+      - `native/android/app/build/reports/androidTests/connected/**`
+      - `native/android/app/build/outputs/androidTest-results/connected/**`
+      - `native/android/app/build/outputs/connected_android_test_additional_output/**`
+  - Kept existing success-path behavior unchanged.
+- **Commands Run**:
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - Failed instrumentation CI runs now retain Android test diagnostics as downloadable artifacts.
+
+### 2026-02-10
+**Continuation: Android Instrumentation CI Gate**
+- **Prompt**: `"1"` (add Android instrumentation CI coverage)
+- **Action**:
+  - Added implementation plan + design docs:
+    - `plans/android-instrumentation-ci-gate.md`
+    - `design-docs/android-instrumentation-ci-gate.md`
+  - Extended CI workflow with a dedicated emulator-backed Android instrumentation job:
+    - `.github/workflows/ci.yml`
+    - new `android-instrumentation` job:
+      - JDK 23 setup
+      - Android SDK setup
+      - Gradle 9.3.1 setup
+      - KVM enable step
+      - `reactivecircus/android-emulator-runner@v2`
+      - instrumentation command:
+        - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - Kept existing `lint-and-typecheck`, `build`, `test`, and `android-release` jobs unchanged.
+- **Commands Run**:
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/ci.yml")'`
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` (in `native/android`)
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+- **Outcome**:
+  - CI now executes Android instrumentation tests on a managed emulator as part of the workflow.
+  - Local instrumentation compile/package path validated successfully.
+
+### 2026-02-10
+**Continuation: Push + Android CI Release Lint Enforcement**
+- **Prompt**: "continue"
+- **Action**:
+  - Pushed rewritten/local `mobile` branch to remote and set upstream:
+    - `git push -u origin mobile`
+  - Added plan/design docs for Android CI release-lint enforcement:
+    - `plans/android-ci-release-lint-enforcement.md`
+    - `design-docs/android-ci-release-lint-enforcement.md`
+  - Extended CI workflow with Android release validation job on JDK 23:
+    - setup Java 23 + Android SDK + Gradle 9.3.1
+    - run `gradle :app:assembleRelease`
+    - run `gradle :app:lintVitalRelease`
+  - Kept existing Bun CI jobs unchanged.
+- **Files Modified**:
+  - `.github/workflows/ci.yml`
+- **Commands Run**:
+  - `git remote -v`
+  - `git branch -vv`
+  - `git push -u origin mobile`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+  - `JAVA_HOME=/Users/greg/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home gradle :app:assembleRelease :app:lintVitalRelease`
+- **Outcome**:
+  - Remote `mobile` branch published.
+  - CI now includes Android release and release-lint coverage on supported JVM runtime.
+
+### 2026-02-10
+**Execution of Requested Items 1 + 2**
+- **Prompt**: "1 and 2" / "do 1 then 2" (1: purge generated artifacts from branch history, 2: fix Android release lint-vital path without manual exclusions)
+- **Action**:
+  - Completed branch-history cleanup for artifact commit lineage:
+    - Rebasing `mobile` with `git rebase --onto f00fc89 5748d4a mobile`
+    - Dropped `f0df15a` automatically as patch-equivalent after rewrite
+    - Confirmed no active branch contains `5748d4a`
+  - Added repo-hygiene documentation updates to include history rewrite requirement.
+  - Diagnosed Android release failure root cause:
+    - `gradle :app:assembleRelease` failed in `lintVitalAnalyzeRelease` with `IllegalArgumentException: 25.0.2` under JVM `25.0.2`.
+  - Implemented centralized Gradle mitigation in `native/android/build.gradle.kts`:
+    - disable `lint.checkReleaseBuilds` only on JVM 24+
+    - preserve release lint checks on supported JVMs
+  - Added planning/design docs for the lint-vital JVM compatibility mitigation.
+  - Updated Android README with release-lint behavior and JVM notes.
+  - Expanded ignore rules for generated Tauri schema output directory (`src-tauri/gen/`).
+- **Files Created**:
+  - `plans/android-release-lint-vital-jvm-compatibility.md`
+  - `design-docs/android-release-lint-vital-jvm-compatibility.md`
+- **Files Modified**:
+  - `native/android/build.gradle.kts`
+  - `native/android/README.md`
+  - `plans/repo-hygiene-generated-artifact-cleanup.md`
+  - `design-docs/repo-hygiene-generated-artifact-cleanup.md`
+  - `.gitignore`
+- **Commands Run**:
+  - `git rebase --onto f00fc89 5748d4a mobile`
+  - `git branch --contains 5748d4a`
+  - `gradle :app:assembleRelease --stacktrace`
+  - `gradle :core:network:lintVitalAnalyzeRelease --stacktrace`
+  - `gradle :app:assembleRelease`
+  - `JAVA_HOME=/Users/greg/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home gradle :app:lintVitalRelease`
+- **Outcome**:
+  - Artifact catch-all commit removed from active branch history.
+  - `gradle :app:assembleRelease` now succeeds without `-x lintVital*` task exclusions.
+  - Release lint-vital remains runnable on JVM 23.
+
+### 2026-02-09
+**Repo Hygiene Cleanup (Option 1)**
+- **Prompt**: `"1"` (execute repo hygiene cleanup for generated artifacts)
+- **Action**:
+  - Added cleanup planning docs:
+    - `plans/repo-hygiene-generated-artifact-cleanup.md`
+    - `design-docs/repo-hygiene-generated-artifact-cleanup.md`
+  - Hardened root ignore rules for generated outputs:
+    - `.vercel/output/`
+    - `native/android/.gradle/`, `native/android/.kotlin/`, `native/android/**/build/`
+    - `native/apple/.build/`, `native/apple/.swiftpm/`, `native/apple/**/xcuserdata/`
+    - `src-tauri/target/`, `mobile/node_modules/`
+  - Untracked previously committed generated artifacts from git index, including:
+    - Vercel output bundle
+    - Android build/cache trees
+    - Apple SwiftPM/Xcode derived trees and embedded build checkouts
+- **Commands Run**:
+  - `git ls-files | rg 'generated-path-patterns'`
+  - `git rm -r --cached ...` (via filtered tracked-file sweep)
+- **Outcome**:
+  - Generated artifact matches in tracked files reduced to `0`.
+  - Large cleanup commit created removing tracked build artifacts.
+
+### 2026-02-09
+**Premium Minimal Native Design System Implementation**
+- **Prompt**: "Can you make us a premium minmal design system then"
+- **Action**:
+  - Added plan + design docs for native premium minimal styling rollout.
+  - Implemented Apple premium minimal design layer:
+    - shared palette/modifiers/cards in `AppShellDemo`
+    - shell-level application in host flow and settings surfaces
+    - upgraded key action button styling across upload/decrypt/history views
+  - Implemented Android premium minimal design layer:
+    - shared Compose theme tokens and reusable UI components
+    - applied to app shell, API settings dialog, upload/decrypt/history screens
+    - preserved existing instrumentation test tags and flow behavior
+  - Updated native platform READMEs with design-system locations and usage points.
+- **Files Created**:
+  - `plans/native-premium-minimal-design-system.md`
+  - `design-docs/native-premium-minimal-design-system.md`
+  - `native/apple/Sources/AppShellDemo/PremiumMinimalDesignSystem.swift`
+  - `native/android/app/src/main/java/com/securepastebin/app/PremiumMinimalDesignSystem.kt`
+- **Files Modified**:
+  - `native/apple/Sources/AppShellDemo/AppHostFlowView.swift`
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+  - `native/apple/Sources/FeatureUpload/UploadFlowView.swift`
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- **Commands Run**:
+  - `swift test`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `gradle :app:connectedDebugAndroidTest`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Premium minimal design system is now implemented for Apple and Android native shells with passing Apple tests, Android unit/instrumentation checks, and repo-wide web validation.
+
+### 2026-02-09
+**Execution of Remaining Manual/Release Work (Both Tracks)**
+- **Prompt**: "can we do both of those please" (1: Phase 4 physical-device hardening sign-off workflow, 2: Phase 5 store-readiness packaging artifacts)
+- **Action**:
+  - Added plan/design docs for the combined Phase 4+5 execution pass.
+  - Added a full Phase 4 QA evidence pack:
+    - runbook, device matrix template, accessibility checklist, profiling metrics table, privacy audit template
+    - evidence directory placeholders for Apple, Android, and privacy outputs
+  - Added a full Phase 5 release packaging pack:
+    - unified release gate checklist
+    - Apple release checklist + App Store metadata/privacy templates
+    - Android release checklist + Play metadata/data safety templates
+    - staged rollout/rollback plan
+  - Ran concrete validation tasks and recorded results:
+    - privacy telemetry/logging scans with evidence files
+    - Apple Release simulator build check
+    - Android release assembly check, including lint-vital blocker capture and workaround build path
+  - Added dated execution report for Phase 4+5 results and remaining manual actions.
+- **Files Created**:
+  - `plans/native-phase4-signoff-and-phase5-store-readiness.md`
+  - `design-docs/native-phase4-signoff-and-phase5-store-readiness.md`
+  - `design-docs/native-phase4-phase5-execution-report-2026-02-09.md`
+  - `native/qa/phase4/*` pack
+  - `native/release/*` pack
+- **Files Modified**:
+  - `native/apple/README.md`
+  - `native/android/README.md`
+  - `native/qa/phase4/privacy-audit-evidence.md`
+  - `native/release/android/release-checklist.md`
+- **Commands Run**:
+  - `rg -n "analytics|telemetry|track\\(|logEvent|eventName" native/apple native/android shared src/server src`
+  - `rg -n "print\\(|Log\\.|println\\(" native/apple native/android`
+  - `xcodebuild -project SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Release -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:assembleRelease` (fails on lint-vital tasks)
+  - `gradle :app:assembleRelease -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease` (passes)
+- **Outcome**: Both tracks are implemented as executable artifact packs with recorded validation evidence; remaining work is now primarily manual sign-off completion and Android lint-vital CI release configuration.
+
+### 2026-02-09
+**Execution of Remaining Items 1 + 2**
+- **Prompt**: "can you do 1 and 2" (1: Apple UI-level integration coverage expansion, 2: execute Phase 4 hardening checklist)
+- **Action**:
+  - Added plan/design docs for this 1+2 execution pass.
+  - Expanded Apple integration coverage with testable root flow state:
+    - settings sheet present/cancel/apply behavior
+    - repeated history-open handoff persistence
+    - decrypt success `Save As`/`Export` readiness assertions
+  - Expanded Android instrumentation pass 2:
+    - upload picker cancel and invalid-URI behavior
+    - decrypt draft recreation behavior
+    - history sync failure-then-retry success behavior
+  - Executed Phase 4 hardening baseline tasks available in local environment:
+    - Android accessibility regression runs at font scales `1.3` and `1.5`
+    - Apple iOS Simulator build check
+    - privacy/analytics surface audit scans
+  - Added dated Phase 4 hardening execution report.
+- **Files Created**:
+  - `design-docs/native-phase4-hardening-report-2026-02-09.md`
+  - `native/apple/Sources/AppShellDemo/DemoRootFlowState.swift`
+- **Files Modified**:
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/apple/README.md`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+- **Commands Run**:
+  - `swift test`
+  - `xcodebuild -project SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - `gradle :app:connectedDebugAndroidTest` at Android font scales `1.3` and `1.5`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Requested items `1` and `2` completed, with passing Apple/Android/repo validation and a published hardening execution report.
+
+### 2026-02-09
+**Execution of "123" (Next Work Items 1, 2, 3)**
+- **Prompt**: "123" (execute item 1 then 2 then 3 from remaining-next list)
+- **Action**:
+  - Added plan/design docs for `123` execution.
+  - **Item 1 (Apple host/shell coverage)**:
+    - Added testable host runtime settings helper (`HostRuntimeSettingsState`) in `AppShellDemo`.
+    - Wired demo root settings apply/rebuild flow to helper logic.
+    - Expanded `AppShellDemoTests` with:
+      - repeated history-open handoff coverage
+      - runtime settings apply/rebuild coverage
+  - **Item 2 (Android instrumentation expansion, second pass)**:
+    - Added upload picker cancel/invalid-URI edge coverage.
+    - Added decrypt draft recreation coverage.
+    - Added history sync failure-then-retry-success coverage.
+    - Added deterministic upload file-picker test tag in app UI.
+  - **Item 3 (Phase 4 hardening baseline)**:
+    - Added hardening baseline plan/design artifacts with:
+      - accessibility checklist
+      - privacy/analytics denylist+allowlist audit protocol
+      - large-file profiling scenarios and baseline targets
+    - Linked hardening baseline docs from Apple/Android READMEs.
+- **Files Created**:
+  - `plans/native-next-123-execution.md`
+  - `design-docs/native-next-123-design.md`
+  - `plans/native-phase4-hardening-baseline.md`
+  - `design-docs/native-phase4-hardening-baseline.md`
+  - `native/apple/Sources/AppShellDemo/HostRuntimeSettings.swift`
+- **Files Modified**:
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - `native/apple/README.md`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+- **Commands Run**:
+  - `swift test`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Items `1`, `2`, and `3` are implemented with passing Apple, Android, and repo-wide validation.
+
+### 2026-02-09
+**Native UI Coverage Expansion (Do 1 Then 2)**
+- **Prompt**: "do 1 then 2" (1: Android instrumentation expansion, 2: Apple interaction/UI-level coverage)
+- **Action**:
+  - Added plan + design docs for this round-3 native coverage expansion.
+  - Implemented Android instrumentation expansion for upload/decrypt/history:
+    - upload file-mode submit disabled when no file selected
+    - upload draft clears after activity recreation
+    - decrypt malformed URL and missing-key validation errors
+    - configured cloud-sync controls remain available after activity recreation
+  - Added deterministic Android UI test tags for upload/decrypt fields/actions.
+  - Implemented Apple SwiftUI interaction-level test coverage:
+    - `UploadFlowViewModel` interaction/state tests
+    - `DecryptFlowViewModel` interaction/state tests
+  - Updated native Android and Apple README test-coverage notes.
+- **Files Created**:
+  - `plans/native-ui-coverage-expansion-round3.md`
+  - `design-docs/native-ui-coverage-expansion-round3.md`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/UploadDecryptUiCoverageTest.kt`
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+  - `native/apple/Tests/FeatureUploadTests/FeatureUploadTests.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/apple/README.md`
+- **Commands Run**:
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+  - `swift test`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Android instrumentation expanded to `18/18` passing tests and Apple interaction-level tests expanded with all `swift test` suites passing.
+
+### 2026-02-09
+**Remaining Work Execution (Items 1 + 2)**
+- **Prompt**: "please do 1, 2" (Android runtime settings UI instrumentation + Apple history-row no-share fallback coverage)
+- **Action**:
+  - Added plan + design docs for this final parity test-hardening pair.
+  - Added Android instrumentation suite for runtime API settings:
+    - invalid manual URL validation path
+    - staging preset apply + persistence across activity recreation
+  - Added Android UI test tags in app shell/settings dialog for deterministic instrumentation targeting.
+  - Added Apple row-action presentation mapping and tests verifying fallback behavior when `shareURL` is unavailable.
+  - Updated Android README instrumentation coverage list.
+- **Files Created**:
+  - `plans/android-settings-ui-and-apple-history-row-fallback-coverage.md`
+  - `design-docs/android-settings-ui-and-apple-history-row-fallback-coverage.md`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+- **Commands Run**:
+  - `swift test`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `gradle :app:connectedDebugAndroidTest`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Remaining items `1` and `2` are implemented with passing Apple, Android unit/instrumentation, and web validation.
+
+### 2026-02-08
+**Android Picker Edge Coverage + Runtime API Settings**
+- **Prompt**: "yes do 1 and 2" (Android picker edge-case instrumentation + Android runtime API settings)
+- **Action**:
+  - Added plan/design docs for Android picker-edge and runtime API settings.
+  - Implemented Android runtime API settings with:
+    - persisted API base URL store
+    - environment presets (Local/Staging/Production)
+    - manual URL override validation
+    - app-shell Settings dialog and dynamic feature/client rebuild on apply
+  - Added Android unit tests for API URL normalization/validation/preset matching.
+  - Expanded Android instrumentation in `HistoryUiCoverageTest` for:
+    - Drive create-picker cancel path (remains unconfigured)
+    - Drive create-picker invalid-authority path error surfacing
+    - Drive open-picker invalid-authority path error surfacing
+  - Added Espresso Intents instrumentation dependency for picker-result stubbing.
+  - Updated Android README with runtime settings and new instrumentation coverage.
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/app/build.gradle.kts`
+  - `native/android/README.md`
+- **Files Created**:
+  - `plans/android-picker-edge-and-runtime-api-settings.md`
+  - `design-docs/android-picker-edge-and-runtime-api-settings.md`
+  - `native/android/app/src/main/java/com/securepastebin/app/ApiBaseSettings.kt`
+  - `native/android/app/src/test/kotlin/com/securepastebin/app/ApiBaseSettingsTest.kt`
+- **Commands Run**:
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `gradle :app:connectedDebugAndroidTest`
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Android runtime environment switching and picker-edge instrumentation coverage are implemented and validated.
+
+### 2026-02-08
+**Native Sync Edge Coverage (Do 1 then 2)**
+- **Prompt**: "do 1 then 2" (Android sync edge/error instrumentation first, then Apple UI-level cloud-sync messaging tests)
+- **Action**:
+  - Added plan + design docs for native sync edge-case coverage.
+  - Expanded Android instrumentation in `HistoryUiCoverageTest` with:
+    - configured Drive URI re-selection simulation (updated fixture URI + recreate)
+    - malformed sync payload failure-path assertion for user-visible error text
+  - Added reusable Android fixture helpers for multi-file/raw payload setup and cleanup.
+  - Added Apple UI cloud-sync presentation helpers used by `HistoryFlowView`:
+    - action title mapping
+    - status text/error-style mapping
+  - Added Apple tests validating cloud-sync UI message/title mapping for all states.
+  - Updated Android instrumentation README coverage bullets.
+- **Files Modified**:
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+- **Files Created**:
+  - `plans/native-sync-edge-case-coverage.md`
+  - `design-docs/native-sync-edge-case-coverage.md`
+- **Commands Run**:
+  - `swift test` (in `native/apple`)
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` (in `native/android`)
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Android sync edge/error paths and Apple cloud-sync UI messaging contract coverage are now implemented and validated.
+
+### 2026-02-08
+**Native Sync Test Coverage Expansion (Do 1 then 2)**
+- **Prompt**: "Do 1 then 2" (Apple sync state tests, then Android configured Drive sync instrumentation)
+- **Action**:
+  - Added Apple `HistoryFlowViewModel.syncCloud()` tests for:
+    - unconfigured coordinator failure state
+    - syncing -> success summary transition
+    - syncing -> failure message transition
+  - Added Android instrumentation coverage for configured sync file path:
+    - `Sync Now` success summary + imported entry rendering
+    - conflict summary path + remote-winner rendering
+  - Added Android instrumentation fixture helpers to seed cloud-sync payload JSON and preference URI.
+  - Updated native Android instrumentation documentation to include the new coverage.
+- **Files Modified**:
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+  - `native/android/README.md`
+- **Commands Run**:
+  - `swift test` (in `native/apple`)
+  - `gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest` (in `native/android`)
+  - `bun run lint && bun run typecheck && bun test && bun run build`
+- **Outcome**: Apple and Android sync coverage increased with passing native + web validation.
+
+### 2026-02-07
+**Native App Planning (Swift + Kotlin)**
+- **Prompt**: "Can you make a plan to make a fully native iOS, iPadOS, and macOS app, along with a fully native Android app... Stretch goal would be similar on Windows as well."
+- **Action**:
+  - Audited current web functionality for parity planning (upload, note mode, decrypt, history, PWA/security UX, crypto pipeline).
+  - Audited existing `mobile/` implementation to identify current gaps vs true native requirements.
+  - Created a new implementation roadmap focused on fully native Swift and Kotlin delivery.
+  - Created a detailed architecture/design document with sequence diagrams and platform module structure.
+  - Captured required user tradeoff decisions before implementation starts.
+- **Files Created**:
+  - `plans/native-swift-kotlin-roadmap.md`
+  - `design-docs/native-swift-kotlin-architecture.md`
+- **Outcome**: Native multi-platform plan and architecture are documented and ready for scope/decision sign-off.
+
+**Tradeoff Interview Results (Signed-Off)**
+- **Prompt**: "interview me for any tradeoffs" followed by decisions:
+  - `1a, 2a, 3b, 4b, 5a, 6a, 7b, 8b, 9b, 10b, 11b, 12b`
+- **Action**:
+  - Updated roadmap and architecture docs with all approved choices.
+  - Re-sequenced phases for parallel iOS/iPadOS + Android delivery.
+  - Added v1 cloud sync scope, preview scope expansion (PDF/media), analytics privacy constraints, and macOS deferment.
+- **Files Modified**:
+  - `plans/native-swift-kotlin-roadmap.md`
+  - `design-docs/native-swift-kotlin-architecture.md`
+- **Outcome**: Tradeoff decisions are now encoded as implementation constraints and sequencing rules.
+
+**Native Build Start (Phase 0/1 Bootstrap)**
+- **Prompt**: "start building it"
+- **Action**:
+  - Implemented versioned REST API handling for native clients in server entry path:
+    - `GET /api/v1/health`
+    - `POST /api/v1/upload`
+    - `GET /api/v1/download?id=...`
+    - `GET /api/v1/download/{id}`
+  - Refactored Shelby server logic into shared internal functions for reuse by both server functions and REST routes.
+  - Added API unit tests for route/method behavior and status mapping.
+  - Added OpenAPI contract artifact for native API v1.
+  - Scaffolded initial native workspaces:
+    - Swift package modules under `native/apple/`
+    - Kotlin multi-module Android workspace under `native/android/`
+  - Ran validation commands:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Files Created**:
+  - `src/server/apiV1.ts`
+  - `src/server/apiV1.test.ts`
+  - `design-docs/native-api-v1-openapi.yaml`
+  - `native/README.md`
+  - `native/apple/*` (initial package/module scaffolding)
+  - `native/android/*` (initial Gradle/module scaffolding)
+- **Files Modified**:
+  - `src/server.ts`
+  - `src/server/shelby.ts`
+- **Outcome**: Native project bootstrap started with stable API surface and parallel platform scaffolds.
+
+**Native Networking + Crypto Conformance Implementation**
+- **Prompt**: "let's implement it"
+- **Action**:
+  - Replaced Swift `CoreNetworking` stub with production `URLSession` API client for:
+    - upload (`/api/v1/upload`)
+    - download (`/api/v1/download`)
+    - health (`/api/v1/health`)
+  - Replaced Kotlin `core:network` stub with production `HttpURLConnection` API client and structured API errors.
+  - Added Apple `CoreNetworkingTests` target with configuration smoke tests.
+  - Added cross-platform cryptographic conformance vector artifact generated from the current web implementation.
+  - Added a web-side conformance test that decrypts the vector and verifies plaintext + metadata.
+  - Updated architecture doc to reference the conformance vector source artifact.
+  - Ran validation commands:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅ (including conformance vector decryption test)
+    - `bun run build` ✅
+- **Files Modified**:
+  - `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - `native/apple/Package.swift`
+  - `native/android/core/network/src/main/kotlin/com/securepastebin/core/network/ApiClient.kt`
+  - `design-docs/native-swift-kotlin-architecture.md`
+- **Files Created**:
+  - `native/apple/Tests/CoreNetworkingTests/CoreNetworkingTests.swift`
+  - `shared/crypto/conformanceVectors.ts`
+  - `src/services/crypto/ConformanceVectors.test.ts`
+- **Outcome**: Native client networking moved from stubs to working implementations; crypto compatibility now has an enforceable conformance baseline.
+
+**Native Feature Upload/Decrypt Flow Implementation**
+- **Prompt**: "1" (implement first end-to-end upload/decrypt feature flows)
+- **Action**:
+  - Implemented Apple upload orchestration (`FeatureUpload`) with:
+    - metadata construction
+    - crypto-engine encryption call
+    - API upload call
+    - share-link generation (`/p/{id}#key`)
+  - Implemented Apple decrypt orchestration (`FeatureView`) with:
+    - share-link parsing
+    - API download call
+    - crypto-engine decryption call
+  - Expanded Apple core crypto interfaces to support encrypt/decrypt contracts and payload models.
+  - Added Apple feature tests:
+    - `FeatureUploadTests` validates encrypted filename behavior + share-link output
+    - `FeatureViewTests` validates link parsing + download/decrypt orchestration
+  - Implemented Android upload orchestration (`feature:upload`) with the same flow model.
+  - Implemented Android decrypt orchestration (`feature:view`) with share-link parsing and decrypt workflow.
+  - Expanded Android core crypto module with encrypt/decrypt contracts and payload models.
+  - Added Android unit tests for upload/decrypt orchestration in feature modules.
+  - Validation run:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+    - `swift test` (native/apple) ✅
+    - `gradle -p native/android :feature:upload:test :feature:view:test` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Files Modified**:
+  - `native/apple/Sources/CoreCrypto/CryptoEngine.swift`
+  - `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - `native/apple/Sources/FeatureUpload/UploadFeature.swift`
+  - `native/apple/Sources/FeatureView/ViewFeature.swift`
+  - `native/apple/Package.swift`
+  - `native/android/core/crypto/src/main/kotlin/com/securepastebin/core/crypto/CryptoEngine.kt`
+  - `native/android/feature/upload/src/main/kotlin/com/securepastebin/feature/upload/UploadFeature.kt`
+  - `native/android/feature/view/src/main/kotlin/com/securepastebin/feature/view/ViewFeature.kt`
+  - `native/android/feature/upload/build.gradle.kts`
+  - `native/android/feature/view/build.gradle.kts`
+- **Files Created**:
+  - `native/apple/Tests/FeatureUploadTests/FeatureUploadTests.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/android/feature/upload/src/test/kotlin/com/securepastebin/feature/upload/UploadFeatureTest.kt`
+  - `native/android/feature/view/src/test/kotlin/com/securepastebin/feature/view/ViewFeatureTest.kt`
+- **Outcome**: Cross-platform feature orchestration exists for upload/decrypt flows, with passing Apple/web tests and Android tests staged pending local SDK setup.
+
+**Native UI Wiring (SwiftUI + Compose)**
+- **Prompt**: "1" (continue with wiring services into actual screens)
+- **Action**:
+  - Added SwiftUI upload/decrypt flow screens and view models:
+    - `UploadFlowView` + `UploadFlowViewModel`
+    - `DecryptFlowView` + `DecryptFlowViewModel`
+  - Added development-only native crypto engine in Swift (`DevelopmentNativeCryptoEngine`) so upload/decrypt flows can execute end-to-end while production crypto parity is still in progress.
+  - Added development-only native crypto engine in Kotlin (`DevelopmentNativeCryptoEngine`) for Android flow wiring.
+  - Replaced Android empty activity with Compose UI host featuring Upload and Decrypt tabs that call real feature orchestrators.
+  - Added Compose dependencies/plugins to Android app module.
+  - Added Android core crypto unit test for development crypto engine roundtrip.
+  - Updated native READMEs with environment and security notes.
+  - Validation run:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+    - `swift test` ✅
+    - `gradle -p native/android :feature:upload:test :feature:view:test :core:crypto:test` ⚠️ blocked by missing Android SDK config (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Actual native UI screens are now wired to upload/decrypt services on both platforms, with explicit non-production crypto adapter for development flow execution.
+
+**Production Native Crypto Adapter Replacement (Option 1)**
+- **Prompt**: "1" (replace development crypto adapters with production-compatible implementations)
+- **Action**:
+  - Implemented production Apple crypto adapter:
+    - `ProductionNativeCryptoEngine` in `native/apple/Sources/CoreCrypto/ProductionNativeCryptoEngine.swift`
+    - ML-KEM-768 via SwiftKyber (`Kyber.K768`)
+    - Argon2id (4 iterations, 256MB, parallelism 4) via vendored C Argon2 bindings
+    - HKDF-SHA256 (`pastebin-hybrid-key-v1`, `pastebin-metadata-key-v1`)
+    - AES-256-GCM combined format and payload v1 serializer/deserializer parity
+  - Implemented production Android crypto adapter:
+    - `ProductionNativeCryptoEngine` in `native/android/core/crypto/.../ProductionNativeCryptoEngine.kt`
+    - ML-KEM-768 + Argon2id + HKDF-SHA256 + AES-256-GCM with matching payload v1 contract
+    - Added `bcprov-jdk18on:1.81` dependency in `:core:crypto`
+  - Switched Android app wiring from development adapter to production adapter in:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - Added/updated crypto tests:
+    - Swift roundtrip and web conformance-vector decryption tests
+    - Kotlin roundtrip and web conformance-vector decryption tests
+  - Added vendored Argon2 C source subset under `native/apple/Vendor/Argon2` to avoid linker conflicts from upstream `genkat.c` (`main` symbol).
+  - Updated native README security notes to mark production engine as default.
+- **Validation**:
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `swift test` in `native/apple` ✅ (includes web conformance-vector decrypt test)
+  - `gradle -p native/android :core:crypto:test` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Native Apple and Android crypto layers are now production-capable and aligned to the web payload/algorithm contract, replacing development-only flow adapters for active app wiring.
+
+**Native File Picker Integration (Option 1 follow-up)**
+- **Prompt**: "yes do that" (after selecting next option `1`, wire native file picker flows into upload)
+- **Action**:
+  - Apple (`SwiftUI`):
+    - Added upload input modes (`note` / `file`) to `UploadFlowViewModel`.
+    - Added `fileImporter`-driven file selection in `UploadFlowView`.
+    - Implemented secure-scoped file reading, MIME detection (`UTType`), selected-file state, and upload routing to existing `UploadFeature`.
+  - Android (`Compose`):
+    - Added upload input modes (`NOTE` / `FILE`) in upload screen.
+    - Added native document picker integration via `rememberLauncherForActivityResult(OpenDocument)`.
+    - Implemented content-resolver file read (bytes, display name, MIME type) and upload routing to existing `UploadFeature`.
+  - Updated native platform README notes to reflect file picker capability.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureUpload/UploadFlowView.swift`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle -p native/android :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Native upload flows now support actual file selection on both Apple and Android while preserving note upload mode.
+
+**Native Decrypt MIME-Aware Preview Parity**
+- **Prompt**: "yes" (implement next parity step: file-type-aware decrypt previews for image/PDF/media)
+- **Action**:
+  - Apple (`SwiftUI`):
+    - Added `DecryptedPreview` model and MIME-aware preview selection in `DecryptFlowViewModel`.
+    - Implemented preview rendering for:
+      - text
+      - image
+      - PDF (via `PDFKit` wrapper)
+      - audio/video (`VideoPlayer` via `AVKit`)
+    - Added temporary-file management for media preview payloads.
+  - Android (`Compose`):
+    - Added sealed `DecryptPreview` model in app UI host and MIME-aware preview builder.
+    - Implemented preview rendering for:
+      - text
+      - image (`BitmapFactory` + Compose `Image`)
+      - PDF first page (`PdfRenderer`)
+      - audio/video (`VideoView` in `AndroidView`)
+    - Added temporary preview-file creation/cleanup for PDF/media payloads.
+  - Updated native platform READMEs to document new decrypt preview behavior.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle -p native/android :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Decrypt flows now have file-type-aware native previews on both platforms, closing a major UX parity gap vs web preview expectations.
+
+**Native Decrypt Save/Export Actions + History Persistence**
+- **Prompt**: "yes please wire those actions"
+- **Action**:
+  - Apple:
+    - Added `UserDefaultsHistoryStore` to `CoreStorage` for persisted history entries.
+    - Wired `ViewFeature` decrypt success path to upsert history entries (non-fatal on write failure).
+    - Added decrypt actions to `DecryptFlowView`:
+      - `Save As` (SwiftUI `fileExporter`)
+      - `Export` (SwiftUI `ShareLink`)
+    - Added temporary export-file lifecycle handling and tests for history persistence write behavior.
+  - Android:
+    - Added `SharedPreferencesHistoryStore` to `core:storage`.
+    - Wired `feature:view` decrypt success path to upsert history entries (non-fatal on write failure).
+    - Added decrypt actions in Compose decrypt screen:
+      - `Save As` (`CreateDocument`)
+      - `Export` (share intent via `FileProvider`)
+    - Added app manifest/file-provider path config and tests for decrypt-triggered history persistence.
+  - Updated module wiring/dependencies where needed (`FeatureView` on Apple, `:feature:view` on Android).
+- **Files Modified**:
+  - `native/apple/Sources/CoreStorage/HistoryStore.swift`
+  - `native/apple/Sources/FeatureView/ViewFeature.swift`
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/apple/Tests/FeatureViewTests/FeatureViewTests.swift`
+  - `native/apple/Package.swift`
+  - `native/android/core/storage/src/main/kotlin/com/securepastebin/core/storage/HistoryStore.kt`
+  - `native/android/feature/view/src/main/kotlin/com/securepastebin/feature/view/ViewFeature.kt`
+  - `native/android/feature/view/src/test/kotlin/com/securepastebin/feature/view/ViewFeatureTest.kt`
+  - `native/android/feature/view/build.gradle.kts`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/app/src/main/AndroidManifest.xml`
+  - `native/android/app/src/main/res/xml/file_paths.xml`
+- **Validation**:
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `swift test` ✅
+  - `gradle :feature:view:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Decrypt actions are now wired for save/export and decrypt history persistence is integrated on both native platforms.
+
+**Native History UI Surface Wiring**
+- **Prompt**: "yes" (continue with suggested next step: history UI surfaces)
+- **Action**:
+  - Apple:
+    - Replaced `FeatureHistory` stub with full feature logic and SwiftUI history UI:
+      - list with expiration status
+      - include-expired toggle
+      - delete action
+    - Added dedicated unit tests for history list filtering/sorting and delete behavior.
+    - Added `FeatureHistoryTests` target in Swift package manifest.
+  - Android:
+    - Replaced `feature:history` stub with real feature service:
+      - list with expiration status
+      - include-expired filtering
+      - delete action
+    - Added `HistoryFeatureTest` unit tests for filter/sort/delete behavior.
+    - Added new Compose `History` tab in app shell and wired screen interactions to `HistoryFeature`.
+  - Updated Apple/Android native READMEs to reflect history UI capability.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Package.swift`
+  - `native/apple/README.md`
+  - `native/android/feature/history/src/main/kotlin/com/securepastebin/feature/history/HistoryFeature.kt`
+  - `native/android/feature/history/build.gradle.kts`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+- **Files Created**:
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - `native/android/feature/history/src/test/kotlin/com/securepastebin/feature/history/HistoryFeatureTest.kt`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Native history list/delete/expiry-filter surfaces are now implemented (Apple feature module + Android app tab), closing another core parity gap with the web experience.
+
+**Native History Open/Share Row Actions**
+- **Prompt**: "1" (execute next step: wire share/open actions directly from history entries)
+- **Action**:
+  - Apple:
+    - Added history share-link generation in `FeatureHistory` (base URL + `/p/{id}` path).
+    - Added per-row `Open` (`Link`) and `Share` (`ShareLink`) actions in `HistoryFlowView` when share URLs are configured.
+    - Added unit test coverage for share-link generation and path encoding behavior.
+  - Android:
+    - Added history share-link generation in `feature:history` (base URL + `/p/{id}` path).
+    - Wired `HistoryFeature` in app shell with `shareBaseUrl`.
+    - Added per-row `Open` (intent `ACTION_VIEW`) and `Share` (intent `ACTION_SEND`) actions in Compose History tab.
+    - Added unit test coverage for share-link generation and path encoding behavior.
+  - Updated Apple/Android README docs to include history row open/share actions.
+- **Files Modified**:
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Tests/FeatureHistoryTests/FeatureHistoryTests.swift`
+  - `native/apple/README.md`
+  - `native/android/feature/history/src/main/kotlin/com/securepastebin/feature/history/HistoryFeature.kt`
+  - `native/android/feature/history/src/test/kotlin/com/securepastebin/feature/history/HistoryFeatureTest.kt`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: History rows now provide direct open/share actions on both native platforms using generated share links, reducing copy/paste friction for follow-up access and sharing.
+
+**Native Deep-Link Handoff: History -> Decrypt (In-App)**
+- **Prompt**: "yes" (after suggestion to wire deep-link handoff into native decrypt prefill flow)
+- **Action**:
+  - Android:
+    - Added in-app handoff state in app shell:
+      - history `Open` now routes to Decrypt tab
+      - selected share URL is prefilled into decrypt share-url field
+      - prefill payload is consumed after injection to avoid repeated resets
+    - Updated `HistoryFlowScreen` to call host callback (`onOpenInDecrypt`) instead of external browser open intent.
+    - Updated `DecryptFlowScreen` to accept `prefilledShareUrl` and apply it via `LaunchedEffect`.
+  - Apple:
+    - Added optional `onOpenInDecrypt` callback to `HistoryFlowView` so host apps can route to decrypt screens in-app.
+    - Added `prefillShareURL(_:)` helper on `DecryptFlowViewModel` for host-driven URL injection.
+    - Preserved existing fallback behavior: if no callback is provided, history `Open` still uses `openURL`.
+  - Updated Apple/Android native READMEs with new deep-link handoff behavior.
+- **Files Modified**:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- **Validation**:
+  - `swift test` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: Selecting `Open` from native history now supports in-app decrypt continuation (Android implemented directly in host; Apple callback surface added for host integration), reducing context switching and improving decrypt retry UX.
+
+**Apple Sample Host Shell (End-to-End Handoff Demo)**
+- **Prompt**: "yes please" (add in-repo Apple sample app host shell demonstrating callback handoff end-to-end)
+- **Action**:
+  - Added new Apple module `AppShellDemo` to Swift package:
+    - New product/target in `native/apple/Package.swift`.
+    - New test target `AppShellDemoTests`.
+  - Implemented `AppHostFlowView` sample SwiftUI shell in:
+    - `native/apple/Sources/AppShellDemo/AppHostFlowView.swift`
+  - Sample shell includes Upload / Decrypt / History tabs and routes:
+    - History `Open` -> in-app decrypt prefill via `HistoryDecryptHandoffCoordinator`.
+  - Added coordinator unit test:
+    - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - Updated Apple README with sample shell usage location.
+- **Files Modified**:
+  - `native/apple/Package.swift`
+  - `native/apple/README.md`
+- **Files Created**:
+  - `native/apple/Sources/AppShellDemo/AppHostFlowView.swift`
+  - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+- **Validation**:
+  - `swift test` ✅ (includes new `AppShellDemoTests`)
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: In-repo Apple sample host shell now demonstrates concrete end-to-end in-app handoff wiring from History actions into the Decrypt flow.
+
+**Apple Xcode App Target Scaffold (Launches AppHostFlowView)**
+- **Prompt**: "yes" (after proposal to add Xcode app target scaffold that directly launches `AppHostFlowView`)
+- **Action**:
+  - Added a concrete Apple iOS demo app scaffold under `native/apple/`:
+    - `AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+    - `AppShellDemoApp/Support/Info.plist`
+  - Added `AppShellDemo` factory helper:
+    - `Sources/AppShellDemo/DemoAppFactory.swift`
+    - Wires production modules (`URLSessionAPIClient`, `ProductionNativeCryptoEngine`, `UserDefaultsHistoryStore`) and returns `AppHostFlowView`.
+  - Added XcodeGen project spec and generated Xcode project:
+    - `native/apple/project.yml`
+    - `native/apple/SecurePastebinAppleDemo.xcodeproj`
+  - Updated Swift package target wiring so `AppShellDemo` can construct full dependency graph.
+  - Updated Apple README with scaffold and regeneration instructions.
+- **Files Modified**:
+  - `native/apple/Package.swift`
+  - `native/apple/README.md`
+- **Files Created**:
+  - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+  - `native/apple/AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+  - `native/apple/AppShellDemoApp/Support/Info.plist`
+  - `native/apple/project.yml`
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.xcworkspace/contents.xcworkspacedata`
+- **Validation**:
+  - `swift test` ✅
+  - `xcodebuild -list -project native/apple/SecurePastebinAppleDemo.xcodeproj` ✅
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: A runnable Xcode iOS demo app target scaffold now exists in-repo and launches the host flow shell directly.
+
+**Apple Demo Runtime Settings Screen (API Base URL Override)**
+- **Prompt**: "sure" (after suggestion to add a demo settings screen for runtime API base URL override)
+- **Action**:
+  - Added runtime root container and settings sheet for demo app:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+  - Updated app entry to launch `DemoRootContainerView`:
+    - `native/apple/AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+  - Behavior:
+    - gear button opens settings sheet
+    - validates and stores API base URL (`@AppStorage`)
+    - applying changes rebuilds host flow so new networking dependencies are used immediately
+  - Regenerated Xcode project via:
+    - `xcodegen generate --spec project.yml`
+  - Updated Apple README to document runtime settings availability.
+- **Files Modified**:
+  - `native/apple/AppShellDemoApp/Sources/SecurePastebinDemoApp.swift`
+  - `native/apple/README.md`
+  - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+- **Files Created**:
+  - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+- **Validation**:
+  - `swift test` ✅
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build` ✅
+  - `bun run lint` ✅
+  - `bun run typecheck` ✅
+  - `bun test` ✅
+  - `bun run build` ✅
+  - `gradle :feature:history:testDebugUnitTest` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+  - `gradle :app:compileDebugKotlin` ⚠️ blocked by missing Android SDK (`ANDROID_HOME` / `sdk.dir`)
+- **Outcome**: The Apple demo app can now switch backend API base URL at runtime from an in-app settings sheet, removing hardcoded endpoint friction during testing.
+
+### 2026-02-08
+**Android SDK Unblock + First Full Android Gradle Pass**
+- **Prompt**: "yse start with that" (start with remaining Android unblock/build-validation work)
+- **Action**:
+  - Installed and configured local Android SDK requirements under:
+    - `/Users/greg/Library/Android/sdk`
+    - packages: `platform-tools`, `platforms;android-35`, `build-tools;35.0.0`
+  - Added local SDK pointer:
+    - `native/android/local.properties` with `sdk.dir=/Users/greg/Library/Android/sdk`
+  - Updated root ignore rules to keep machine-local SDK config untracked:
+    - `.gitignore` now includes `native/android/local.properties`
+  - Ran Android Gradle validation:
+    - `gradle :feature:history:testDebugUnitTest :feature:upload:testDebugUnitTest :feature:view:testDebugUnitTest :app:compileDebugKotlin`
+  - Fixed Android compile error discovered during first pass:
+    - Removed invalid explicit Compose import `androidx.compose.foundation.layout.weight`
+    - file: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - Re-ran Android Gradle validation after fix (all green).
+  - Re-ran project-wide validation suite:
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+    - `swift test` ✅
+- **Files Modified**:
+  - `.gitignore`
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- **Files Added (local machine config)**:
+  - `native/android/local.properties` (ignored)
+- **Outcome**: Android SDK is now configured locally and the previously blocked Android module tests + app Kotlin compile pass successfully.
+
+**Android UI Instrumentation Coverage (History -> Decrypt Handoff)**
+- **Prompt**: "build android ui instrumentation test coverage"
+- **Action**:
+  - Added Android instrumentation test dependency wiring in:
+    - `native/android/app/build.gradle.kts`
+  - Added Compose instrumentation test:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryToDecryptHandoffTest.kt`
+    - seeds local history entry in `SharedPreferencesHistoryStore`
+    - validates tapping History `Open` switches to Decrypt and pre-fills Share URL
+  - Added Android instrumentation section to docs:
+    - `native/android/README.md`
+  - Added planning/design artifacts per project rules:
+    - `plans/android-ui-instrumentation-coverage.md`
+    - `design-docs/android-ui-instrumentation-coverage.md`
+  - Validation run:
+    - `gradle :app:compileDebugAndroidTestKotlin` ✅
+    - `gradle :app:assembleDebugAndroidTest` ✅
+    - `gradle :app:connectedDebugAndroidTest` ⚠️ failed in current environment (`No connected devices!`)
+- **Outcome**: Android UI instrumentation coverage now exists for the highest-value handoff path and is build-validated; runtime execution requires an attached emulator/device.
+
+**Android Instrumentation Runtime Execution (Connected Emulator)**
+- **Prompt**: "1" (run `:app:connectedDebugAndroidTest` on emulator/device)
+- **Action**:
+  - Installed missing local Android emulator components and AVD tooling into SDK:
+    - `emulator`
+    - `system-images;android-35;google_apis;arm64-v8a`
+    - `cmdline-tools;latest`
+  - Created AVD:
+    - `codex_api35` (Pixel 7, API 35, Google APIs ARM64)
+  - Booted emulator headless and waited for `sys.boot_completed=1`.
+  - Ran instrumentation runtime task:
+    - `gradle :app:connectedDebugAndroidTest`
+- **Validation Result**:
+  - `connectedDebugAndroidTest` ✅
+  - Device: `emulator-5554 - 15`
+  - Tests executed: `1/1` passed, `0` failed, `0` skipped
+- **Outcome**: Android instrumentation coverage now has confirmed runtime execution in addition to compile/package validation.
+
+**v1 Cloud Sync Adapters (iCloud + Google Drive)**
+- **Prompt**: "v1 cloud sync adapters (tradeoff choice): iCloud (Apple) + Google Drive (Android), plus sync state/conflict handling."
+- **Action**:
+  - Added plan/design artifacts for native cloud sync:
+    - `plans/native-cloud-sync-v1.md`
+    - `design-docs/native-cloud-sync-v1.md`
+  - Apple implementation:
+    - Added `CoreStorage` cloud-sync primitives:
+      - `ICloudHistorySyncAdapter` (iCloud via `NSUbiquitousKeyValueStore`)
+      - `HistoryCloudSyncCoordinator` with conflict-aware merge stats
+      - models: `HistorySyncResult`, `HistorySyncStats`, `HistorySyncConflict`
+      - file: `native/apple/Sources/CoreStorage/CloudSync.swift`
+    - Wired sync state/actions into history UI/view model:
+      - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+    - Wired demo host to enable iCloud sync by default:
+      - `native/apple/Sources/AppShellDemo/DemoAppFactory.swift`
+    - Added `CoreStorage` sync unit tests:
+      - `native/apple/Tests/CoreStorageTests/CoreStorageSyncTests.swift`
+    - Updated package manifest and docs:
+      - `native/apple/Package.swift`
+      - `native/apple/README.md`
+  - Android implementation:
+    - Added `core:storage` cloud-sync primitives:
+      - `GoogleDriveHistorySyncAdapter` (Storage Access Framework URI-based Drive JSON sync)
+      - `HistoryCloudSyncCoordinator` with conflict-aware merge stats
+      - `GoogleDriveSyncConfigurationStore`
+      - models: `HistorySyncResult`, `HistorySyncStats`, `HistorySyncConflict`
+      - file: `native/android/core/storage/src/main/kotlin/com/securepastebin/core/storage/CloudSync.kt`
+    - Added `core:storage` sync unit tests:
+      - `native/android/core/storage/src/test/kotlin/com/securepastebin/core/storage/HistoryCloudSyncCoordinatorTest.kt`
+    - Added `core:storage` test dependencies:
+      - `native/android/core/storage/build.gradle.kts`
+    - Wired History tab cloud sync controls:
+      - create/select Google Drive sync file
+      - one-shot sync action with summary/error state
+      - file: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+    - Updated docs:
+      - `native/android/README.md`
+  - Validation run:
+    - `swift test` ✅ (includes new `CoreStorageSyncTests`)
+    - `gradle :core:storage:testDebugUnitTest :feature:history:testDebugUnitTest :app:compileDebugKotlin` ✅
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Outcome**: v1 native cloud sync adapters are now implemented on both platforms with conflict-tracked merge results and user-visible sync state/actions.
+
+**Android Instrumentation Coverage Expansion (History UI)**
+- **Prompt**: "More Android instrumentation/UI coverage beyond the single handoff test (`native/android/app/src/androidTest`)."
+- **Action**:
+  - Added plan/design artifacts:
+    - `plans/android-instrumentation-ui-expansion.md`
+    - `design-docs/android-instrumentation-ui-expansion.md`
+  - Added stable test selector in history UI:
+    - `history-include-expired-switch` test tag on Include-expired `Switch`
+    - file: `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+  - Added new instrumentation suite:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/HistoryUiCoverageTest.kt`
+    - scenarios:
+      - delete action removes entry and shows empty state
+      - include-expired switch reveals expired entries
+      - cloud sync section shows Drive setup controls when unconfigured
+  - Updated Android README instrumentation section:
+    - `native/android/README.md`
+  - Validation run:
+    - `gradle :app:compileDebugAndroidTestKotlin` ✅
+    - `gradle :app:assembleDebugAndroidTest` ✅
+    - `gradle :app:connectedDebugAndroidTest` ✅
+      - executed 4 instrumentation tests total on `emulator-5554 - 15` with 0 failures
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Outcome**: Android instrumentation coverage now includes core History UI behavior and cloud-sync setup state, beyond the initial handoff-only test.
+
+**Apple Demo Environment Presets (Local/Staging/Production)**
+- **Prompt**: "do 1" (implement Apple demo environment presets)
+- **Action**:
+  - Added plan/design artifacts:
+    - `plans/apple-demo-environment-presets.md`
+    - `design-docs/apple-demo-environment-presets.md`
+  - Updated demo settings UI in:
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+  - Added preset environment model and one-tap preset application for:
+    - `Local` → `http://127.0.0.1:3000`
+    - `Staging` → `https://staging.pastebin.sed.fyi`
+    - `Production` → `https://pastebin.sed.fyi`
+  - Preset changes update the URL draft; global settings still change only on `Apply`.
+  - Manual URL editing and validation behavior preserved.
+  - Updated Apple README scaffold docs:
+    - `native/apple/README.md`
+  - Validation run:
+    - `swift test` ✅
+    - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build` ✅
+    - `bun run lint` ✅
+    - `bun run typecheck` ✅
+    - `bun test` ✅
+    - `bun run build` ✅
+- **Outcome**: Apple demo settings now provide runtime environment presets for local/staging/production while retaining manual override support.
+
 ### 2026-01-25
 **Initial Setup**
 - **Prompt**: "Initialize this codebase with these rules..."
@@ -189,3 +1397,95 @@ Each entry should include:
   - `src/styles.css` - Added styles for history UI
 - **Architecture**: Generic interface allows future implementations (IndexedDB, server-side, etc.)
 - **Outcome**: Paste history persisted in browser with clean, extensible architecture
+
+### 2026-02-13
+**Shared Backend Blockers 1/2 + Native Logo Integration**
+- **Prompt**: "can you fix 1 and 2\n\nThen ensure the pastebin logo ends up on the apps"
+- **Action**:
+  - Created implementation plan: `plans/shared-backend-deployment-and-native-logo.md`
+  - Created design doc: `design-docs/shared-backend-deployment-and-native-logo.md`
+  - Added Vercel deployment workflow for shared backend parity:
+    - production deploy from `main`
+    - staging deploy+alias from `staging`
+    - file: `.github/workflows/deploy-vercel.yml`
+  - Added Pastebin logo assets to native apps:
+    - Android: `native/android/app/src/main/res/drawable/pastebin_logo.png`
+    - Apple: `native/apple/AppShellDemoApp/Sources/Resources/pastebin-logo.png`
+  - Wired logo into Android app shell and launcher icon metadata:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+    - `native/android/app/src/main/AndroidManifest.xml`
+  - Added Android UI instrumentation assertion for brand logo:
+    - `native/android/app/src/androidTest/kotlin/com/securepastebin/app/ApiSettingsUiTest.kt`
+  - Wired logo into Apple app shell header:
+    - `native/apple/AppShellDemoApp/Sources/DemoRootContainerView.swift`
+  - Regenerated Apple project for bundled resources:
+    - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+  - Updated native README docs for branding and deployment context.
+- **Commands Used**:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+  - `swift test`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `bun run check:backend-smoke`
+  - `curl -I https://pastebin.sed.fyi/`
+  - `curl -i https://pastebin.sed.fyi/api/v1/health`
+  - `curl -i https://staging.pastebin.sed.fyi/api/v1/health`
+- **Outcome**:
+  - Local code path now includes deployment automation and native branding.
+  - External completion dependency remains on repository Vercel secrets and staging DNS alias setup to fully clear live smoke checks.
+
+### 2026-02-13
+**Native Logo Sync Automation**
+- **Prompt**: "the pastebin logo isn't getting copied over"
+- **Action**:
+  - Added implementation plan: `plans/native-logo-sync-automation.md`
+  - Added design doc: `design-docs/native-logo-sync-automation.md`
+  - Added sync script: `scripts/sync-native-logo.ts`
+  - Added root command: `bun run sync:logo:native`
+  - Wired Android build to auto-sync logo before build:
+    - `native/android/app/build.gradle.kts` (`syncWebLogoForNative` + `preBuild` dependency)
+  - Wired Apple build pre-script via XcodeGen and regenerated project:
+    - `native/apple/project.yml`
+    - `native/apple/SecurePastebinAppleDemo.xcodeproj/project.pbxproj`
+  - Updated native branding docs:
+    - `native/android/README.md`
+    - `native/apple/README.md`
+- **Commands Used**:
+  - `bun run sync:logo:native`
+  - `gradle :app:syncWebLogoForNative :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+- **Outcome**:
+  - Logo copy is now automated instead of manual for both native platforms.
+  - Native builds refresh logo from `public/logo192.png` by default.
+
+### 2026-02-13
+**Native Contrast And Legibility Hardening**
+- **Prompt**: "Additionally, the color scheme is illegible, please make sure that the words are legible on the backgrounds they're on"
+- **Action**:
+  - Increased Android premium theme contrast tokens and text legibility:
+    - darker semantic foregrounds (`onSurface`, `onSurfaceVariant`, `error`)
+    - stronger `bodySmall` text color
+    - less translucent card surface fill
+    - file: `native/android/app/src/main/java/com/securepastebin/app/PremiumMinimalDesignSystem.kt`
+  - Increased Apple premium shell contrast tokens:
+    - darker accent/background blend
+    - stronger card fill/stroke contrast
+    - file: `native/apple/Sources/AppShellDemo/PremiumMinimalDesignSystem.swift`
+  - Replaced low-contrast supporting/error text styling in Apple flow screens:
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+    - `native/apple/Sources/FeatureUpload/UploadFlowView.swift`
+    - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+    - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+- **Commands Used**:
+  - `swift test`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+- **Outcome**:
+  - Text-to-background contrast improved across Android and Apple host-shell/flow surfaces.
+  - Validation builds and tests passed.

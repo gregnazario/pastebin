@@ -1,0 +1,76 @@
+# Deploys shared web/native backend targets to Vercel production and staging.
+name: Deploy Vercel
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+jobs:
+  deploy-production:
+    name: Deploy Production
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build prebuilt Vercel output
+        run: VERCEL=1 bun run build
+
+      - name: Deploy production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: bunx vercel deploy --prebuilt --prod --yes --token "$VERCEL_TOKEN"
+
+  deploy-staging:
+    name: Deploy Staging
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build prebuilt Vercel output
+        run: VERCEL=1 bun run build
+
+      - name: Deploy staging preview and set alias
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_STAGING_ALIAS: ${{ secrets.VERCEL_STAGING_ALIAS }}
+        run: |
+          set -euo pipefail
+          DEPLOY_OUTPUT="$(bunx vercel deploy --prebuilt --yes --token "$VERCEL_TOKEN")"
+          echo "$DEPLOY_OUTPUT"
+          DEPLOYMENT_URL="$(echo "$DEPLOY_OUTPUT" | tail -n 1 | tr -d '\r')"
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Failed to capture deployment URL from Vercel output"
+            exit 1
+          fi
+          if [ -z "${VERCEL_STAGING_ALIAS:-}" ]; then
+            echo "VERCEL_STAGING_ALIAS secret is required for staging alias routing"
+            exit 1
+          fi
+          bunx vercel alias set "$DEPLOYMENT_URL" "$VERCEL_STAGING_ALIAS" --token "$VERCEL_TOKEN"

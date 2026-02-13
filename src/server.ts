@@ -9,6 +9,7 @@ import {
   defineHandlerCallback,
 } from '@tanstack/react-start/server'
 import { createServerEntry } from '@tanstack/react-start/server-entry'
+import { handleApiV1Request } from './server/apiV1'
 
 /**
  * Security headers configuration
@@ -116,8 +117,10 @@ const SECURITY_HEADERS: Record<string, string> = {
  * Custom handler that adds security headers to all responses
  */
 const securityHeadersHandler = defineHandlerCallback(async (ctx) => {
-  // Get the response from the default handler
-  const response = await defaultStreamHandler(ctx)
+  // Handle versioned API requests before SSR routing.
+  // This provides stable native-client contracts independent of route rendering.
+  const apiResponse = await handleApiV1Request(ctx.request)
+  const response = apiResponse ?? (await defaultStreamHandler(ctx))
 
   // Clone headers from original response
   const headers = new Headers(response.headers)

@@ -11,7 +11,10 @@
     "lint": "biome lint src",
     "format": "biome format --write src",
     "check": "biome check --write src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync:logo:native": "bun run scripts/sync-native-logo.ts",
+    "check:api-contract": "bun run scripts/check-api-v1-contract.ts",
+    "check:backend-smoke": "bun run scripts/backend-smoke-check.ts"
   },
   "dependencies": {
     "@aptos-labs/ts-sdk": "^6.0.0",

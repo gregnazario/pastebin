@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   BUN_INSTALL: ~/.bun
@@ -104,3 +105,130 @@ jobs:
           else
             echo "No test files found, skipping tests"
           fi
+
+  api-contract:
+    name: API Contract
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate API v1 contract
+        run: bun run check:api-contract
+
+  android-release:
+    name: Android Release
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    defaults:
+      run:
+        working-directory: native/android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Java (JDK 23)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "23"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Assemble Release
+        run: gradle :app:assembleRelease
+
+      - name: Release Lint Vital
+        run: gradle :app:lintVitalRelease
+
+  android-instrumentation:
+    name: Android Instrumentation
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Java (JDK 23)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "23"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Enable KVM for emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Instrumentation Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_7
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true
+          script: |
+            cd native/android
+            gradle :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest
+
+      - name: Upload Instrumentation Failure Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-instrumentation-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          path: |
+            native/android/app/build/reports/androidTests/connected/**
+            native/android/app/build/outputs/androidTest-results/connected/**
+            native/android/app/build/outputs/connected_android_test_additional_output/**
+
+  apple-native:
+    name: Apple Native
+    runs-on: macos-latest
+    needs: lint-and-typecheck
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Swift Package Tests
+        working-directory: native/apple
+        run: swift test
+
+      - name: iOS Simulator Build
+        run: xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build

@@ -1,0 +1,24 @@
+{
+  "originHash" : "dedd25051b73f91f241bd2cd5d538aaf95cc399272350d1ba9824068ae977f2a",
+  "pins" : [
+    {
+      "identity" : "digest",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leif-ibsen/Digest",
+      "state" : {
+        "revision" : "95ba89b494aaff5f3cd2933c03b9a890323dbf2c",
+        "version" : "1.13.0"
+      }
+    },
+    {
+      "identity" : "swiftkyber",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leif-ibsen/SwiftKyber",
+      "state" : {
+        "revision" : "05a2920397b08a6ecb50ef36c5a38b9620960f21",
+        "version" : "2.5.0"
+      }
+    }
+  ],
+  "version" : 3
+}
