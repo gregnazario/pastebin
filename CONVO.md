@@ -1489,3 +1489,17 @@ Each entry should include:
 - **Outcome**:
   - Text-to-background contrast improved across Android and Apple host-shell/flow surfaces.
   - Validation builds and tests passed.
+
+### 2026-02-13
+**iOS Mobile Legibility Follow-Up (Dark Appearance Override)**
+- **Prompt**: "It still doesn't work correctly on mobile"
+- **Action**:
+  - Identified mobile contrast risk in Apple shell when device appearance is dark while app backgrounds stay light.
+  - Updated premium shell style to force light color scheme for host/form surfaces:
+    - `native/apple/Sources/AppShellDemo/PremiumMinimalDesignSystem.swift`
+  - Added explicit text semantic palette tokens (`textPrimary`, `textSecondary`, `textError`) for consistent legibility intent.
+- **Commands Used**:
+  - `swift test`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+- **Outcome**:
+  - iOS mobile rendering now keeps high-contrast text semantics regardless of system dark mode.
