@@ -54,6 +54,20 @@ struct HostRuntimeSettingsStateTests {
 
         #expect(resolved.absoluteString == "https://pastebin.sed.fyi")
     }
+
+    @Test func resolvedAPIBaseURLFallsBackWhenPathIsProvided() {
+        let state = HostRuntimeSettingsState(apiBaseURLString: "https://pastebin.sed.fyi/upload")
+        let resolved = state.resolvedAPIBaseURL()
+
+        #expect(resolved.absoluteString == "https://pastebin.sed.fyi")
+    }
+
+    @Test func normalizedAPIBaseURLStringAcceptsRootAndRejectsPath() {
+        let normalized = HostRuntimeSettingsState.normalizedAPIBaseURLString(" https://pastebin.sed.fyi/ ")
+        #expect(normalized == "https://pastebin.sed.fyi")
+        #expect(HostRuntimeSettingsState.normalizedAPIBaseURLString("https://pastebin.sed.fyi/p/abc") == nil)
+        #expect(HostRuntimeSettingsState.normalizedAPIBaseURLString("https://pastebin.sed.fyi?foo=bar") == nil)
+    }
 }
 
 /// Root-container settings sheet flow tests.

@@ -382,7 +382,11 @@ private fun ApiBaseSettingsDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "Choose an environment preset or enter a custom API base URL.",
+                    "Choose an environment preset or enter a root API base URL.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    "Use only origin URLs (for example https://pastebin.sed.fyi).",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(

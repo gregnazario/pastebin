@@ -1503,3 +1503,34 @@ Each entry should include:
   - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
 - **Outcome**:
   - iOS mobile rendering now keeps high-contrast text semantics regardless of system dark mode.
+
+### 2026-02-13
+**Fix: 500 "Only HTML requests are supported here" in Native Apps**
+- **Prompt**: "I get server error 500: only HTML requests are supported here"
+- **Root Cause**:
+  - Native API base settings accepted non-root URLs (paths/query/fragment).
+  - When configured with path URLs (e.g. `/upload`, `/p/...`, or `?foo=bar`), native API calls hit non-API HTML routes, returning `500 {"error":"Only HTML requests are supported here"}` for JSON requests.
+- **Action**:
+  - Hardened Android API base validation/normalization to require root origin only:
+    - `native/android/app/src/main/java/com/securepastebin/app/ApiBaseSettings.kt`
+    - Added settings guidance text in dialog:
+      - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+    - Added validation regression tests:
+      - `native/android/app/src/test/kotlin/com/securepastebin/app/ApiBaseSettingsTest.kt`
+  - Hardened Apple runtime settings and validation to require root origin only:
+    - `native/apple/Sources/AppShellDemo/HostRuntimeSettings.swift`
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+    - Added regression tests:
+      - `native/apple/Tests/AppShellDemoTests/AppShellDemoTests.swift`
+  - Updated native READMEs to document root-origin requirement:
+    - `native/android/README.md`
+    - `native/apple/README.md`
+- **Commands Used**:
+  - `curl -i https://pastebin.sed.fyi/api/v1/health`
+  - `curl -i -H 'Accept: application/json' https://pastebin.sed.fyi/`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+  - `swift test`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+- **Outcome**:
+  - Invalid API base values are now blocked and normalized consistently.
+  - Existing invalid values fall back safely to production root URL behavior.

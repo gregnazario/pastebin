@@ -1187,3 +1187,27 @@ bun run typecheck # Type checking
 
 ### Current State
 - Apple host shell now renders in a deterministic light appearance to keep foreground text legible on light premium backgrounds across mobile devices.
+
+## 2026-02-13 - Native API Base Root-URL Hardening
+
+### Completed This Session
+- Reproduced backend behavior:
+  - `/api/v1/health` returns JSON as expected.
+  - non-API pages requested as JSON return `500` with `Only HTML requests are supported here`.
+- Root-cause fix applied across native settings:
+  - Android now rejects API base values with path/query/fragment and normalizes root origins only.
+  - Apple host/runtime settings now normalize/validate root origins only and reject path/query/fragment.
+- Added cross-platform regression coverage:
+  - Android unit tests for path/query/fragment rejection.
+  - Apple tests for fallback on path URLs and normalization behavior.
+- Updated native READMEs with root-origin requirement.
+
+### Validation Status
+- Android:
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` => pass
+- Apple:
+  - `swift test` => pass
+  - `xcodebuild ... SecurePastebinDemoApp ...` => pass
+
+### Current State
+- Native runtime API settings are hardened to origin-only values, preventing API calls from being routed to HTML-only app pages.

@@ -31,6 +31,13 @@ class ApiBaseSettingsTest {
     }
 
     @Test
+    fun isValidApiBaseUrlRejectsPathsQueriesAndFragments() {
+        assertFalse(isValidApiBaseUrl("https://pastebin.sed.fyi/upload"))
+        assertFalse(isValidApiBaseUrl("https://pastebin.sed.fyi/?foo=bar"))
+        assertFalse(isValidApiBaseUrl("https://pastebin.sed.fyi/#fragment"))
+    }
+
+    @Test
     fun presetMatchingFindsPresetForNormalizedValue() {
         assertEquals(
             ApiBaseEnvironmentPreset.STAGING,

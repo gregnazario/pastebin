@@ -34,16 +34,12 @@ struct DemoSettingsView: View {
         }
 
         static func matching(urlString: String) -> DemoEnvironmentPreset? {
-            let normalized = normalize(urlString)
-            return allCases.first { normalize($0.baseURLString) == normalized }
-        }
-
-        private static func normalize(_ value: String) -> String {
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.hasSuffix("/") {
-                return String(trimmed.dropLast())
+            guard let normalized = HostRuntimeSettingsState.normalizedAPIBaseURLString(urlString) else {
+                return nil
             }
-            return trimmed
+            return allCases.first { preset in
+                HostRuntimeSettingsState.normalizedAPIBaseURLString(preset.baseURLString) == normalized
+            }
         }
     }
 
@@ -91,7 +87,7 @@ struct DemoSettingsView: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled(true)
                         .keyboardType(.URL)
-                    Text("Example: \(DemoEnvironmentPreset.local.baseURLString)")
+                    Text("Use root origin only, e.g. \(DemoEnvironmentPreset.local.baseURLString)")
                         .font(.footnote)
                         .foregroundStyle(.primary)
                 }
@@ -128,24 +124,12 @@ struct DemoSettingsView: View {
     }
 
     private func apply() {
-        let trimmed = draftAPIBaseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard isValidBaseURL(trimmed) else {
-            validationMessage = "Enter a valid URL including scheme and host."
+        guard let normalized = HostRuntimeSettingsState.normalizedAPIBaseURLString(draftAPIBaseURLString) else {
+            validationMessage = "Enter a valid root URL with scheme and host only."
             return
         }
 
-        onApply(trimmed)
+        onApply(normalized)
         dismiss()
-    }
-
-    private func isValidBaseURL(_ candidate: String) -> Bool {
-        guard let url = URL(string: candidate),
-              let scheme = url.scheme,
-              let host = url.host,
-              !scheme.isEmpty,
-              !host.isEmpty else {
-            return false
-        }
-        return true
     }
 }

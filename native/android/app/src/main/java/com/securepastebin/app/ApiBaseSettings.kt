@@ -57,23 +57,39 @@ class ApiBaseConfigurationStore(
  * Normalizes a user-provided API base URL for storage and comparisons.
  */
 internal fun normalizeApiBaseUrlCandidate(rawValue: String): String {
-    return rawValue.trim().trimEnd('/')
+    val trimmed = rawValue.trim()
+    val uri = runCatching { URI(trimmed) }.getOrNull() ?: return trimmed.trimEnd('/')
+    val scheme = uri.scheme?.lowercase() ?: return trimmed.trimEnd('/')
+    val host = uri.host ?: return trimmed.trimEnd('/')
+    val path = uri.path
+    val hasUnsupportedPath = !path.isNullOrBlank() && path != "/"
+    if (hasUnsupportedPath || uri.query != null || uri.fragment != null || uri.userInfo != null) {
+        return trimmed.trimEnd('/')
+    }
+
+    return URI(scheme, null, host.lowercase(), uri.port, null, null, null)
+        .toString()
+        .trimEnd('/')
 }
 
 /**
  * Validates API base URL structure for runtime environment settings.
  */
 internal fun isValidApiBaseUrl(candidate: String): Boolean {
-    val normalized = normalizeApiBaseUrlCandidate(candidate)
-    if (normalized.isBlank()) {
+    val trimmed = candidate.trim()
+    if (trimmed.isBlank()) {
         return false
     }
 
-    val uri = runCatching { URI(normalized) }.getOrNull() ?: return false
+    val uri = runCatching { URI(trimmed) }.getOrNull() ?: return false
     val scheme = uri.scheme?.lowercase() ?: return false
     if (scheme != "http" && scheme != "https") {
         return false
     }
+
+    val hasUnsupportedPath = !uri.path.isNullOrBlank() && uri.path != "/"
+    if (hasUnsupportedPath) return false
+    if (uri.query != null || uri.fragment != null || uri.userInfo != null) return false
 
     return !uri.host.isNullOrBlank()
 }

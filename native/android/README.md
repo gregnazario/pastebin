@@ -16,7 +16,7 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
 - Default API base is website production backend via `https://pastebin.sed.fyi`.
 - Runtime API settings are available in-app via `Settings`:
   - Presets: `Local`, `Staging`, `Production`
-  - Manual API base URL override with validation
+  - Manual API base URL override with validation (root origin only; no path/query/fragment)
   - Selected API base persists across app launches
 - Network transport policy:
   - Debug builds allow cleartext only for local development hosts (`10.0.2.2`, `127.0.0.1`, `localhost`).
