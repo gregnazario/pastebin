@@ -83,7 +83,7 @@ struct DemoSettingsView: View {
                     .buttonStyle(.borderedProminent)
                     Text(selectedEnvironmentPreset.baseURLString)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.primary)
                 }
 
                 Section("API") {
@@ -93,13 +93,13 @@ struct DemoSettingsView: View {
                         .keyboardType(.URL)
                     Text("Example: \(DemoEnvironmentPreset.local.baseURLString)")
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.primary)
                 }
 
                 if let validationMessage {
                     Section("Error") {
                         Text(validationMessage)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color(red: 0.60, green: 0.13, blue: 0.12))
                     }
                 }
 

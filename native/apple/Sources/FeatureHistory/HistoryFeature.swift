@@ -210,14 +210,18 @@ public struct HistoryFlowView: View {
 
                     let syncStatus = HistoryFlowCloudSyncPresentation.status(for: viewModel.cloudSyncState)
                     Text(syncStatus.text)
-                        .foregroundStyle(syncStatus.isError ? .red : .secondary)
+                        .foregroundStyle(
+                            syncStatus.isError
+                                ? Color(red: 0.60, green: 0.13, blue: 0.12)
+                                : .primary
+                        )
                 }
             }
 
             Section("Recent Decrypts") {
                 if viewModel.entries.isEmpty && !viewModel.isLoading {
                     Text("No history entries.")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.primary)
                 } else {
                     ForEach(viewModel.entries, id: \.id) { entry in
                         rowView(entry)
@@ -228,7 +232,7 @@ public struct HistoryFlowView: View {
             if let errorMessage = viewModel.errorMessage {
                 Section("Error") {
                     Text(errorMessage)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(red: 0.60, green: 0.13, blue: 0.12))
                 }
             }
         }
@@ -252,14 +256,18 @@ public struct HistoryFlowView: View {
                     .font(.headline)
                 Text("ID: \(entry.id)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                     .textSelection(.enabled)
                 Text("Created: \(formatDate(entry.createdAtMillis))")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                 Text(expirationText(entry))
                     .font(.caption)
-                    .foregroundStyle(entry.isExpired ? .red : .secondary)
+                    .foregroundStyle(
+                        entry.isExpired
+                            ? Color(red: 0.60, green: 0.13, blue: 0.12)
+                            : .primary
+                    )
             }
             Spacer(minLength: 12)
             VStack(alignment: .trailing, spacing: 6) {

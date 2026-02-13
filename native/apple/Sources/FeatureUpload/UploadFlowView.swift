@@ -173,7 +173,7 @@ public struct UploadFlowView: View {
                     if let fileSize = viewModel.selectedFileSizeBytes {
                         Text("\(fileSize) bytes")
                             .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.primary)
                     }
                 }
             }
@@ -202,7 +202,7 @@ public struct UploadFlowView: View {
             if let error = viewModel.errorMessage {
                 Section("Error") {
                     Text(error)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(red: 0.60, green: 0.13, blue: 0.12))
                 }
             }
         }

@@ -24,16 +24,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 private val premiumLightColorScheme = lightColorScheme(
-    primary = Color(0xFF2B6A86),
+    primary = Color(0xFF1E5A73),
     onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFD3E8F2),
-    onPrimaryContainer = Color(0xFF0D2B39),
-    surface = Color(0xFFF5F7F9),
-    onSurface = Color(0xFF1B1F23),
-    surfaceVariant = Color(0xFFE7ECF0),
-    onSurfaceVariant = Color(0xFF414B55),
-    background = Color(0xFFF1F4F7),
-    error = Color(0xFFB3261E),
+    primaryContainer = Color(0xFFCFE3EE),
+    onPrimaryContainer = Color(0xFF09222E),
+    surface = Color(0xFFF7FAFC),
+    onSurface = Color(0xFF11161C),
+    surfaceVariant = Color(0xFFE1E8EE),
+    onSurfaceVariant = Color(0xFF26323D),
+    background = Color(0xFFEDF2F6),
+    onBackground = Color(0xFF11161C),
+    error = Color(0xFF8F1D18),
 )
 
 private val premiumTypography = Typography(
@@ -42,7 +43,7 @@ private val premiumTypography = Typography(
     titleSmall = Typography().titleSmall.copy(fontWeight = FontWeight.Medium),
     bodyLarge = Typography().bodyLarge.copy(fontWeight = FontWeight.Normal),
     bodyMedium = Typography().bodyMedium.copy(fontWeight = FontWeight.Normal),
-    bodySmall = Typography().bodySmall.copy(color = Color(0xFF5B6773)),
+    bodySmall = Typography().bodySmall.copy(color = Color(0xFF2B3742)),
 )
 
 private val premiumShapes = Shapes(
@@ -91,7 +92,7 @@ fun PremiumSectionCard(
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
-        color = Color.White.copy(alpha = 0.88f),
+        color = Color.White.copy(alpha = 0.96f),
         tonalElevation = 2.dp,
         shadowElevation = 10.dp,
     ) {

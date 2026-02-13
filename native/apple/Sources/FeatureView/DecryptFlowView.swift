@@ -302,7 +302,7 @@ public struct DecryptFlowView: View {
             if let error = viewModel.errorMessage {
                 Section("Error") {
                     Text(error)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(red: 0.60, green: 0.13, blue: 0.12))
                 }
             }
         }
@@ -343,7 +343,7 @@ public struct DecryptFlowView: View {
         case .unsupported(let message):
             Text(message)
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.primary)
         }
     }
 

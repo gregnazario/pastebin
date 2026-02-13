@@ -1147,3 +1147,28 @@ bun run typecheck # Type checking
 - Android unit + androidTest compile/assemble: pass
 - iOS simulator build: pass
 - `bun run lint`, `bun run typecheck`, `bun test`: pass
+
+## 2026-02-13 - Native Legibility Pass
+
+### Completed This Session
+- Tightened Android design-system contrast:
+  - updated color scheme semantic foregrounds
+  - increased body-small text contrast
+  - increased card opacity for readability
+  - file: `native/android/app/src/main/java/com/securepastebin/app/PremiumMinimalDesignSystem.kt`
+- Tightened Apple design-system contrast:
+  - adjusted accent/background/card tokens
+  - file: `native/apple/Sources/AppShellDemo/PremiumMinimalDesignSystem.swift`
+- Removed low-contrast supporting text usage in Apple feature and settings views:
+  - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+  - `native/apple/Sources/FeatureUpload/UploadFlowView.swift`
+  - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+  - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+
+### Validation Status
+- `swift test`: pass
+- `xcodebuild ... SecurePastebinDemoApp ...`: pass
+- `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`: pass
+
+### Current State
+- Native app text contrast has been strengthened against premium backgrounds for both Android and Apple shells.

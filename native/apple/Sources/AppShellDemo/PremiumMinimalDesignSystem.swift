@@ -3,11 +3,11 @@ import SwiftUI
 
 /// Shared palette values used by the Apple premium minimal shell.
 public enum PremiumMinimalPalette {
-    public static let accent = Color(red: 0.18, green: 0.42, blue: 0.54)
-    public static let backgroundStart = Color(red: 0.96, green: 0.97, blue: 0.98)
-    public static let backgroundEnd = Color(red: 0.90, green: 0.92, blue: 0.95)
-    public static let cardFill = Color.white.opacity(0.88)
-    public static let cardStroke = Color.white.opacity(0.62)
+    public static let accent = Color(red: 0.11, green: 0.34, blue: 0.47)
+    public static let backgroundStart = Color(red: 0.95, green: 0.96, blue: 0.98)
+    public static let backgroundEnd = Color(red: 0.88, green: 0.91, blue: 0.94)
+    public static let cardFill = Color.white.opacity(0.96)
+    public static let cardStroke = Color.black.opacity(0.10)
 }
 
 /// Shared premium minimal gradient background.

@@ -1463,3 +1463,29 @@ Each entry should include:
 - **Outcome**:
   - Logo copy is now automated instead of manual for both native platforms.
   - Native builds refresh logo from `public/logo192.png` by default.
+
+### 2026-02-13
+**Native Contrast And Legibility Hardening**
+- **Prompt**: "Additionally, the color scheme is illegible, please make sure that the words are legible on the backgrounds they're on"
+- **Action**:
+  - Increased Android premium theme contrast tokens and text legibility:
+    - darker semantic foregrounds (`onSurface`, `onSurfaceVariant`, `error`)
+    - stronger `bodySmall` text color
+    - less translucent card surface fill
+    - file: `native/android/app/src/main/java/com/securepastebin/app/PremiumMinimalDesignSystem.kt`
+  - Increased Apple premium shell contrast tokens:
+    - darker accent/background blend
+    - stronger card fill/stroke contrast
+    - file: `native/apple/Sources/AppShellDemo/PremiumMinimalDesignSystem.swift`
+  - Replaced low-contrast supporting/error text styling in Apple flow screens:
+    - `native/apple/AppShellDemoApp/Sources/DemoSettingsView.swift`
+    - `native/apple/Sources/FeatureUpload/UploadFlowView.swift`
+    - `native/apple/Sources/FeatureView/DecryptFlowView.swift`
+    - `native/apple/Sources/FeatureHistory/HistoryFeature.swift`
+- **Commands Used**:
+  - `swift test`
+  - `xcodebuild -project native/apple/SecurePastebinAppleDemo.xcodeproj -scheme SecurePastebinDemoApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`
+  - `gradle :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+- **Outcome**:
+  - Text-to-background contrast improved across Android and Apple host-shell/flow surfaces.
+  - Validation builds and tests passed.
