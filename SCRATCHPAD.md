@@ -1211,3 +1211,27 @@ bun run typecheck # Type checking
 
 ### Current State
 - Native runtime API settings are hardened to origin-only values, preventing API calls from being routed to HTML-only app pages.
+
+## 2026-02-13 - Buffer Runtime Upload Fix + SDK Target Split
+
+### Completed This Session
+- Added plan + design docs:
+  - `plans/web-upload-buffer-runtime-fix.md`
+  - `design-docs/web-upload-buffer-runtime-fix.md`
+- Updated Shelby upload internals to use `Uint8Array` directly for commitments:
+  - `src/server/shelby.ts`
+- Updated SDK target usage in Shelby module:
+  - browser-reachable helpers from `@shelby-protocol/sdk/browser`
+  - backend-only `ShelbyNodeClient` loaded from `@shelby-protocol/sdk/node` on SSR path
+- Added regression test:
+  - `src/server/shelby.test.ts`
+
+### Validation Status
+- `bun run lint`: pass
+- `bun run test`: pass (suite passes; Vitest reports known shutdown noise after completion)
+- `bun run typecheck`: pass
+- `bun run build`: pass
+
+### Current State
+- Upload commitment generation no longer requires Node `Buffer`.
+- Shelby SDK usage is aligned with browser/backend runtime boundaries in the server module.

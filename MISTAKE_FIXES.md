@@ -210,3 +210,17 @@ This document tracks implementation mistakes discovered during development and t
   - Assigned raw ID into `URLComponents.path` so encoding happens once.
   - Added/kept a regression test in `FeatureHistoryTests`.
 - **Result**: Share URL generation is correct and `swift test` passes.
+
+## [2026-02-13] Web Upload Runtime Error (`Buffer is not defined`)
+
+### Issue 1: Upload path used Node `Buffer` in shared server module
+- **Context**: Website uploads failed with `Buffer is not defined` during commitment generation.
+- **Root Cause**: Upload internals called `generateCommitments(provider, Buffer.from(data))`, which assumes Node global `Buffer` availability.
+- **Fix**:
+  - Replaced `Buffer.from(data)` with direct `Uint8Array` input.
+  - Added SDK target separation in `src/server/shelby.ts`:
+    - browser-reachable helpers use `@shelby-protocol/sdk/browser`
+    - backend-only client wiring loads `@shelby-protocol/sdk/node` in SSR runtime path.
+  - Added regression test:
+    - `src/server/shelby.test.ts`
+- **Result**: Upload flow no longer depends on Node `Buffer`; test/typecheck/build pass.

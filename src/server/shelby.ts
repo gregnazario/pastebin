@@ -13,21 +13,11 @@
  */
 
 import {
-  Account,
-  Aptos,
-  AptosConfig,
-  Ed25519PrivateKey,
-  Network,
-  PrivateKey,
-  PrivateKeyVariants,
-} from '@aptos-labs/ts-sdk'
-import {
   createDefaultErasureCodingProvider,
   expectedTotalChunksets,
   generateCommitments,
   ShelbyBlobClient,
-  ShelbyNodeClient,
-} from '@shelby-protocol/sdk/node'
+} from '@shelby-protocol/sdk/browser'
 import { createServerFn } from '@tanstack/react-start'
 
 // ============================================================================
@@ -322,13 +312,47 @@ function getConfig(): ServerConfig {
 // Client Management
 // ============================================================================
 
-// Singleton client instance
-let shelbyClient: ShelbyNodeClient | null = null
-let aptosClient: Aptos | null = null
-let serviceAccount: Account | null = null
+interface ShelbyRpcClientRuntime {
+  putBlob: (input: { account: string; blobName: string; blobData: Uint8Array }) => Promise<unknown>
+  getBlob: (input: { account: string; blobName: string }) => Promise<{ readable?: ReadableStream<Uint8Array> } | null>
+}
 
-function getClients() {
+interface ShelbyClientRuntime {
+  rpc: ShelbyRpcClientRuntime
+}
+
+interface AptosClientRuntime {
+  transaction: {
+    build: {
+      simple: (input: { sender: unknown; data: unknown }) => Promise<unknown>
+    }
+  }
+  signAndSubmitTransaction: (input: { signer: unknown; transaction: unknown }) => Promise<{ hash: string }>
+  waitForTransaction: (input: { transactionHash: string }) => Promise<unknown>
+}
+
+interface ServiceAccountRuntime {
+  accountAddress: {
+    toString: () => string
+  }
+}
+
+// Singleton client instance
+let shelbyClient: unknown | null = null
+let aptosClient: unknown | null = null
+let serviceAccount: unknown | null = null
+
+async function getClients() {
+  if (!import.meta.env.SSR) {
+    throw new Error('Shelby clients are only available on the server runtime')
+  }
+
   const config = getConfig()
+  const aptosSdk = await import('@aptos-labs/ts-sdk')
+  const shelbyNodeSdk = await import('@shelby-protocol/sdk/node')
+  const { Account, Aptos, AptosConfig, Ed25519PrivateKey, Network, PrivateKey, PrivateKeyVariants } =
+    aptosSdk
+  const { ShelbyNodeClient } = shelbyNodeSdk
 
   if (!shelbyClient) {
     shelbyClient = new ShelbyNodeClient({
@@ -352,7 +376,11 @@ function getClients() {
     serviceAccount = Account.fromPrivateKey({ privateKey })
   }
 
-  return { shelbyClient, aptosClient, serviceAccount }
+  return {
+    shelbyClient: shelbyClient as ShelbyClientRuntime,
+    aptosClient: aptosClient as AptosClientRuntime,
+    serviceAccount: serviceAccount as ServiceAccountRuntime,
+  }
 }
 
 /**
@@ -456,7 +484,7 @@ export async function uploadBlobInternal(
     throw new Error('Too many requests. Please try again later.')
   }
 
-  const { shelbyClient, aptosClient, serviceAccount } = getClients()
+  const { shelbyClient, aptosClient, serviceAccount } = await getClients()
   const config = getConfig()
 
   if (!serviceAccount || !shelbyClient || !aptosClient) {
@@ -471,7 +499,7 @@ export async function uploadBlobInternal(
 
   // Step 1: Encode and generate commitments
   const provider = await createDefaultErasureCodingProvider()
-  const commitments = await generateCommitments(provider, Buffer.from(data))
+  const commitments = await generateCommitments(provider, data)
 
   // Step 2: Register on-chain
   // Use timestamp + sanitized filename + random suffix for uniqueness
@@ -480,7 +508,10 @@ export async function uploadBlobInternal(
   const expirationMicros = (Date.now() + config.defaultExpirationDays * 24 * 60 * 60 * 1000) * 1000
 
   const payload = ShelbyBlobClient.createRegisterBlobPayload({
-    account: serviceAccount.accountAddress,
+    account:
+      serviceAccount.accountAddress as Parameters<
+        typeof ShelbyBlobClient.createRegisterBlobPayload
+      >[0]['account'],
     blobName,
     blobMerkleRoot: commitments.blob_merkle_root,
     numChunksets: expectedTotalChunksets(commitments.raw_data_size),
@@ -534,7 +565,7 @@ export async function downloadBlobInternal(
     throw new Error('Too many requests. Please try again later.')
   }
 
-  const { shelbyClient, serviceAccount } = getClients()
+  const { shelbyClient, serviceAccount } = await getClients()
 
   if (!serviceAccount || !shelbyClient) {
     log('error', 'Shelby clients not initialized for download')
@@ -583,7 +614,7 @@ export async function downloadBlobInternal(
  */
 export async function checkHealthInternal(): Promise<ShelbyHealthResponse> {
   try {
-    const { serviceAccount } = getClients()
+    const { serviceAccount } = await getClients()
     const config = getConfig()
 
     return {

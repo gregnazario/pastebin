@@ -1534,3 +1534,31 @@ Each entry should include:
 - **Outcome**:
   - Invalid API base values are now blocked and normalized consistently.
   - Existing invalid values fall back safely to production root URL behavior.
+
+### 2026-02-13
+**Fix: Upload Fails With "Buffer is not defined"**
+- **Prompt**: "Getting Buffer is not defined whne trying to upload on the website"
+- **Follow-up Prompt**: "Can you just use @shelby-protocol/sdk/browser if it's in the frontend and @shelby-protocol/sdk/node in the backend"
+- **Action**:
+  - Added implementation plan:
+    - `plans/web-upload-buffer-runtime-fix.md`
+  - Added design doc:
+    - `design-docs/web-upload-buffer-runtime-fix.md`
+  - Updated Shelby upload runtime path to avoid Node-only `Buffer` usage:
+    - `src/server/shelby.ts`
+      - replaced `Buffer.from(data)` with `Uint8Array` input to `generateCommitments`
+  - Split SDK target usage in Shelby server module:
+    - browser-reachable imports now use `@shelby-protocol/sdk/browser`
+    - backend-only `ShelbyNodeClient` loading uses `@shelby-protocol/sdk/node` at runtime in SSR path
+  - Added regression test for commitment input type:
+    - `src/server/shelby.test.ts`
+- **Commands Used**:
+  - `bun install`
+  - `bun run lint`
+  - `bun run test`
+  - `bun run typecheck`
+  - `bun run build`
+- **Outcome**:
+  - Upload path no longer depends on `Buffer`.
+  - SDK usage now follows frontend/browser vs backend/node separation in the Shelby module.
+  - Tests, typecheck, and build pass.
