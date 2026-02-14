@@ -1642,3 +1642,24 @@ Each entry should include:
   - Weak passwords are warned and gated by explicit modal acknowledgment instead of hard block.
   - URL key fragments are shorter with new encoding and remain backward compatible with old links.
   - Lint, typecheck, targeted tests, and build pass.
+
+## 2026-02-14
+
+**Android CI Instrumentation Failure (Gradle project dir mismatch)**
+- **Prompt**: "fix CI for android that is failing"
+- **Root Cause**:
+  - In `.github/workflows/ci.yml`, `android-emulator-runner` instrumentation `script` used two lines:
+    - `cd native/android`
+    - `gradle ...`
+  - The action executed each line in separate shells, so Gradle ran from repo root and failed with:
+    - `Directory '/home/runner/work/pastebin/pastebin' does not contain a Gradle build.`
+- **Action**:
+  - Updated instrumentation Gradle invocation to set project directory explicitly:
+    - `gradle -p native/android :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+- **Commands Used**:
+  - `gh run list --workflow ci.yml --limit 5`
+  - `gh run view 22009448902 --job 63600187428 --log-failed`
+  - `gradle -p native/android :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest`
+- **Outcome**:
+  - Workflow now invokes Gradle against `native/android` reliably inside emulator-runner.
+  - Local sanity build for instrumentation compile/assemble passes.

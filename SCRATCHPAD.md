@@ -1318,3 +1318,17 @@ bun run typecheck # Type checking
 ### Current State
 - Users can proceed with weak passwords only after an explicit modal warning.
 - New links use compact, versioned URL key fragments; old links continue to decrypt.
+
+## 2026-02-14 - Android CI Instrumentation Fix
+
+### Completed This Session
+- Investigated latest failed CI run (`ci.yml`) Android Instrumentation job logs via GitHub CLI.
+- Identified workflow script-shell behavior causing `cd native/android` to not persist for subsequent `gradle` invocation.
+- Patched `.github/workflows/ci.yml` instrumentation command to:
+  - `gradle -p native/android :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest :app:connectedDebugAndroidTest`
+
+### Validation Status
+- `gradle -p native/android :app:compileDebugAndroidTestKotlin :app:assembleDebugAndroidTest` => pass
+
+### Current State
+- Android instrumentation CI step now points Gradle to the correct project regardless of shell-step boundaries.
