@@ -40,4 +40,21 @@ describe('KeyDerivationService URL key fragment encoding', () => {
       Array.from(privateKey),
     )
   })
+
+  it('decodes percent-encoded compact fragments from copied URLs', () => {
+    const source = new Uint8Array([0, 1, 2, 3, 17, 31, 63, 127, 191, 223, 239, 255])
+    const encoded = KeyDerivationService.keyToUrlFragment(source)
+    const percentEncoded = encodeURIComponent(encoded)
+    const decoded = KeyDerivationService.urlFragmentToKey(percentEncoded)
+
+    expect(Array.from(decoded)).toEqual(Array.from(source))
+  })
+
+  it('decodes compact fragments with a leading hash', () => {
+    const source = new Uint8Array([9, 8, 7, 6, 5, 4, 3, 2, 1])
+    const encoded = KeyDerivationService.keyToUrlFragment(source)
+    const decoded = KeyDerivationService.urlFragmentToKey(`#${encoded}`)
+
+    expect(Array.from(decoded)).toEqual(Array.from(source))
+  })
 })

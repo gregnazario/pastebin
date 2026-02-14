@@ -1663,3 +1663,30 @@ Each entry should include:
 - **Outcome**:
   - Workflow now invokes Gradle against `native/android` reliably inside emulator-runner.
   - Local sanity build for instrumentation compile/assemble passes.
+
+## 2026-02-14
+
+**k1 URL Fragment Decode Fix (percent-encoded copied links)**
+- **Prompt**: "please commit and push" + "Note that the k1 keys do not properly work..."
+- **Root Cause**:
+  - `k1` decoder expected raw custom-alphabet fragment text.
+  - When links are copied/shared with percent-encoding in the hash (e.g. `%5D`, `%7B`), decoder saw `%` and rejected the key as invalid.
+- **Action**:
+  - Added URL fragment normalization in `KeyDerivationService.urlFragmentToKey(...)`:
+    - trim
+    - remove optional leading `#`
+    - decode percent-encoding when present (`decodeURIComponent`)
+  - Kept backward compatibility for legacy base64url fragments.
+  - Added regression tests for:
+    - percent-encoded `k1` fragments
+    - `k1` fragments with leading `#`
+- **Files Updated**:
+  - `src/services/crypto/KeyDerivation.ts`
+  - `src/services/crypto/KeyDerivation.test.ts`
+- **Commands Used**:
+  - `bun test src/services/crypto/KeyDerivation.test.ts`
+  - `bun run typecheck`
+  - `bun run lint`
+  - `bun run build`
+- **Outcome**:
+  - `k1` decryption key fragments now decode correctly when hash characters are percent-encoded by copy/share flows.

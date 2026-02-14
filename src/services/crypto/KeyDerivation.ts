@@ -201,13 +201,36 @@ export class KeyDerivationService {
    * @returns Decoded key bytes
    */
   static urlFragmentToKey(fragment: string): Uint8Array {
-    if (fragment.startsWith(KeyDerivationService.URL_KEY_ENCODING_PREFIX)) {
-      const payload = fragment.slice(KeyDerivationService.URL_KEY_ENCODING_PREFIX.length)
+    const normalizedFragment = KeyDerivationService.normalizeUrlFragment(fragment)
+    if (normalizedFragment.startsWith(KeyDerivationService.URL_KEY_ENCODING_PREFIX)) {
+      const payload = normalizedFragment.slice(KeyDerivationService.URL_KEY_ENCODING_PREFIX.length)
       return KeyDerivationService.decodeBytesFromCustomBase(payload)
     }
 
     // Backward compatibility for older links
-    return KeyDerivationService.base64UrlToKey(fragment)
+    return KeyDerivationService.base64UrlToKey(normalizedFragment)
+  }
+
+  /**
+   * Normalize URL fragment input so decode works for copied/encoded links.
+   * Handles optional leading '#' and percent-encoded content.
+   */
+  private static normalizeUrlFragment(fragment: string): string {
+    let normalized = fragment.trim()
+    if (normalized.startsWith('#')) {
+      normalized = normalized.slice(1)
+    }
+
+    // Some clients percent-encode fragment characters; decode if present.
+    if (normalized.includes('%')) {
+      try {
+        normalized = decodeURIComponent(normalized)
+      } catch {
+        // Keep the raw value so existing errors remain descriptive downstream.
+      }
+    }
+
+    return normalized
   }
 
   /**

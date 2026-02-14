@@ -1332,3 +1332,23 @@ bun run typecheck # Type checking
 
 ### Current State
 - Android instrumentation CI step now points Gradle to the correct project regardless of shell-step boundaries.
+
+## 2026-02-14 - k1 Fragment Decode Compatibility Fix
+
+### Completed This Session
+- Fixed `KeyDerivationService.urlFragmentToKey(...)` to normalize incoming fragment values:
+  - trims whitespace
+  - strips optional leading `#`
+  - decodes percent-encoded fragment content when present
+- Added tests in `src/services/crypto/KeyDerivation.test.ts` covering:
+  - percent-encoded `k1` fragments
+  - leading-hash `k1` fragments
+
+### Validation Status
+- `bun test src/services/crypto/KeyDerivation.test.ts` => pass
+- `bun run typecheck` => pass
+- `bun run lint` => pass
+- `bun run build` => pass
+
+### Current State
+- Web decrypt path now accepts both raw and percent-encoded `k1` fragments from copied/shared URLs.
