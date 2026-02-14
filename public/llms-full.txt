@@ -80,7 +80,7 @@ When a recipient opens a shared link:
 | Salt Length | 32 bytes |
 | Maximum File Size | 100 MB |
 | Maximum Note Size | ~10 MB (10,485,760 characters) |
-| Link Validity | 24 hours |
+| Link Validity | 30 days default (configurable) |
 | Storage Backend | Shelby Protocol (decentralized, Aptos blockchain) |
 | Encryption Location | Client-side (browser, Web Worker) |
 
@@ -138,7 +138,7 @@ When a recipient opens a shared link:
 Your file cannot be recovered. This is by design — if the service could recover files without the password, so could an attacker. Use a password manager.
 
 **How long are files stored?**
-24 hours by default. After this period, the encrypted blob is automatically deleted.
+30 days by default unless `DEFAULT_EXPIRATION_DAYS` is overridden by deployment config. After this period, the encrypted blob is automatically deleted.
 
 **Is this really secure?**
 Yes, given a strong password. The encryption uses industry-standard AES-256-GCM combined with post-quantum ML-KEM. Potential risks: weak passwords, malware on your device, sharing links insecurely.

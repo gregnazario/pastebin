@@ -1,6 +1,6 @@
-# Apple Native App (Swift)
+# SecuPaste Apple Native App (Swift)
 
-This workspace contains the Swift foundations for Secure Pastebin on Apple platforms.
+This workspace contains the Swift foundations for SecuPaste on Apple platforms.
 
 ## Targets
 - iOS + iPadOS (v1)
@@ -64,6 +64,8 @@ This workspace contains the Swift foundations for Secure Pastebin on Apple platf
   - `X-Client-Platform: ios|macos` (resolved by target)
   - `X-Client-Version: <bundle short version>`
   - `X-Request-Id: <per-request UUID>`
+- Upload transport:
+  - `CoreNetworking` now sends `multipart/form-data` for `/api/v1/upload` to avoid JSON byte-array expansion on mobile paths.
 - Transport hardening:
   - App Transport Security no longer uses `NSAllowsArbitraryLoads`.
   - Local development remains supported via `NSAllowsLocalNetworking`.

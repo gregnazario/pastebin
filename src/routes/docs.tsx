@@ -453,7 +453,7 @@ function DocsPage() {
               </tr>
               <tr>
                 <th scope="row">Link Validity</th>
-                <td>24 hours (configurable)</td>
+                <td>30 days default (configurable)</td>
               </tr>
               <tr>
                 <th scope="row">Encryption Location</th>
@@ -479,9 +479,9 @@ function DocsPage() {
 
           <CollapsibleSection title="How long are files stored?">
             <p>
-              Files are stored for 24 hours by default. After this period, the encrypted blob is
-              automatically deleted from the Shelby network. This ensures temporary file sharing
-              without permanent data retention.
+              Files use a configurable expiration policy. By default, deployments keep files for 30
+              days unless <code>DEFAULT_EXPIRATION_DAYS</code> is overridden. After expiration, the
+              encrypted blob is deleted from the Shelby network.
             </p>
           </CollapsibleSection>
 

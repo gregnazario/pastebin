@@ -27,7 +27,7 @@ SecuPaste is an open-source, privacy-first file sharing service that uses post-q
 - **Key Derivation**: Argon2id (64MB memory, 3 iterations, parallelism 1)
 - **Salt Length**: 32 bytes, cryptographically random
 - **Maximum File Size**: 100 MB
-- **Link Validity**: 24 hours
+- **Link Validity**: 30 days default (configurable)
 - **Storage Backend**: Shelby Protocol (decentralized)
 
 ## Security Model

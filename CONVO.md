@@ -1824,3 +1824,30 @@ Each entry should include:
   - `gradle -p native/android :app:assembleDebug`
 - **Outcome**:
   - User-facing app branding is now `SecuPaste` across web + native launch metadata without changing package IDs or protocol identifiers.
+
+## 2026-02-14
+
+**README + Docs Refresh To Current State**
+- **Prompt**: "Can we also update the docs and the README to match the current state, then commit and push"
+- **Actions**:
+  - Replaced root scaffold README with project-accurate SecuPaste documentation:
+    - `README.md`
+    - includes architecture, shared backend/API transport, limits/defaults, key-fragment compatibility, and current dev/test commands.
+  - Updated user-facing docs retention language to current default behavior:
+    - `src/routes/docs.tsx`
+    - `public/llms.txt`
+    - `public/llms-full.txt`
+    - changed from hardcoded 24h default to configurable default (30 days unless overridden).
+  - Updated native README branding and transport notes:
+    - `native/apple/README.md`
+    - `native/android/README.md`
+    - clarified multipart upload transport now used by native clients.
+  - Added planning/design docs for this documentation refresh:
+    - `plans/docs-readme-current-state-refresh.md`
+    - `design-docs/docs-readme-current-state-refresh.md`
+- **Commands Used**:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun run build`
+- **Outcome**:
+  - README and docs now reflect current SecuPaste behavior and terminology.

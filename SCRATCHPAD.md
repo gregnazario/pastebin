@@ -1470,3 +1470,27 @@ bun run typecheck # Type checking
 ### Current State
 - App branding shown to users is now `SecuPaste` across web/PWA metadata and native app launch labels.
 - Internal identifiers (bundle/package IDs, protocol strings, file IDs) are unchanged.
+
+## 2026-02-14 - README And Docs Current-State Refresh
+
+### Completed This Session
+- Replaced template root README with current SecuPaste project documentation:
+  - `README.md`
+- Updated docs retention/defaults language to match runtime defaults:
+  - `src/routes/docs.tsx`
+  - `public/llms.txt`
+  - `public/llms-full.txt`
+- Updated native README branding and upload transport notes:
+  - `native/apple/README.md`
+  - `native/android/README.md`
+- Added planning/design docs for this docs pass:
+  - `plans/docs-readme-current-state-refresh.md`
+  - `design-docs/docs-readme-current-state-refresh.md`
+
+### Validation Status
+- `bun run lint` => pass
+- `bun run typecheck` => pass
+- `bun run build` => pass
+
+### Current State
+- Repository README and major docs now align with current SecuPaste implementation (shared backend, multipart upload support, current defaults).

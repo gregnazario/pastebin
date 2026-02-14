@@ -1,6 +1,6 @@
-# Android Native App (Kotlin)
+# SecuPaste Android Native App (Kotlin)
 
-This workspace contains the Kotlin + Android foundations for Secure Pastebin.
+This workspace contains the Kotlin + Android foundations for SecuPaste.
 
 ## Architecture
 - Jetpack Compose UI layer
@@ -25,6 +25,8 @@ This workspace contains the Kotlin + Android foundations for Secure Pastebin.
   - `X-Client-Platform: android`
   - `X-Client-Version: <app version>`
   - `X-Request-Id: <per-request UUID>`
+- Upload transport:
+  - `core/network` now sends `multipart/form-data` for `/api/v1/upload` to reduce payload overhead versus JSON byte arrays.
 - Configure Android SDK before running Gradle tasks:
   - Set `ANDROID_HOME`, or
   - Create `native/android/local.properties` with `sdk.dir=/absolute/path/to/android/sdk`
