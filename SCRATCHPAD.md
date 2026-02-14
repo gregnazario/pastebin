@@ -1352,3 +1352,28 @@ bun run typecheck # Type checking
 
 ### Current State
 - Web decrypt path now accepts both raw and percent-encoded `k1` fragments from copied/shared URLs.
+
+## 2026-02-14 - k2 URL-Stable Fragment Encoding
+
+### Completed This Session
+- Replaced default key-fragment encoder output from `k1.` to `k2.` in `KeyDerivationService`.
+- Added `k2` alphabet limited to RFC3986 unreserved characters (`0-9A-Za-z-._~`) to prevent percent-encoding expansion.
+- Preserved backward-compatible decode paths for:
+  - `k2.` (new)
+  - `k1.` (legacy)
+  - unprefixed base64url links
+- Kept fragment normalization (`trim`, optional leading `#`, optional `%xx` decode).
+- Added tests for:
+  - `k2` prefix expectation
+  - URL-stability under `encodeURIComponent`
+  - legacy `k1` decode compatibility
+
+### Validation Status
+- `bun test src/services/crypto/KeyDerivation.test.ts` => pass
+- `bun run typecheck` => pass
+- `bun run lint` => pass
+- `bun run build` => pass
+
+### Current State
+- Newly generated share URLs use `k2` and avoid `%xx` size bloat in copied links.
+- Existing `k1` and base64url links remain decryptable.

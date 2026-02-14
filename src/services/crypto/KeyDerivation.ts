@@ -22,20 +22,24 @@ export class KeyDerivationService {
   static readonly DEFAULT_PARALLELISM = 4 // Utilize multi-core CPUs
   private static readonly DEFAULT_HASH_LENGTH = 32 // 256 bits
   private static readonly SALT_LENGTH = 32 // 256 bits
-  private static readonly URL_KEY_ENCODING_PREFIX = 'k1.'
+  private static readonly URL_KEY_ENCODING_PREFIX_V1 = 'k1.'
+  private static readonly URL_KEY_ENCODING_PREFIX_V2 = 'k2.'
   /**
-   * URL-safe alphabet for dense key encoding.
-   * This alphabet avoids whitespace, quotes, '%' and '#', and stays safe in URL fragments.
+   * Legacy URL-safe alphabet for dense key encoding.
+   * Kept for backward-compatible decode of existing `k1.` links.
    */
-  private static readonly CUSTOM_URL_ALPHABET =
+  private static readonly LEGACY_CUSTOM_URL_ALPHABET =
     '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~!$()*+,;=:@[]{}|^'
-  private static readonly CUSTOM_URL_ALPHABET_INDEX: Record<string, number> = (() => {
-    const index: Record<string, number> = {}
-    for (let i = 0; i < KeyDerivationService.CUSTOM_URL_ALPHABET.length; i++) {
-      index[KeyDerivationService.CUSTOM_URL_ALPHABET[i]] = i
-    }
-    return index
-  })()
+  /**
+   * URL-stable alphabet containing only RFC3986 unreserved characters.
+   * This avoids percent-encoding growth when links are copied/serialized.
+   */
+  private static readonly URL_STABLE_ALPHABET =
+    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~'
+  private static readonly LEGACY_CUSTOM_URL_ALPHABET_INDEX: Record<string, number> =
+    KeyDerivationService.buildAlphabetIndex(KeyDerivationService.LEGACY_CUSTOM_URL_ALPHABET)
+  private static readonly URL_STABLE_ALPHABET_INDEX: Record<string, number> =
+    KeyDerivationService.buildAlphabetIndex(KeyDerivationService.URL_STABLE_ALPHABET)
 
   /**
    * Derive a key from a password using Argon2id
@@ -167,8 +171,11 @@ export class KeyDerivationService {
    * @returns Versioned URL-safe key fragment value (without '#')
    */
   static keyToUrlFragment(key: Uint8Array): string {
-    const encoded = KeyDerivationService.encodeBytesToCustomBase(key)
-    return `${KeyDerivationService.URL_KEY_ENCODING_PREFIX}${encoded}`
+    const encoded = KeyDerivationService.encodeBytesToCustomBase(
+      key,
+      KeyDerivationService.URL_STABLE_ALPHABET,
+    )
+    return `${KeyDerivationService.URL_KEY_ENCODING_PREFIX_V2}${encoded}`
   }
 
   /**
@@ -202,9 +209,26 @@ export class KeyDerivationService {
    */
   static urlFragmentToKey(fragment: string): Uint8Array {
     const normalizedFragment = KeyDerivationService.normalizeUrlFragment(fragment)
-    if (normalizedFragment.startsWith(KeyDerivationService.URL_KEY_ENCODING_PREFIX)) {
-      const payload = normalizedFragment.slice(KeyDerivationService.URL_KEY_ENCODING_PREFIX.length)
-      return KeyDerivationService.decodeBytesFromCustomBase(payload)
+    if (normalizedFragment.startsWith(KeyDerivationService.URL_KEY_ENCODING_PREFIX_V2)) {
+      const payload = normalizedFragment.slice(
+        KeyDerivationService.URL_KEY_ENCODING_PREFIX_V2.length,
+      )
+      return KeyDerivationService.decodeBytesFromCustomBase(
+        payload,
+        KeyDerivationService.URL_STABLE_ALPHABET,
+        KeyDerivationService.URL_STABLE_ALPHABET_INDEX,
+      )
+    }
+
+    if (normalizedFragment.startsWith(KeyDerivationService.URL_KEY_ENCODING_PREFIX_V1)) {
+      const payload = normalizedFragment.slice(
+        KeyDerivationService.URL_KEY_ENCODING_PREFIX_V1.length,
+      )
+      return KeyDerivationService.decodeBytesFromCustomBase(
+        payload,
+        KeyDerivationService.LEGACY_CUSTOM_URL_ALPHABET,
+        KeyDerivationService.LEGACY_CUSTOM_URL_ALPHABET_INDEX,
+      )
     }
 
     // Backward compatibility for older links
@@ -236,12 +260,11 @@ export class KeyDerivationService {
   /**
    * Encode bytes using a high-radix URL-safe alphabet.
    */
-  private static encodeBytesToCustomBase(data: Uint8Array): string {
+  private static encodeBytesToCustomBase(data: Uint8Array, alphabet: string): string {
     if (data.length === 0) {
       return ''
     }
 
-    const alphabet = KeyDerivationService.CUSTOM_URL_ALPHABET
     const base = alphabet.length
 
     let leadingZeroCount = 0
@@ -280,13 +303,15 @@ export class KeyDerivationService {
   /**
    * Decode bytes from the high-radix URL-safe alphabet.
    */
-  private static decodeBytesFromCustomBase(encoded: string): Uint8Array {
+  private static decodeBytesFromCustomBase(
+    encoded: string,
+    alphabet: string,
+    index: Record<string, number>,
+  ): Uint8Array {
     if (encoded.length === 0) {
       return new Uint8Array(0)
     }
 
-    const alphabet = KeyDerivationService.CUSTOM_URL_ALPHABET
-    const index = KeyDerivationService.CUSTOM_URL_ALPHABET_INDEX
     const base = alphabet.length
 
     let leadingZeroCount = 0
@@ -325,5 +350,16 @@ export class KeyDerivationService {
     }
 
     return decoded
+  }
+
+  /**
+   * Build a lookup map for fast alphabet digit decoding.
+   */
+  private static buildAlphabetIndex(alphabet: string): Record<string, number> {
+    const index: Record<string, number> = {}
+    for (let i = 0; i < alphabet.length; i++) {
+      index[alphabet[i]] = i
+    }
+    return index
   }
 }

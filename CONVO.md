@@ -1690,3 +1690,35 @@ Each entry should include:
   - `bun run build`
 - **Outcome**:
   - `k1` decryption key fragments now decode correctly when hash characters are percent-encoded by copy/share flows.
+
+## 2026-02-14
+
+**k2 URL-Safe Key Encoding (avoid percent-expansion)**
+- **Prompt**: "Can we also ensure that the encoding is actually shorter than the original key? %xx tends to be longer, we should use other characters"
+- **Root Cause**:
+  - `k1` alphabet included characters that are often percent-encoded when links are copied/serialized.
+  - Even with compact radix, `%xx` expansion could inflate the effective URL fragment.
+- **Action**:
+  - Introduced new default key fragment format `k2.` using only RFC3986 unreserved chars:
+    - alphabet: `0-9A-Za-z-._~`
+  - Kept full decode backward compatibility for:
+    - `k2.` (new)
+    - `k1.` (legacy custom alphabet)
+    - unprefixed base64url (oldest links)
+  - Added URL-fragment normalization support retained from previous fix:
+    - trims input, strips optional `#`, decodes `%xx` when present.
+  - Added/updated tests:
+    - new links now emit `k2.`
+    - encoded fragment remains unchanged under `encodeURIComponent(...)`
+    - compact length remains shorter than base64url for realistic private key vector
+    - decode compatibility for legacy `k1` and base64url
+- **Files Updated**:
+  - `src/services/crypto/KeyDerivation.ts`
+  - `src/services/crypto/KeyDerivation.test.ts`
+- **Commands Used**:
+  - `bun test src/services/crypto/KeyDerivation.test.ts`
+  - `bun run typecheck`
+  - `bun run lint`
+  - `bun run build`
+- **Outcome**:
+  - New share links avoid `%xx` growth and stay URL-stable while preserving decode support for existing links.
