@@ -411,8 +411,11 @@ async function getShelbyBrowserSdk(): Promise<ShelbyBrowserSdkRuntime> {
     throw new Error('Shelby browser SDK helpers are only available on the server runtime')
   }
 
-  const sdkModulePromise =
-    shelbyBrowserSdkPromise ?? (shelbyBrowserSdkPromise = import('@shelby-protocol/sdk/browser'))
+  let sdkModulePromise = shelbyBrowserSdkPromise
+  if (!sdkModulePromise) {
+    sdkModulePromise = import('@shelby-protocol/sdk/browser')
+    shelbyBrowserSdkPromise = sdkModulePromise
+  }
   const sdk = (await sdkModulePromise) as {
     createDefaultErasureCodingProvider: ShelbyBrowserSdkRuntime['createDefaultErasureCodingProvider']
     expectedTotalChunksets: ShelbyBrowserSdkRuntime['expectedTotalChunksets']

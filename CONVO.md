@@ -1613,3 +1613,32 @@ Each entry should include:
   - Web client no longer relies on TanStack server-function runtime for upload/download.
   - Mobile/PWA clients are forced onto fresh caches via SW version bump.
   - Build and typecheck pass.
+
+**Weak Password Acknowledgment + Compact URL Key Encoding**
+- **Prompt**:
+  - "For the pastebin website, warn on bad passwords, but allow them after acknowledging it is simple, use a modal for that."
+  - "Also, compress the key in the URL. If needed, make a custom encoding that encodes as all URL safe characters that don't interfere with the URL"
+- **Actions**:
+  - Added weak-password confirmation modal on upload page.
+  - Upload now allows weak passwords only after explicit user acknowledgment.
+  - Added optional weak-password override in `FileEncryptionService.uploadFile(...)`.
+  - Added compact versioned URL key encoding (`k1.` prefix) in `KeyDerivationService`.
+  - Added backward-compatible decode support for legacy base64url links.
+  - Updated share-link generation/decode to use new URL fragment codec.
+  - Added unit tests for new key-fragment codec and compatibility.
+- **Files Updated**:
+  - `src/routes/upload.tsx`
+  - `src/styles.css`
+  - `src/services/FileEncryptionService.ts`
+  - `src/services/crypto/KeyDerivation.ts`
+  - `src/services/crypto/KeyDerivation.test.ts`
+  - `src/server/shelby.ts` (lint-safe refactor for existing lazy import line)
+- **Commands Used**:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test src/services/crypto/KeyDerivation.test.ts src/services/crypto/ConformanceVectors.test.ts`
+  - `bun run build`
+- **Outcome**:
+  - Weak passwords are warned and gated by explicit modal acknowledgment instead of hard block.
+  - URL key fragments are shorter with new encoding and remain backward compatible with old links.
+  - Lint, typecheck, targeted tests, and build pass.

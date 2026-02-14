@@ -1131,6 +1131,93 @@ output.progress {
   cursor: not-allowed;
 }
 
+.weak-password-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.weak-password-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+}
+
+.weak-password-modal {
+  position: relative;
+  width: min(100%, 540px);
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
+  padding: 24px;
+}
+
+.weak-password-modal h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.25rem;
+}
+
+.weak-password-modal p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.weak-password-modal-errors {
+  margin: 16px 0 0 0;
+  padding: 12px 12px 12px 30px;
+  border: 1px solid var(--error-border);
+  border-radius: 8px;
+  background: var(--bg-error-light);
+  color: var(--error-text);
+}
+
+.weak-password-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.weak-password-cancel-btn,
+.weak-password-continue-btn {
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.weak-password-cancel-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.weak-password-cancel-btn:hover {
+  background: var(--bg-hover);
+}
+
+.weak-password-continue-btn {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+}
+
+.weak-password-continue-btn:hover {
+  background: var(--accent-hover);
+}
+
 .result {
   text-align: center;
 }

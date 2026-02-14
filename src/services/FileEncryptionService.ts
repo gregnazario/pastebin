@@ -39,6 +39,10 @@ export interface UploadProgress {
   message: string
 }
 
+interface UploadFileOptions {
+  allowWeakPassword?: boolean
+}
+
 export class FileEncryptionService {
   /**
    * Upload and encrypt a file
@@ -49,6 +53,7 @@ export class FileEncryptionService {
     password: string,
     encryptMetadata: boolean = false,
     onProgress?: (progress: UploadProgress) => void,
+    options?: UploadFileOptions,
   ): Promise<EncryptedUploadResult> {
     try {
       // Stage 1: Validate inputs
@@ -59,7 +64,7 @@ export class FileEncryptionService {
       })
 
       const passwordValidation = PasswordValidator.validate(password)
-      if (!passwordValidation.isValid) {
+      if (!passwordValidation.isValid && !options?.allowWeakPassword) {
         throw new Error(`Invalid password: ${passwordValidation.errors.join(', ')}`)
       }
 
@@ -132,7 +137,7 @@ export class FileEncryptionService {
         message: 'Upload complete!',
       })
 
-      const encodedKey = KeyDerivationService.keyToBase64Url(kyberPrivateKey)
+      const encodedKey = KeyDerivationService.keyToUrlFragment(kyberPrivateKey)
       const shareableUrl = `${window.location.origin}/p/${uploadResult.id}#${encodedKey}`
 
       return {
@@ -178,7 +183,7 @@ export class FileEncryptionService {
 
       let kyberPrivateKey: Uint8Array
       if (privateKeyFragment) {
-        kyberPrivateKey = KeyDerivationService.base64UrlToKey(privateKeyFragment)
+        kyberPrivateKey = KeyDerivationService.urlFragmentToKey(privateKeyFragment)
       } else {
         throw new Error('Private key required for decryption')
       }

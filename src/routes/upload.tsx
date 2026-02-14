@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ClipboardIcon,
   DiceIcon,
@@ -71,10 +71,27 @@ function UploadPage() {
   const [result, setResult] = useState<{ url: string; expiresAt: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
+  const [showWeakPasswordModal, setShowWeakPasswordModal] = useState(false)
+  const [weakPasswordAcknowledged, setWeakPasswordAcknowledged] = useState(false)
 
   // Memoize password validation to avoid recalculating on every render
   const passwordValidation = useMemo(() => PasswordValidator.validate(password), [password])
   const passwordsMatch = password === confirmPassword
+
+  useEffect(() => {
+    if (!showWeakPasswordModal) return
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowWeakPasswordModal(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showWeakPasswordModal])
 
   /**
    * Check if note content is valid
@@ -202,9 +219,20 @@ function UploadPage() {
     [isUploading, validateAndSetFile],
   )
 
-  const handleUpload = useCallback(async () => {
+  const handleUpload = useCallback(async (allowWeakPasswordOverride: boolean = false) => {
     const uploadFile = getUploadFile()
-    if (!uploadFile || !passwordValidation.isValid || !passwordsMatch) return
+    if (!uploadFile || !password || !passwordsMatch) return
+
+    const isWeakPassword = !passwordValidation.isValid
+    if (isWeakPassword && !allowWeakPasswordOverride && !weakPasswordAcknowledged) {
+      setShowWeakPasswordModal(true)
+      return
+    }
+
+    const allowWeakPassword = isWeakPassword && (allowWeakPasswordOverride || weakPasswordAcknowledged)
+    if (allowWeakPasswordOverride) {
+      setWeakPasswordAcknowledged(true)
+    }
 
     // Validate note size
     if (uploadMode === 'note' && noteContent.length > MAX_NOTE_SIZE) {
@@ -225,6 +253,9 @@ function UploadPage() {
         password,
         encryptMetadata,
         setProgress,
+        {
+          allowWeakPassword,
+        },
       )
 
       // Save to browser history
@@ -273,6 +304,7 @@ function UploadPage() {
     password,
     encryptMetadata,
     passwordValidation.isValid,
+    weakPasswordAcknowledged,
     passwordsMatch,
     uploadMode,
     noteContent,
@@ -473,7 +505,10 @@ function UploadPage() {
                   id="password-input"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setWeakPasswordAcknowledged(false)
+                  }}
                   placeholder="Enter a strong password"
                   disabled={isUploading}
                   aria-required="true"
@@ -586,7 +621,7 @@ function UploadPage() {
             type="submit"
             disabled={
               !hasContent ||
-              !passwordValidation.isValid ||
+              !password ||
               !passwordsMatch ||
               isUploading ||
               (uploadMode === 'note' && !isNoteValid)
@@ -601,6 +636,54 @@ function UploadPage() {
                 : 'Encrypt & Save Note'}
           </button>
         </form>
+      )}
+
+      {showWeakPasswordModal && (
+        <div className="weak-password-modal-overlay">
+          <button
+            type="button"
+            className="weak-password-modal-backdrop"
+            onClick={() => setShowWeakPasswordModal(false)}
+            aria-label="Close weak password warning"
+          />
+          <div
+            className="weak-password-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="weak-password-modal-title"
+            aria-describedby="weak-password-modal-description"
+          >
+            <h2 id="weak-password-modal-title">Weak Password Warning</h2>
+            <p id="weak-password-modal-description">
+              This password is simple and easier to guess. You can continue, but your file
+              security may be significantly weaker.
+            </p>
+            <ul className="weak-password-modal-errors">
+              {passwordValidation.errors.map((validationError, index) => (
+                <li key={index}>{validationError}</li>
+              ))}
+            </ul>
+            <div className="weak-password-modal-actions">
+              <button
+                type="button"
+                className="weak-password-cancel-btn"
+                onClick={() => setShowWeakPasswordModal(false)}
+              >
+                Choose Stronger Password
+              </button>
+              <button
+                type="button"
+                className="weak-password-continue-btn"
+                onClick={() => {
+                  setShowWeakPasswordModal(false)
+                  void handleUpload(true)
+                }}
+              >
+                Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

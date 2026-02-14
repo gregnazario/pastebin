@@ -1287,3 +1287,34 @@ bun run typecheck # Type checking
 ### Current State
 - Web app now uses the same backend API shape as native clients for upload/download.
 - PWA/mobile clients should refresh onto latest assets due SW cache version bump.
+
+## 2026-02-14 - Weak Password Modal + Compact URL Key Fragments
+
+### Completed This Session
+- Upload UX behavior change:
+  - Weak passwords are no longer hard-blocked at submit.
+  - Added explicit acknowledgment modal before allowing weak-password upload.
+  - Added per-password acknowledgment reset when password input changes.
+- Service behavior change:
+  - Added optional weak-password override in `FileEncryptionService.uploadFile(...)`.
+- URL key fragment change:
+  - Added compact custom base encoding with version prefix (`k1.`) in `KeyDerivationService`.
+  - Kept backward-compatible decoding for legacy base64url fragments.
+  - Updated upload/share generation + download parse path through new codec methods.
+- Added tests:
+  - `src/services/crypto/KeyDerivation.test.ts`
+    - roundtrip with leading zeros
+    - legacy compatibility
+    - shorter encoded fragment for realistic key size
+- Minor lint-safe cleanup:
+  - Rewrote `src/server/shelby.ts` lazy SDK import assignment to avoid assignment-in-expression lint error.
+
+### Validation Status
+- `bun run lint` => pass
+- `bun run typecheck` => pass
+- `bun test src/services/crypto/KeyDerivation.test.ts src/services/crypto/ConformanceVectors.test.ts` => pass
+- `bun run build` => pass
+
+### Current State
+- Users can proceed with weak passwords only after an explicit modal warning.
+- New links use compact, versioned URL key fragments; old links continue to decrypt.
