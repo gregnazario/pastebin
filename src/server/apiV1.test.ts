@@ -3,11 +3,15 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { handleApiV1Request, mapApiErrorStatus } from './apiV1'
+import { handleApiV1Request, mapApiErrorStatus, parseUploadBlobRequest } from './apiV1'
 
 describe('mapApiErrorStatus', () => {
   it('maps validation errors to 400', () => {
     expect(mapApiErrorStatus(new Error('Invalid request: data must be an array'))).toBe(400)
+  })
+
+  it('maps unsupported media types to 415', () => {
+    expect(mapApiErrorStatus(new Error('Unsupported media type for upload'))).toBe(415)
   })
 
   it('maps rate-limit errors to 429', () => {
@@ -79,5 +83,65 @@ describe('handleApiV1Request routing', () => {
     const request = new Request('https://example.com/api/v1/unknown', { method: 'GET' })
     const response = await handleApiV1Request(request)
     expect(response?.status).toBe(404)
+  })
+})
+
+describe('parseUploadBlobRequest', () => {
+  it('parses application/json upload bodies', async () => {
+    const request = new Request('https://example.com/api/v1/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: [1, 2, 3, 255],
+        filename: 'encrypted.bin',
+      }),
+    })
+
+    const parsed = await parseUploadBlobRequest(request)
+    expect(parsed).toEqual({
+      data: [1, 2, 3, 255],
+      filename: 'encrypted.bin',
+    })
+  })
+
+  it('parses multipart upload bodies with filename form field', async () => {
+    const formData = new FormData()
+    formData.set('data', new Blob([new Uint8Array([10, 20, 30, 40])]), 'blob')
+    formData.set('filename', 'payload.bin')
+
+    const request = new Request('https://example.com/api/v1/upload', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const parsed = await parseUploadBlobRequest(request)
+    expect(parsed).toEqual({
+      data: [10, 20, 30, 40],
+      filename: 'payload.bin',
+    })
+  })
+
+  it('parses application/octet-stream upload bodies using query filename', async () => {
+    const request = new Request('https://example.com/api/v1/upload?filename=raw.bin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: new Uint8Array([99, 100, 101]).buffer,
+    })
+
+    const parsed = await parseUploadBlobRequest(request)
+    expect(parsed).toEqual({
+      data: [99, 100, 101],
+      filename: 'raw.bin',
+    })
+  })
+
+  it('rejects unsupported upload content types', async () => {
+    const request = new Request('https://example.com/api/v1/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/xml' },
+      body: '<xml/>',
+    })
+
+    await expect(parseUploadBlobRequest(request)).rejects.toThrow('Unsupported media type')
   })
 })

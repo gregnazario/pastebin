@@ -1377,3 +1377,34 @@ bun run typecheck # Type checking
 ### Current State
 - Newly generated share URLs use `k2` and avoid `%xx` size bloat in copied links.
 - Existing `k1` and base64url links remain decryptable.
+
+## 2026-02-14 - API v1 Multipart Upload Hardening
+
+### Completed This Session
+- Added planning/design docs:
+  - `plans/api-v1-multipart-upload-hardening.md`
+  - `design-docs/api-v1-multipart-upload-hardening.md`
+- Updated API upload parsing in `src/server/apiV1.ts`:
+  - supports `application/json`, `multipart/form-data`, and `application/octet-stream`
+  - unified validation through `validateUploadBlobRequest(...)`
+  - added 415 mapping for unsupported media types
+- Updated web upload transport in `src/services/FileEncryptionService.ts`:
+  - switched from JSON byte-array upload to multipart `FormData`
+  - kept request correlation/observability headers
+- Updated API contract docs:
+  - `design-docs/native-api-v1-openapi.yaml` version `1.2.0`
+  - upload endpoint now documents JSON + multipart + raw octet-stream modes
+- Updated contract checker:
+  - `scripts/check-api-v1-contract.ts` now expects `version: 1.2.0`
+- Added API parser regression tests in `src/server/apiV1.test.ts`.
+
+### Validation Status
+- `bun test src/server/apiV1.test.ts` => pass
+- `bun run typecheck` => pass
+- `bun run check:api-contract` => pass
+- `bun run lint` => pass
+- `bun run build` => pass
+
+### Current State
+- Backend upload endpoint now handles multipart uploads properly and remains backward compatible with JSON clients.
+- Web client now uses multipart upload path to reduce request overhead.

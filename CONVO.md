@@ -1722,3 +1722,37 @@ Each entry should include:
   - `bun run build`
 - **Outcome**:
   - New share links avoid `%xx` growth and stay URL-stable while preserving decode support for existing links.
+
+## 2026-02-14
+
+**API v1 Multipart Upload Hardening + Compression Guidance Prep**
+- **Prompt**: "Can we ensure that the pastebin handles multipart uploads properly? Once that's finished, should we consider compressing?"
+- **Actions**:
+  - Added implementation plan + design docs:
+    - `plans/api-v1-multipart-upload-hardening.md`
+    - `design-docs/api-v1-multipart-upload-hardening.md`
+  - Extended API v1 upload parser in `src/server/apiV1.ts` to support:
+    - `application/json` (existing)
+    - `multipart/form-data` (new)
+    - `application/octet-stream` (new; filename via query/header)
+  - Added explicit unsupported media type handling (`415`) in API error mapping.
+  - Switched web upload transport to multipart in:
+    - `src/services/FileEncryptionService.ts`
+    - uses `FormData` with binary file part + filename field.
+  - Updated API contract docs:
+    - `design-docs/native-api-v1-openapi.yaml` bumped to `1.2.0`
+    - upload request body now documents JSON + multipart + octet-stream.
+  - Updated contract guard version check:
+    - `scripts/check-api-v1-contract.ts`
+  - Added parser and status-code regression tests:
+    - `src/server/apiV1.test.ts`
+- **Commands Used**:
+  - `bun test src/server/apiV1.test.ts`
+  - `bun run typecheck`
+  - `bun run check:api-contract`
+  - `bun run lint`
+  - `bun run build`
+- **Outcome**:
+  - Pastebin API now accepts efficient multipart/raw upload transports while preserving JSON compatibility.
+  - Web uploads now use multipart instead of JSON byte-array payloads.
+  - Contract/tests/build all pass locally.

@@ -126,7 +126,7 @@ export class FileEncryptionService {
       // exposing the real filename in the URL. The actual filename is already
       // encrypted in the payload and will be revealed after decryption.
       const uploadResult = await this.uploadEncryptedPayload({
-        data: Array.from(serializedPayload),
+        data: serializedPayload,
         filename: encryptMetadata ? 'encrypted' : file.name,
       })
 
@@ -247,13 +247,22 @@ export class FileEncryptionService {
    * Upload encrypted payload bytes to the shared backend API.
    */
   private async uploadEncryptedPayload(input: {
-    data: number[]
+    data: Uint8Array
     filename: string
   }): Promise<UploadApiResponse> {
+    const formData = new FormData()
+    const dataBuffer = input.data.buffer.slice(
+      input.data.byteOffset,
+      input.data.byteOffset + input.data.byteLength,
+    ) as ArrayBuffer
+    const dataBlob = new Blob([new Uint8Array(dataBuffer)], { type: 'application/octet-stream' })
+    formData.set('file', dataBlob, input.filename)
+    formData.set('filename', input.filename)
+
     const response = await fetch(API_UPLOAD_ENDPOINT, {
       method: 'POST',
-      headers: this.createApiHeaders(),
-      body: JSON.stringify(input),
+      headers: this.createApiHeaders({ includeJsonContentType: false }),
+      body: formData,
     })
 
     return this.parseApiResponse<UploadApiResponse>(response)
@@ -275,14 +284,19 @@ export class FileEncryptionService {
   /**
    * Create standard API headers for observability and debugging.
    */
-  private createApiHeaders(): HeadersInit {
-    return {
+  private createApiHeaders(options?: { includeJsonContentType?: boolean }): HeadersInit {
+    const headers: Record<string, string> = {
       Accept: 'application/json',
-      'Content-Type': 'application/json',
       'X-Client-Platform': WEB_CLIENT_PLATFORM,
       'X-Client-Version': WEB_CLIENT_VERSION,
       'X-Request-Id': this.createRequestId(),
     }
+
+    if (options?.includeJsonContentType !== false) {
+      headers['Content-Type'] = 'application/json'
+    }
+
+    return headers
   }
 
   /**

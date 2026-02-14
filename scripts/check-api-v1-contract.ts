@@ -10,7 +10,7 @@ const contractPath = resolve(process.cwd(), 'design-docs/native-api-v1-openapi.y
 const contract = readFileSync(contractPath, 'utf8')
 
 const requiredSnippets = [
-  'version: 1.1.0',
+  'version: 1.2.0',
   '/api/v1/capabilities:',
   '/api/v1/health:',
   '/api/v1/upload:',

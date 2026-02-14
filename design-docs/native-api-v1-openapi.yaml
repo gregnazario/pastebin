@@ -4,7 +4,7 @@
 openapi: 3.1.0
 info:
   title: Secure Pastebin Native API
-  version: 1.1.0
+  version: 1.2.0
   description: |
     Versioned REST API for native Swift and Kotlin clients.
 servers:
@@ -37,7 +37,7 @@ paths:
                 $ref: '#/components/schemas/HealthResponse'
   /api/v1/upload:
     post:
-      summary: Upload encrypted blob bytes
+      summary: Upload encrypted blob bytes (JSON, multipart, or raw octet stream)
       operationId: uploadBlob
       requestBody:
         required: true
@@ -45,6 +45,30 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UploadRequest'
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                data:
+                  type: string
+                  format: binary
+                filename:
+                  type: string
+                  maxLength: 255
+              description: |
+                Use `file` (preferred) or `data` for payload bytes.
+                If `filename` is omitted, server will try multipart part filename.
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+            examples:
+              rawBytes:
+                summary: Raw bytes upload
+                description: Provide filename via query `?filename=` or `X-Filename` header.
       responses:
         '200':
           description: Upload succeeded
@@ -53,6 +77,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/UploadResponse'
         '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '415':
           $ref: '#/components/responses/ErrorResponse'
         '429':
           $ref: '#/components/responses/ErrorResponse'

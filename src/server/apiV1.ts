@@ -9,6 +9,7 @@
  */
 
 import {
+  type UploadBlobRequest,
   checkHealthInternal,
   downloadBlobInternal,
   getCapabilitiesInternal,
@@ -26,6 +27,7 @@ export function mapApiErrorStatus(error: unknown): number {
   const message = error instanceof Error ? error.message.toLowerCase() : ''
 
   if (message.includes('invalid request')) return 400
+  if (message.includes('unsupported media type')) return 415
   if (message.includes('too many requests')) return 429
   if (message.includes('file not found')) return 404
   if (message.includes('service temporarily unavailable')) return 503
@@ -91,6 +93,53 @@ function extractDownloadId(url: URL): string | null {
 }
 
 /**
+ * Parse upload request body from supported API media types.
+ * Supports JSON, multipart/form-data, and application/octet-stream.
+ */
+export async function parseUploadBlobRequest(request: Request): Promise<UploadBlobRequest> {
+  const contentType = request.headers.get('content-type')?.toLowerCase() || ''
+  const url = new URL(request.url)
+
+  if (contentType === '' || contentType.startsWith('application/json')) {
+    const json = await request.json().catch(() => {
+      throw new Error('Invalid request format')
+    })
+    return validateUploadBlobRequest(json)
+  }
+
+  if (contentType.startsWith('multipart/form-data')) {
+    const formData = await request.formData().catch(() => {
+      throw new Error('Invalid request format')
+    })
+
+    const fileEntry = formData.get('file') ?? formData.get('data')
+    if (!(fileEntry instanceof Blob)) {
+      throw new Error('Invalid request: missing multipart file payload')
+    }
+
+    const filenameEntry = formData.get('filename')
+    const filenameFromPart =
+      typeof (fileEntry as { name?: unknown }).name === 'string'
+        ? ((fileEntry as { name: string }).name ?? '')
+        : ''
+    const filename =
+      (typeof filenameEntry === 'string' ? filenameEntry.trim() : '') || filenameFromPart.trim()
+
+    const data = new Uint8Array(await fileEntry.arrayBuffer())
+    return validateUploadBlobRequest({ data: Array.from(data), filename })
+  }
+
+  if (contentType.startsWith('application/octet-stream')) {
+    const filename =
+      url.searchParams.get('filename')?.trim() || request.headers.get('x-filename')?.trim() || ''
+    const data = new Uint8Array(await request.arrayBuffer())
+    return validateUploadBlobRequest({ data: Array.from(data), filename })
+  }
+
+  throw new Error('Unsupported media type for upload')
+}
+
+/**
  * Handle v1 API requests. Returns null for non-v1 paths.
  */
 export async function handleApiV1Request(request: Request): Promise<Response | null> {
@@ -128,10 +177,7 @@ export async function handleApiV1Request(request: Request): Promise<Response | n
         return jsonResponse({ error: 'Method not allowed' }, 405, { Allow: 'POST' }, context.requestId)
       }
 
-      const json = await request.json().catch(() => {
-        throw new Error('Invalid request format')
-      })
-      const input = validateUploadBlobRequest(json)
+      const input = await parseUploadBlobRequest(request)
       const result = await uploadBlobInternal(input, request.headers)
       return jsonResponse(result, 200, undefined, context.requestId)
     }
