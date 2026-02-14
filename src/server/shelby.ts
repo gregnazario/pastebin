@@ -12,12 +12,6 @@
  * - Input Validation: All inputs are validated and sanitized before use.
  */
 
-import {
-  createDefaultErasureCodingProvider,
-  expectedTotalChunksets,
-  generateCommitments,
-  ShelbyBlobClient,
-} from '@shelby-protocol/sdk/browser'
 import { createServerFn } from '@tanstack/react-start'
 
 // ============================================================================
@@ -337,10 +331,35 @@ interface ServiceAccountRuntime {
   }
 }
 
+interface ShelbyBrowserCommitmentsRuntime {
+  blob_merkle_root: string
+  raw_data_size: number
+}
+
+interface ShelbyBrowserSdkRuntime {
+  createDefaultErasureCodingProvider: () => Promise<unknown>
+  expectedTotalChunksets: (rawDataSize: number) => number
+  generateCommitments: (
+    provider: unknown,
+    fullData: Uint8Array,
+  ) => Promise<ShelbyBrowserCommitmentsRuntime>
+  ShelbyBlobClient: {
+    createRegisterBlobPayload: (input: {
+      account: unknown
+      blobName: string
+      blobMerkleRoot: string
+      numChunksets: number
+      expirationMicros: number
+      blobSize: number
+    }) => unknown
+  }
+}
+
 // Singleton client instance
 let shelbyClient: unknown | null = null
 let aptosClient: unknown | null = null
 let serviceAccount: unknown | null = null
+let shelbyBrowserSdkPromise: Promise<unknown> | null = null
 
 async function getClients() {
   if (!import.meta.env.SSR) {
@@ -380,6 +399,32 @@ async function getClients() {
     shelbyClient: shelbyClient as ShelbyClientRuntime,
     aptosClient: aptosClient as AptosClientRuntime,
     serviceAccount: serviceAccount as ServiceAccountRuntime,
+  }
+}
+
+/**
+ * Lazy-load browser SDK commitment helpers only on server runtime.
+ * This avoids pulling Buffer-dependent SDK code into browser bundles.
+ */
+async function getShelbyBrowserSdk(): Promise<ShelbyBrowserSdkRuntime> {
+  if (!import.meta.env.SSR) {
+    throw new Error('Shelby browser SDK helpers are only available on the server runtime')
+  }
+
+  const sdkModulePromise =
+    shelbyBrowserSdkPromise ?? (shelbyBrowserSdkPromise = import('@shelby-protocol/sdk/browser'))
+  const sdk = (await sdkModulePromise) as {
+    createDefaultErasureCodingProvider: ShelbyBrowserSdkRuntime['createDefaultErasureCodingProvider']
+    expectedTotalChunksets: ShelbyBrowserSdkRuntime['expectedTotalChunksets']
+    generateCommitments: ShelbyBrowserSdkRuntime['generateCommitments']
+    ShelbyBlobClient: ShelbyBrowserSdkRuntime['ShelbyBlobClient']
+  }
+
+  return {
+    createDefaultErasureCodingProvider: sdk.createDefaultErasureCodingProvider,
+    expectedTotalChunksets: sdk.expectedTotalChunksets,
+    generateCommitments: sdk.generateCommitments,
+    ShelbyBlobClient: sdk.ShelbyBlobClient,
   }
 }
 
@@ -485,6 +530,7 @@ export async function uploadBlobInternal(
   }
 
   const { shelbyClient, aptosClient, serviceAccount } = await getClients()
+  const shelbyBrowserSdk = await getShelbyBrowserSdk()
   const config = getConfig()
 
   if (!serviceAccount || !shelbyClient || !aptosClient) {
@@ -498,8 +544,8 @@ export async function uploadBlobInternal(
   log('info', 'Starting upload', { filename: sanitizedFilename, size: data.length })
 
   // Step 1: Encode and generate commitments
-  const provider = await createDefaultErasureCodingProvider()
-  const commitments = await generateCommitments(provider, data)
+  const provider = await shelbyBrowserSdk.createDefaultErasureCodingProvider()
+  const commitments = await shelbyBrowserSdk.generateCommitments(provider, data)
 
   // Step 2: Register on-chain
   // Use timestamp + sanitized filename + random suffix for uniqueness
@@ -507,14 +553,11 @@ export async function uploadBlobInternal(
   const blobName = `pastebin-${Date.now()}-${sanitizedFilename}-${randomSuffix}`
   const expirationMicros = (Date.now() + config.defaultExpirationDays * 24 * 60 * 60 * 1000) * 1000
 
-  const payload = ShelbyBlobClient.createRegisterBlobPayload({
-    account:
-      serviceAccount.accountAddress as Parameters<
-        typeof ShelbyBlobClient.createRegisterBlobPayload
-      >[0]['account'],
+  const payload = shelbyBrowserSdk.ShelbyBlobClient.createRegisterBlobPayload({
+    account: serviceAccount.accountAddress,
     blobName,
     blobMerkleRoot: commitments.blob_merkle_root,
-    numChunksets: expectedTotalChunksets(commitments.raw_data_size),
+    numChunksets: shelbyBrowserSdk.expectedTotalChunksets(commitments.raw_data_size),
     expirationMicros,
     blobSize: commitments.raw_data_size,
   })

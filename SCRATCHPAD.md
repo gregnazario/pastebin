@@ -1261,3 +1261,29 @@ bun run typecheck # Type checking
 
 ### Current State
 - Apple app icon now resolves from compiled asset catalog and is no longer dependent on loose PNG resource files.
+
+## 2026-02-14 - Buffer Runtime Follow-up (Web/Mobile)
+
+### Completed This Session
+- Replaced web client upload/download server-function calls with direct shared backend REST calls in:
+  - `src/services/FileEncryptionService.ts`
+  - Upload now targets `POST /api/v1/upload`
+  - Download now targets `GET /api/v1/download/{id}`
+- Added web observability headers to API requests:
+  - `X-Client-Platform: web`
+  - `X-Client-Version: webapp`
+  - `X-Request-Id: <generated>`
+- Bumped service worker cache version in:
+  - `public/sw.js`
+  - `CACHE_VERSION` from `2` to `3` to force stale mobile cache cleanup.
+- Retained earlier uncommitted Shelby server hardening in:
+  - `src/server/shelby.ts`
+  - Lazy browser SDK loading in SSR path to avoid browser bundle contamination.
+
+### Validation Status
+- `bun run typecheck` => pass
+- `bun run build` => pass
+
+### Current State
+- Web app now uses the same backend API shape as native clients for upload/download.
+- PWA/mobile clients should refresh onto latest assets due SW cache version bump.

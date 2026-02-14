@@ -240,3 +240,16 @@ This document tracks implementation mistakes discovered during development and t
   - Added regression test:
     - `src/server/shelby.test.ts`
 - **Result**: Upload flow no longer depends on Node `Buffer`; test/typecheck/build pass.
+
+## [2026-02-14] Buffer Error Persisted on Mobile/Web After Prior Fix
+
+### Issue 1: Web encryption service still imported server-function module in client runtime
+- **Context**: Users still reported `Buffer is not defined` on mobile/web despite prior backend upload fix.
+- **Root Cause**: `FileEncryptionService` imported `uploadBlob`/`downloadBlob` from `src/server/shelby.ts`, coupling browser runtime to server-function transport/runtime code paths.
+- **Fix**:
+  - Replaced client server-function usage with direct shared REST calls:
+    - `POST /api/v1/upload`
+    - `GET /api/v1/download/{id}`
+  - Added standardized web headers (`X-Client-Platform`, `X-Client-Version`, `X-Request-Id`) for debugging and parity with native.
+  - Bumped `public/sw.js` `CACHE_VERSION` to force stale mobile/PWA cache eviction.
+- **Result**: Web client no longer routes upload/download through server-function runtime path; stale cached bundles are invalidated.

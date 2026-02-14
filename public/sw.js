@@ -11,7 +11,7 @@
  * Old caches are automatically cleaned up on activation.
  */
 
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 3;
 const CACHE_NAME = `secure-pastebin-v${CACHE_VERSION}`;
 const STATIC_CACHE_NAME = `secure-pastebin-static-v${CACHE_VERSION}`;
 

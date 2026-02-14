@@ -1588,3 +1588,28 @@ Each entry should include:
 - **Outcome**:
   - `Assets.car` and AppIcon assets are now emitted in app bundle.
   - Info.plist now includes generated `CFBundleIcons`/`CFBundleIconName=AppIcon` entries.
+
+## 2026-02-14
+
+**Buffer Runtime Follow-up (Mobile/Web)**
+- **Prompt**: "Still getting Buffer is not defined"
+- **Actions**:
+  - Switched web upload/download flow to call shared REST backend endpoints directly:
+    - `POST /api/v1/upload`
+    - `GET /api/v1/download/{id}`
+  - Removed client import of TanStack server functions from `FileEncryptionService`.
+  - Added standardized client headers for observability on web requests:
+    - `X-Client-Platform`, `X-Client-Version`, `X-Request-Id`
+  - Bumped service worker cache version to force stale asset eviction on mobile/PWA updates.
+  - Kept prior `src/server/shelby.ts` lazy SDK-loading hardening in working tree.
+- **Files Updated**:
+  - `src/services/FileEncryptionService.ts`
+  - `public/sw.js`
+  - `src/server/shelby.ts` (existing uncommitted hardening retained)
+- **Commands Used**:
+  - `bun run typecheck`
+  - `bun run build`
+- **Outcome**:
+  - Web client no longer relies on TanStack server-function runtime for upload/download.
+  - Mobile/PWA clients are forced onto fresh caches via SW version bump.
+  - Build and typecheck pass.

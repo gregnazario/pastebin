@@ -4,7 +4,6 @@
  * Uses a Web Worker for CPU-intensive crypto operations to keep the UI responsive.
  */
 
-import { downloadBlob, uploadBlob } from '../server/shelby'
 import type { FileMetadata } from '../types'
 import { getCryptoWorkerService } from './CryptoWorkerService'
 import { KeyDerivationService } from './crypto/KeyDerivation'
@@ -13,6 +12,19 @@ import { PasswordValidator } from './validation/PasswordValidator'
 // Config
 const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 const LINK_EXPIRY_HOURS = 24 * 30 // 30 days
+const API_UPLOAD_ENDPOINT = '/api/v1/upload'
+const API_DOWNLOAD_ENDPOINT = '/api/v1/download'
+const WEB_CLIENT_PLATFORM = 'web'
+const WEB_CLIENT_VERSION = 'webapp'
+
+interface UploadApiResponse {
+  id: string
+  expiresAt: number
+}
+
+interface DownloadApiResponse {
+  data: number[]
+}
 
 export interface EncryptedUploadResult {
   fileId: string
@@ -97,22 +109,20 @@ export class FileEncryptionService {
         },
       )
 
-      // Stage 4: Upload to Shelby via server function
+      // Stage 4: Upload to shared backend API
       onProgress?.({
         stage: 'uploading',
         progress: 60,
         message: 'Uploading encrypted file...',
       })
 
-      // Call server function
+      // Call shared backend API endpoint
       // When encryptMetadata is true, use a generic placeholder filename to avoid
       // exposing the real filename in the URL. The actual filename is already
       // encrypted in the payload and will be revealed after decryption.
-      const uploadResult = await uploadBlob({
-        data: {
-          data: Array.from(serializedPayload),
-          filename: encryptMetadata ? 'encrypted' : file.name,
-        },
+      const uploadResult = await this.uploadEncryptedPayload({
+        data: Array.from(serializedPayload),
+        filename: encryptMetadata ? 'encrypted' : file.name,
       })
 
       // Stage 5: Generate shareable link
@@ -149,14 +159,14 @@ export class FileEncryptionService {
     onProgress?: (progress: UploadProgress) => void,
   ): Promise<{ data: Uint8Array; metadata: FileMetadata }> {
     try {
-      // Stage 1: Download from Shelby via server function
+      // Stage 1: Download from shared backend API
       onProgress?.({
         stage: 'validating',
         progress: 10,
         message: 'Downloading encrypted file...',
       })
 
-      const downloadResult = await downloadBlob({ data: { id: fileId } })
+      const downloadResult = await this.downloadEncryptedPayload(fileId)
       const encryptedData = new Uint8Array(downloadResult.data)
 
       // Stage 2: Get private key
@@ -226,6 +236,84 @@ export class FileEncryptionService {
 
       reader.readAsArrayBuffer(file)
     })
+  }
+
+  /**
+   * Upload encrypted payload bytes to the shared backend API.
+   */
+  private async uploadEncryptedPayload(input: {
+    data: number[]
+    filename: string
+  }): Promise<UploadApiResponse> {
+    const response = await fetch(API_UPLOAD_ENDPOINT, {
+      method: 'POST',
+      headers: this.createApiHeaders(),
+      body: JSON.stringify(input),
+    })
+
+    return this.parseApiResponse<UploadApiResponse>(response)
+  }
+
+  /**
+   * Download encrypted payload bytes from the shared backend API.
+   */
+  private async downloadEncryptedPayload(fileId: string): Promise<DownloadApiResponse> {
+    const encodedId = encodeURIComponent(fileId)
+    const response = await fetch(`${API_DOWNLOAD_ENDPOINT}/${encodedId}`, {
+      method: 'GET',
+      headers: this.createApiHeaders(),
+    })
+
+    return this.parseApiResponse<DownloadApiResponse>(response)
+  }
+
+  /**
+   * Create standard API headers for observability and debugging.
+   */
+  private createApiHeaders(): HeadersInit {
+    return {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Client-Platform': WEB_CLIENT_PLATFORM,
+      'X-Client-Version': WEB_CLIENT_VERSION,
+      'X-Request-Id': this.createRequestId(),
+    }
+  }
+
+  /**
+   * Parse JSON responses and normalize API error messages.
+   */
+  private async parseApiResponse<T>(response: Response): Promise<T> {
+    let parsedBody: unknown = null
+    try {
+      parsedBody = await response.json()
+    } catch {
+      // Keep null body for non-JSON error handling.
+    }
+
+    if (!response.ok) {
+      const apiError =
+        parsedBody &&
+        typeof parsedBody === 'object' &&
+        'error' in parsedBody &&
+        typeof (parsedBody as { error?: unknown }).error === 'string'
+          ? (parsedBody as { error: string }).error
+          : `Request failed with status ${response.status}`
+      throw new Error(apiError)
+    }
+
+    return parsedBody as T
+  }
+
+  /**
+   * Create an id for request correlation across client and server logs.
+   */
+  private createRequestId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID()
+    }
+
+    return `web-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
   }
 
   /**
