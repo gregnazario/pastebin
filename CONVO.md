@@ -1756,3 +1756,38 @@ Each entry should include:
   - Pastebin API now accepts efficient multipart/raw upload transports while preserving JSON compatibility.
   - Web uploads now use multipart instead of JSON byte-array payloads.
   - Contract/tests/build all pass locally.
+
+## 2026-02-14
+
+**Native Multipart Upload Adoption (iOS + Android)**
+- **Prompt**: "I'm getting a 413 FUNCTION_PAYLOAD_TOO_LARGE in the mobile app, does this multipart upload apply there too?" + "Yes, please do"
+- **Root Cause**:
+  - Native iOS and Android clients still posted upload payloads as JSON byte arrays to `/api/v1/upload`.
+  - JSON array expansion increased payload size and risk of upstream payload-limit rejections on mobile.
+- **Action**:
+  - Added plan + design docs:
+    - `plans/native-multipart-upload-adoption.md`
+    - `design-docs/native-multipart-upload-adoption.md`
+  - iOS networking (`CoreNetworking`) now uploads using `multipart/form-data`:
+    - `native/apple/Sources/CoreNetworking/APIClient.swift`
+    - multipart file part (`file`) + text field (`filename`)
+    - preserved observability headers.
+  - Android networking (`core/network`) now uploads using multipart:
+    - `native/android/core/network/src/main/kotlin/com/securepastebin/core/network/ApiClient.kt`
+    - multipart file part (`file`) + text field (`filename`)
+    - preserved observability headers.
+  - Added/updated tests:
+    - `native/apple/Tests/CoreNetworkingTests/CoreNetworkingTests.swift`
+      - upload request now asserts multipart content-type/body
+      - suite marked serialized to avoid URLProtocol shared-state races
+    - `native/android/core/network/src/test/kotlin/com/securepastebin/core/network/HttpApiClientTest.kt`
+      - multipart body format regression test
+- **Commands Used**:
+  - `swift test` (in `native/apple`)
+  - `gradle -p native/android :core:network:testDebugUnitTest`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun run build`
+- **Outcome**:
+  - Native iOS + Android upload transport now uses multipart and no longer serializes payload bytes as JSON arrays.
+  - Existing API contract/behavior remains backward compatible.

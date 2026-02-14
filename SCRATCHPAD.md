@@ -1408,3 +1408,31 @@ bun run typecheck # Type checking
 ### Current State
 - Backend upload endpoint now handles multipart uploads properly and remains backward compatible with JSON clients.
 - Web client now uses multipart upload path to reduce request overhead.
+
+## 2026-02-14 - Native Multipart Upload Adoption
+
+### Completed This Session
+- Added planning/design docs:
+  - `plans/native-multipart-upload-adoption.md`
+  - `design-docs/native-multipart-upload-adoption.md`
+- Migrated iOS upload client to multipart form body:
+  - `native/apple/Sources/CoreNetworking/APIClient.swift`
+  - upload now sends `file` binary part + `filename` field using `multipart/form-data`.
+- Migrated Android upload client to multipart form body:
+  - `native/android/core/network/src/main/kotlin/com/securepastebin/core/network/ApiClient.kt`
+  - upload now sends `file` binary part + `filename` field using `multipart/form-data`.
+- Added/updated tests:
+  - `native/apple/Tests/CoreNetworkingTests/CoreNetworkingTests.swift`
+    - multipart upload request assertion.
+  - `native/android/core/network/src/test/kotlin/com/securepastebin/core/network/HttpApiClientTest.kt`
+    - multipart body format assertion.
+
+### Validation Status
+- `swift test` (in `native/apple`) => pass
+- `gradle -p native/android :core:network:testDebugUnitTest` => pass
+- `bun run lint` => pass
+- `bun run typecheck` => pass
+- `bun run build` => pass
+
+### Current State
+- Native iOS + Android clients now use multipart upload transport, matching backend support and reducing payload expansion versus JSON byte arrays.

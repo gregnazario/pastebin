@@ -6,6 +6,7 @@ import FoundationNetworking
 #endif
 
 /// Smoke tests for CoreNetworking configuration behavior.
+@Suite(.serialized)
 struct CoreNetworkingTests {
     @Test func configurationDefaultsAreStable() throws {
         let config = APIClientConfiguration(baseURL: URL(string: "https://example.com")!)
@@ -36,6 +37,63 @@ struct CoreNetworkingTests {
         #expect(request.value(forHTTPHeaderField: "X-Client-Platform") == "ios")
         #expect(request.value(forHTTPHeaderField: "X-Client-Version") == "0.1.0-test")
         #expect(request.value(forHTTPHeaderField: "X-Request-Id") == "request-id-123")
+    }
+
+    @Test func uploadUsesMultipartFormData() async throws {
+        HeaderCaptureURLProtocol.lastRequest = nil
+        HeaderCaptureURLProtocol.responseData = Data(#"{"id":"blob-123","expiresAt":1738890000000}"#.utf8)
+        HeaderCaptureURLProtocol.responseStatusCode = 200
+
+        let sessionConfiguration = URLSessionConfiguration.ephemeral
+        sessionConfiguration.protocolClasses = [HeaderCaptureURLProtocol.self]
+        let session = URLSession(configuration: sessionConfiguration)
+
+        let client = URLSessionAPIClient(
+            configuration: APIClientConfiguration(baseURL: URL(string: "https://example.com")!),
+            session: session,
+            clientPlatform: "ios",
+            clientVersion: "0.1.0-test",
+            requestIDProvider: { "request-id-123" }
+        )
+
+        _ = try await client.uploadEncryptedBlob(data: [1, 2, 3, 4], filename: "encrypted.bin")
+        let request = try #require(HeaderCaptureURLProtocol.lastRequest)
+        let contentType = try #require(request.value(forHTTPHeaderField: "Content-Type"))
+        #expect(contentType.contains("multipart/form-data; boundary="))
+
+        let bodyData = try #require(extractHTTPBody(from: request))
+        let bodyText = String(data: bodyData, encoding: .utf8) ?? ""
+        #expect(bodyText.contains("name=\"file\"; filename=\"encrypted.bin\""))
+        #expect(bodyText.contains("name=\"filename\""))
+        #expect(bodyText.contains("encrypted.bin"))
+    }
+
+    private func extractHTTPBody(from request: URLRequest) -> Data? {
+        if let data = request.httpBody {
+            return data
+        }
+
+        guard let stream = request.httpBodyStream else {
+            return nil
+        }
+
+        stream.open()
+        defer { stream.close() }
+
+        var data = Data()
+        let bufferSize = 4096
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer { buffer.deallocate() }
+
+        while stream.hasBytesAvailable {
+            let bytesRead = stream.read(buffer, maxLength: bufferSize)
+            if bytesRead <= 0 {
+                break
+            }
+            data.append(buffer, count: bytesRead)
+        }
+
+        return data
     }
 }
 

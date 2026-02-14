@@ -47,11 +47,6 @@ public struct HealthResponse: Decodable, Sendable, Equatable {
     }
 }
 
-private struct UploadRequest: Encodable {
-    let data: [UInt8]
-    let filename: String
-}
-
 private struct ErrorResponse: Decodable {
     let error: String
 }
@@ -122,12 +117,18 @@ public final class URLSessionAPIClient: APIClient {
     }
 
     public func uploadEncryptedBlob(data: [UInt8], filename: String) async throws -> UploadResponse {
-        let payload = UploadRequest(data: data, filename: filename)
-        return try await performRequest(
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = try makeBaseRequest(
             method: "POST",
-            path: "/api/v1/upload",
-            body: payload
+            path: "/api/v1/upload"
         )
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = buildMultipartUploadBody(
+            data: Data(data),
+            filename: filename,
+            boundary: boundary
+        )
+        return try await executeRequest(request)
     }
 
     public func downloadEncryptedBlob(id: String) async throws -> DownloadResponse {
@@ -152,6 +153,20 @@ public final class URLSessionAPIClient: APIClient {
         path: String,
         body: RequestBody?
     ) async throws -> ResponseBody {
+        var request = try makeBaseRequest(
+            method: method,
+            path: path
+        )
+
+        if let body {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try encoder.encode(body)
+        }
+
+        return try await executeRequest(request)
+    }
+
+    private func makeBaseRequest(method: String, path: String) throws -> URLRequest {
         let url = try makeURL(path: path)
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -166,11 +181,10 @@ public final class URLSessionAPIClient: APIClient {
             request.setValue(value, forHTTPHeaderField: header)
         }
 
-        if let body {
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try encoder.encode(body)
-        }
+        return request
+    }
 
+    private func executeRequest<ResponseBody: Decodable>(_ request: URLRequest) async throws -> ResponseBody {
         let rawData: Data
         let rawResponse: URLResponse
         do {
@@ -193,6 +207,32 @@ public final class URLSessionAPIClient: APIClient {
         } catch {
             throw APIClientError.decodeFailed(error.localizedDescription)
         }
+    }
+
+    private func buildMultipartUploadBody(data: Data, filename: String, boundary: String) -> Data {
+        var body = Data()
+        let lineBreak = "\r\n"
+        let safeFilename = sanitizeMultipartValue(filename)
+
+        body.append("--\(boundary)\(lineBreak)")
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(safeFilename)\"\(lineBreak)")
+        body.append("Content-Type: application/octet-stream\(lineBreak)\(lineBreak)")
+        body.append(data)
+        body.append(lineBreak)
+
+        body.append("--\(boundary)\(lineBreak)")
+        body.append("Content-Disposition: form-data; name=\"filename\"\(lineBreak)\(lineBreak)")
+        body.append("\(safeFilename)\(lineBreak)")
+
+        body.append("--\(boundary)--\(lineBreak)")
+        return body
+    }
+
+    private func sanitizeMultipartValue(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\"", with: "_")
+            .replacingOccurrences(of: "\r", with: " ")
+            .replacingOccurrences(of: "\n", with: " ")
     }
 
     private func makeURL(path: String) throws -> URL {
@@ -241,5 +281,11 @@ public final class URLSessionAPIClient: APIClient {
         #else
         return "apple"
         #endif
+    }
+}
+
+private extension Data {
+    mutating func append(_ string: String) {
+        append(contentsOf: string.utf8)
     }
 }
