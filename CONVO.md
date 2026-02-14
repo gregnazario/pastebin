@@ -1791,3 +1791,36 @@ Each entry should include:
 - **Outcome**:
   - Native iOS + Android upload transport now uses multipart and no longer serializes payload bytes as JSON arrays.
   - Existing API contract/behavior remains backward compatible.
+
+## 2026-02-14
+
+**Brand Rename: Secure Pastebin -> SecuPaste**
+- **Prompt**: "Can we rename all the apps to SecuPaste"
+- **Actions**:
+  - Added plan/design docs:
+    - `plans/secupaste-brand-rename.md`
+    - `design-docs/secupaste-brand-rename.md`
+  - Updated web branding and metadata to `SecuPaste`:
+    - `src/routes/__root.tsx`
+    - `src/routes/index.tsx`
+    - `src/routes/docs.tsx`
+    - `src/components/Onboarding.tsx`
+    - `src/components/PWAPrompt.tsx`
+    - `public/manifest.json`
+    - `public/og-image.svg`
+    - `public/llms.txt`
+    - `public/llms-full.txt`
+  - Updated Apple app display name:
+    - `native/apple/AppShellDemoApp/Support/Info.plist` (`CFBundleDisplayName = SecuPaste`)
+  - Updated Android launcher label:
+    - `native/android/app/src/main/AndroidManifest.xml` (`android:label="SecuPaste"`)
+  - Updated Android logo content description for accessibility copy:
+    - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+- **Validation**:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun run build`
+  - `swift test` (in `native/apple`)
+  - `gradle -p native/android :app:assembleDebug`
+- **Outcome**:
+  - User-facing app branding is now `SecuPaste` across web + native launch metadata without changing package IDs or protocol identifiers.

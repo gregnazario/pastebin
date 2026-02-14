@@ -281,7 +281,7 @@ private fun NativeFlowApp() {
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.pastebin_logo),
-                    contentDescription = "Pastebin logo",
+                    contentDescription = "SecuPaste logo",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .heightIn(max = 28.dp)

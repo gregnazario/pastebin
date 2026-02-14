@@ -1,10 +1,10 @@
-# Secure Pastebin — Full Documentation
+# SecuPaste — Full Documentation
 
 > Post-quantum encrypted file sharing. Share files securely with ML-KEM (Kyber) + AES-256-GCM hybrid encryption.
 
 ## About
 
-Secure Pastebin is an open-source, privacy-first file sharing service. All encryption and decryption happens entirely in the user's browser using Web Workers for performance. The server never has access to plaintext files, passwords, or decryption keys.
+SecuPaste is an open-source, privacy-first file sharing service. All encryption and decryption happens entirely in the user's browser using Web Workers for performance. The server never has access to plaintext files, passwords, or decryption keys.
 
 The project is built with:
 - **Framework**: TanStack Start (React SSR) with TanStack Router

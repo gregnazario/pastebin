@@ -6,7 +6,7 @@ import { ToastProvider } from '../components/Toast'
 import '../styles.css'
 
 // Site metadata
-const SITE_TITLE = 'Secure Pastebin - Post-Quantum Encrypted File Sharing'
+const SITE_TITLE = 'SecuPaste - Post-Quantum Encrypted File Sharing'
 const SITE_DESCRIPTION =
   'Share files securely with post-quantum encryption. Uses ML-KEM (Kyber) + AES-256-GCM hybrid encryption to protect against future quantum attacks.'
 const SITE_URL = 'https://pastebin.sed.fyi' // Update with actual domain
@@ -21,7 +21,7 @@ function getStructuredData() {
     '@graph': [
       {
         '@type': 'WebApplication',
-        name: 'Secure Pastebin',
+        name: 'SecuPaste',
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         applicationCategory: 'SecurityApplication',
@@ -45,13 +45,13 @@ function getStructuredData() {
         softwareVersion: '1.0',
         author: {
           '@type': 'Organization',
-          name: 'Secure Pastebin',
+          name: 'SecuPaste',
           url: SITE_URL,
         },
       },
       {
         '@type': 'WebSite',
-        name: 'Secure Pastebin',
+        name: 'SecuPaste',
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         potentialAction: {
@@ -144,9 +144,9 @@ export const Route = createRootRoute({
       {
         property: 'og:image:alt',
         content:
-          'Secure Pastebin - Post-quantum encrypted file sharing with ML-KEM, AES-256-GCM, and Argon2id',
+          'SecuPaste - Post-quantum encrypted file sharing with ML-KEM, AES-256-GCM, and Argon2id',
       },
-      { property: 'og:site_name', content: 'Secure Pastebin' },
+      { property: 'og:site_name', content: 'SecuPaste' },
       { property: 'og:locale', content: 'en_US' },
 
       // Twitter Card
@@ -157,11 +157,11 @@ export const Route = createRootRoute({
       { name: 'twitter:image', content: `${SITE_URL}/og-image.png` },
       {
         name: 'twitter:image:alt',
-        content: 'Secure Pastebin - Post-quantum encrypted file sharing',
+        content: 'SecuPaste - Post-quantum encrypted file sharing',
       },
 
       // Additional SEO
-      { name: 'author', content: 'Secure Pastebin' },
+      { name: 'author', content: 'SecuPaste' },
       {
         name: 'keywords',
         content:
@@ -175,8 +175,8 @@ export const Route = createRootRoute({
       { name: 'mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-      { name: 'apple-mobile-web-app-title', content: 'Secure Pastebin' },
-      { name: 'application-name', content: 'Secure Pastebin' },
+      { name: 'apple-mobile-web-app-title', content: 'SecuPaste' },
+      { name: 'application-name', content: 'SecuPaste' },
       { name: 'msapplication-TileColor', content: '#2c3e50' },
       { name: 'msapplication-tap-highlight', content: 'no' },
       { name: 'format-detection', content: 'telephone=no' },
@@ -366,9 +366,9 @@ function RootLayout() {
 
         <header className="app-header">
           <div className="header-content">
-            <Link to="/" className="logo" onClick={closeMobileMenu} aria-label="Secure Pastebin — Home">
+            <Link to="/" className="logo" onClick={closeMobileMenu} aria-label="SecuPaste — Home">
               <LogoIcon size="1.4em" className="logo-icon" />
-              Secure Pastebin
+              SecuPaste
             </Link>
 
             {/* Desktop navigation */}

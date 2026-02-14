@@ -1436,3 +1436,37 @@ bun run typecheck # Type checking
 
 ### Current State
 - Native iOS + Android clients now use multipart upload transport, matching backend support and reducing payload expansion versus JSON byte arrays.
+
+## 2026-02-14 - SecuPaste Brand Rename
+
+### Completed This Session
+- Added rename plan/design docs:
+  - `plans/secupaste-brand-rename.md`
+  - `design-docs/secupaste-brand-rename.md`
+- Renamed user-facing web brand strings to `SecuPaste` in:
+  - `src/routes/__root.tsx`
+  - `src/routes/index.tsx`
+  - `src/routes/docs.tsx`
+  - `src/components/Onboarding.tsx`
+  - `src/components/PWAPrompt.tsx`
+  - `public/manifest.json`
+  - `public/og-image.svg`
+  - `public/llms.txt`
+  - `public/llms-full.txt`
+- Updated Apple app display name:
+  - `native/apple/AppShellDemoApp/Support/Info.plist` (`CFBundleDisplayName`)
+- Updated Android launcher label:
+  - `native/android/app/src/main/AndroidManifest.xml` (`android:label`)
+- Updated Android logo accessibility text:
+  - `native/android/app/src/main/java/com/securepastebin/app/MainActivity.kt`
+
+### Validation Status
+- `bun run lint` => pass
+- `bun run typecheck` => pass
+- `bun run build` => pass
+- `swift test` (in `native/apple`) => pass
+- `gradle -p native/android :app:assembleDebug` => pass
+
+### Current State
+- App branding shown to users is now `SecuPaste` across web/PWA metadata and native app launch labels.
+- Internal identifiers (bundle/package IDs, protocol strings, file IDs) are unchanged.

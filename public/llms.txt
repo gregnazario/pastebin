@@ -1,8 +1,8 @@
-# Secure Pastebin
+# SecuPaste
 
 > Post-quantum encrypted file sharing. Share files securely with ML-KEM (Kyber) + AES-256-GCM hybrid encryption.
 
-Secure Pastebin is an open-source, privacy-first file sharing service that uses post-quantum cryptography to protect your files against both current and future threats, including quantum computers.
+SecuPaste is an open-source, privacy-first file sharing service that uses post-quantum cryptography to protect your files against both current and future threats, including quantum computers.
 
 ## Key Features
 

@@ -58,7 +58,7 @@ export function PWAPrompt() {
               📱
             </span>
             <div className="pwa-banner-text">
-              <strong>Install Secure Pastebin</strong>
+              <strong>Install SecuPaste</strong>
               <span>Add to your home screen for quick access</span>
             </div>
           </div>

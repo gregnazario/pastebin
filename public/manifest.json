@@ -1,6 +1,6 @@
 {
-  "name": "Secure Pastebin - Post-Quantum Encrypted File Sharing",
-  "short_name": "Secure Pastebin",
+  "name": "SecuPaste - Post-Quantum Encrypted File Sharing",
+  "short_name": "SecuPaste",
   "description": "Share files securely with post-quantum encryption using ML-KEM (Kyber) + AES-256-GCM. All encryption happens in your browser.",
   "start_url": "/",
   "scope": "/",
@@ -54,7 +54,7 @@
       "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Secure Pastebin - Post-quantum encrypted file sharing"
+      "label": "SecuPaste - Post-quantum encrypted file sharing"
     }
   ],
   "shortcuts": [

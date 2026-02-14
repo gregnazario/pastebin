@@ -1,5 +1,5 @@
 /**
- * Clean, modern SVG icon components for the Secure Pastebin application.
+ * Clean, modern SVG icon components for the SecuPaste application.
  * All icons are designed to be inline-friendly and scale with text.
  */
 

@@ -182,9 +182,9 @@ function EncryptionFlowDiagram() {
 function DocsPage() {
   return (
     <div className="docs-page">
-      <h1>How Secure Pastebin Works</h1>
+      <h1>How SecuPaste Works</h1>
       <p className="docs-intro">
-        Secure Pastebin uses cutting-edge post-quantum cryptography to protect your files. All
+        SecuPaste uses cutting-edge post-quantum cryptography to protect your files. All
         encryption happens in your browser — we never see your files or passwords.
       </p>
 

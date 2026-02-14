@@ -12,7 +12,7 @@ function HomePage() {
     <div className="home-page">
       <Onboarding />
       <section className="hero" aria-labelledby="hero-heading">
-        <h1 id="hero-heading">Secure Pastebin</h1>
+        <h1 id="hero-heading">SecuPaste</h1>
         <p className="tagline">Share files securely with post-quantum encryption</p>
 
         <ul className="features" aria-label="Key features">

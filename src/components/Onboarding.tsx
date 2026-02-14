@@ -174,7 +174,7 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     icon: <WaveIcon size={48} />,
-    title: 'Welcome to Secure Pastebin',
+    title: 'Welcome to SecuPaste',
     description:
       'Share files with post-quantum encryption. Your files are encrypted in your browser before upload — we never see your data.',
   },
