@@ -244,7 +244,7 @@ export function createS3BlobStore(
       assertSafeBlobId(id)
       const response = await client.fetch(objectUrl(id), {
         method: 'PUT',
-        body: data,
+        body: toArrayBuffer(data),
         headers: {
           'content-type': 'application/octet-stream',
           'x-amz-meta-expires-at': String(meta.expiresAt),
@@ -358,6 +358,16 @@ function isBlobMeta(value: unknown): value is BlobMeta {
 
 function isNotFound(error: unknown): boolean {
   return Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT')
+}
+
+/**
+ * Copy bytes into a standalone ArrayBuffer for Fetch body typing.
+ * DOM BodyInit rejects Uint8Array<ArrayBufferLike> under TypeScript 5.7+.
+ */
+function toArrayBuffer(data: Uint8Array): ArrayBuffer {
+  const copy = new ArrayBuffer(data.byteLength)
+  new Uint8Array(copy).set(data)
+  return copy
 }
 
 async function deleteQuietly(

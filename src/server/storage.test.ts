@@ -122,10 +122,7 @@ describe('createS3BlobStore', () => {
         const method = (init?.method || 'GET').toUpperCase()
         if (method === 'PUT') {
           const body = init?.body
-          const bytes =
-            body instanceof Uint8Array
-              ? body
-              : new Uint8Array(await new Response(body as BodyInit).arrayBuffer())
+          const bytes = new Uint8Array(await new Response(body ?? null).arrayBuffer())
           objects.set(input, {
             body: bytes,
             headers: new Headers(init?.headers),
@@ -135,7 +132,9 @@ describe('createS3BlobStore', () => {
         if (method === 'GET') {
           const stored = objects.get(input)
           if (!stored) return new Response(null, { status: 404 })
-          return new Response(stored.body, { status: 200, headers: stored.headers })
+          const copy = new ArrayBuffer(stored.body.byteLength)
+          new Uint8Array(copy).set(stored.body)
+          return new Response(copy, { status: 200, headers: stored.headers })
         }
         if (method === 'DELETE') {
           objects.delete(input)
