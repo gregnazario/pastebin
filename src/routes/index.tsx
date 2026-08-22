@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChainIcon, KeyIcon, QuantumIcon } from '../components/Icons'
+import { KeyIcon, QuantumIcon, ShieldIcon } from '../components/Icons'
 import { Onboarding } from '../components/Onboarding'
 import { PasteHistory } from '../components/PasteHistory'
 
@@ -32,9 +32,9 @@ function HomePage() {
           </li>
           <li className="feature">
             <h2>
-              <ChainIcon size="1.2em" className="feature-icon" aria-hidden /> Decentralized Storage
+              <ShieldIcon size="1.2em" className="feature-icon" aria-hidden /> Zero-Knowledge Storage
             </h2>
-            <p>Files stored on Shelby Protocol — censorship-resistant and reliable</p>
+            <p>Only ciphertext is stored. The server never sees your file or password</p>
           </li>
         </ul>
 

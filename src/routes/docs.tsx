@@ -82,7 +82,7 @@ function EncryptionFlowDiagram() {
           Your Device
         </text>
         <text x="600" y="30" textAnchor="middle" className="section-label">
-          Shelby Network
+          Encrypted Storage
         </text>
 
         {/* Step 1: File + Password */}
@@ -192,8 +192,8 @@ function DocsPage() {
       <section className="docs-section">
         <h2>How It Works</h2>
         <p>
-          When you upload a file, it's encrypted entirely on your device before being sent to our
-          decentralized storage network. Here's the process:
+          When you upload a file, it's encrypted entirely on your device before being sent to object
+          storage as ciphertext. Here's the process:
         </p>
 
         <EncryptionFlowDiagram />
@@ -212,8 +212,8 @@ function DocsPage() {
             exchange and AES-256-GCM for content encryption.
           </li>
           <li>
-            <strong>Upload to Shelby Network</strong> — Only the encrypted blob is uploaded to
-            decentralized storage.
+            <strong>Upload ciphertext</strong> — Only the encrypted blob is uploaded. The server
+            cannot read the file.
           </li>
           <li>
             <strong>Share the link</strong> — The decryption key is embedded in the URL fragment
@@ -449,7 +449,7 @@ function DocsPage() {
               </tr>
               <tr>
                 <th scope="row">Storage Backend</th>
-                <td>Shelby Protocol (decentralized)</td>
+                <td>Filesystem (local) or S3-compatible object storage (Cloudflare R2)</td>
               </tr>
               <tr>
                 <th scope="row">Link Validity</th>
@@ -481,7 +481,7 @@ function DocsPage() {
             <p>
               Files use a configurable expiration policy. By default, deployments keep files for 30
               days unless <code>DEFAULT_EXPIRATION_DAYS</code> is overridden. After expiration, the
-              encrypted blob is deleted from the Shelby network.
+              encrypted blob is deleted from object storage.
             </p>
           </CollapsibleSection>
 

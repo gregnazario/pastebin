@@ -24,3 +24,6 @@ native/apple/**/xcuserdata/
 src-tauri/target/
 src-tauri/gen/
 mobile/node_modules/
+
+# Local encrypted blob store (filesystem backend)
+.data/

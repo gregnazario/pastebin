@@ -74,24 +74,27 @@ When code changes are made, run these commands (when available):
 
 ## Critical Build Configuration
 
-### WASM File Handling for Shelby SDK
+### Encrypted Blob Storage
 
-The `@shelby-protocol/clay-codes` package contains a `clay.wasm` file that must be available at runtime. When Nitro bundles the server code, the JS is placed in the output directory but the WASM file is not automatically copied.
+The server stores client-encrypted ciphertext only. Do not add server-side
+decryption. Adapters live in `src/server/storage.ts`:
 
-**DO NOT REMOVE** the `copyClayWasmPlugin()` Vite plugin in `vite.config.ts`:
+- `memory` — unit tests / ephemeral use (`BLOB_STORE=memory`)
+- `filesystem` — local default (`.data/blobs`, or `/tmp/secupaste-blobs` on Vercel)
+- `s3` — Cloudflare R2 or any S3-compatible store (recommended free production backend)
 
-```typescript
-// In plugins array:
-copyClayWasmPlugin(),
+The former Shelby `copyClayWasmPlugin()` was removed with `@shelby-protocol/sdk`.
+Do not re-add it unless that backend is restored.
+
+Production (Cloudflare R2 example):
+
+```
+BLOB_STORE=s3
+S3_BUCKET=secupaste
+S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+S3_REGION=auto
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
 ```
 
-This plugin uses Vite's `closeBundle` hook to copy `clay.wasm` after the build completes. It must be a separate Vite plugin (not Nitro hooks) to avoid overwriting Nitro's preset hooks which generate required Vercel config files.
-
-The plugin handles both local builds (`.output/server/`) and Vercel builds (`.vercel/output/functions/__server.func/`).
-
-Without this plugin, deployments will fail with:
-```
-Unable to locate clay.wasm. Tried: /var/task/_chunks/_libs/@shelby-protocol/clay.wasm, /var/task/_chunks/_libs/dist/clay.wasm
-```
-
-*Last updated: 2026-02-01*
+*Last updated: 2026-08-22*

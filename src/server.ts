@@ -57,8 +57,8 @@ function buildCSP(devMode: boolean): string {
   const styleSrc = devMode ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'"
 
   const connectSrc = devMode
-    ? "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz ws://localhost:* http://localhost:*"
-    : "connect-src 'self' https://*.shelby.xyz https://api.shelby.xyz"
+    ? "connect-src 'self' ws://localhost:* http://localhost:*"
+    : "connect-src 'self'"
 
   return [
     "default-src 'self'",
