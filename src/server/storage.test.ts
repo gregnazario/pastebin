@@ -14,7 +14,9 @@ import {
   createFilesystemBlobStore,
   createMemoryBlobStore,
   createS3BlobStore,
+  parseEnvBoolean,
   resolveBlobStoreKind,
+  s3ConfigFromEnv,
   type SignedFetcher,
 } from './storage'
 
@@ -23,9 +25,15 @@ describe('assertSafeBlobId', () => {
     expect(() => assertSafeBlobId('pastebin-123-notes.txt-abcd')).not.toThrow()
   })
 
+  it('accepts filenames that contain consecutive dots', () => {
+    expect(() => assertSafeBlobId('pastebin-1-report..final.txt-abcd')).not.toThrow()
+  })
+
   it('rejects path traversal', () => {
     expect(() => assertSafeBlobId('../secret')).toThrow('malformed file ID')
     expect(() => assertSafeBlobId('a/b')).toThrow('malformed file ID')
+    expect(() => assertSafeBlobId('..')).toThrow('malformed file ID')
+    expect(() => assertSafeBlobId('.')).toThrow('malformed file ID')
   })
 })
 
@@ -50,6 +58,17 @@ describe('resolveBlobStoreKind', () => {
     expect(resolveBlobStoreKind({ NODE_ENV: 'test' })).toBe('memory')
     expect(resolveBlobStoreKind({ NODE_ENV: 'production' })).toBe('filesystem')
   })
+
+  it('refuses silent filesystem fallback on serverless hosts', () => {
+    expect(() => resolveBlobStoreKind({ VERCEL: '1' })).toThrow('Service configuration error')
+    expect(() => resolveBlobStoreKind({ AWS_LAMBDA_FUNCTION_NAME: 'fn' })).toThrow(
+      'Service configuration error',
+    )
+  })
+
+  it('allows explicit filesystem opt-in on serverless hosts', () => {
+    expect(resolveBlobStoreKind({ VERCEL: '1', BLOB_STORE: 'filesystem' })).toBe('filesystem')
+  })
 })
 
 describe('createMemoryBlobStore', () => {
@@ -70,6 +89,18 @@ describe('createMemoryBlobStore', () => {
     now = 2_000
     expect(await store.get('pastebin-1-a.txt-aa')).toBeNull()
   })
+
+  it('sweeps expired memory blobs that were never fetched', async () => {
+    let now = 1_000
+    const store = createMemoryBlobStore({ now: () => now })
+    await store.put('pastebin-1-stale.txt-aa', new Uint8Array([1]), {
+      expiresAt: 1_500,
+      filename: 'stale.txt',
+      storedAt: 1_000,
+    })
+    now = 2_000
+    expect(await store.sweepExpired()).toBe(1)
+  })
 })
 
 describe('createFilesystemBlobStore', () => {
@@ -85,6 +116,8 @@ describe('createFilesystemBlobStore', () => {
   it('persists and reads ciphertext from disk', async () => {
     dir = await mkdtemp(join(tmpdir(), 'secupaste-blobs-'))
     const store = createFilesystemBlobStore(dir)
+    expect(store.account).toBe('filesystem:local')
+    expect(store.durable).toBe(true)
     const id = 'pastebin-99-payload.bin-dead'
     await store.put(id, new Uint8Array([7, 8, 9]), {
       expiresAt: Date.now() + 60_000,
@@ -110,6 +143,22 @@ describe('createFilesystemBlobStore', () => {
     })
 
     now = 9_000
+    expect(await store.get(id)).toBeNull()
+  })
+
+  it('sweeps expired blobs that were never fetched', async () => {
+    dir = await mkdtemp(join(tmpdir(), 'secupaste-blobs-'))
+    let now = 5_000
+    const store = createFilesystemBlobStore(dir, { now: () => now })
+    const id = 'pastebin-99-stale.bin-dead'
+    await store.put(id, new Uint8Array([1]), {
+      expiresAt: 6_000,
+      filename: 'stale.bin',
+      storedAt: 5_000,
+    })
+
+    now = 9_000
+    expect(await store.sweepExpired()).toBe(1)
     expect(await store.get(id)).toBeNull()
   })
 })
@@ -167,6 +216,40 @@ describe('createS3BlobStore', () => {
     expect(Array.from(stored?.data ?? [])).toEqual([11, 22, 33])
     expect(stored?.meta.filename).toBe('cipher.bin')
   })
+
+  it('treats missing expiry metadata as expired', async () => {
+    const deleted: string[] = []
+    const fetcher: SignedFetcher = {
+      async fetch(input, init) {
+        const method = (init?.method || 'GET').toUpperCase()
+        if (method === 'GET') {
+          const copy = new ArrayBuffer(1)
+          new Uint8Array(copy).set([9])
+          return new Response(copy, { status: 200 })
+        }
+        if (method === 'DELETE') {
+          deleted.push(input)
+          return new Response(null, { status: 204 })
+        }
+        return new Response(null, { status: 405 })
+      },
+    }
+
+    const store = createS3BlobStore(
+      {
+        bucket: 'secupaste',
+        region: 'auto',
+        accessKeyId: 'id',
+        secretAccessKey: 'secret',
+        endpoint: 'https://example.r2.cloudflarestorage.com',
+        forcePathStyle: true,
+      },
+      { s3Fetch: fetcher },
+    )
+
+    expect(await store.get('pastebin-1-cipher.bin-ffff')).toBeNull()
+    expect(deleted).toHaveLength(1)
+  })
 })
 
 describe('buildS3ObjectUrl', () => {
@@ -185,6 +268,22 @@ describe('buildS3ObjectUrl', () => {
       ),
     ).toBe('https://abc.r2.cloudflarestorage.com/secupaste/pastes/pastebin-1-a-b')
   })
+
+  it('puts the bucket on the hostname for virtual-hosted custom endpoints', () => {
+    expect(
+      buildS3ObjectUrl(
+        {
+          bucket: 'secupaste',
+          region: 'us-east-1',
+          accessKeyId: 'id',
+          secretAccessKey: 'secret',
+          endpoint: 'https://s3.example.com',
+          forcePathStyle: false,
+        },
+        'pastes/pastebin-1-a-b',
+      ),
+    ).toBe('https://secupaste.s3.example.com/pastes/pastebin-1-a-b')
+  })
 })
 
 describe('createBlobStoreFromEnv', () => {
@@ -192,5 +291,35 @@ describe('createBlobStoreFromEnv', () => {
     const store = createBlobStoreFromEnv({ BLOB_STORE: 'memory' })
     expect(store.kind).toBe('memory')
     expect(store.account).toBe('memory')
+    expect(store.durable).toBe(false)
+  })
+
+  it('marks explicit serverless filesystem as non-durable without leaking paths', () => {
+    const store = createBlobStoreFromEnv({ VERCEL: '1', BLOB_STORE: 'filesystem' })
+    expect(store.kind).toBe('filesystem')
+    expect(store.account).toBe('filesystem:local')
+    expect(store.durable).toBe(false)
+  })
+})
+
+describe('parseEnvBoolean', () => {
+  it('accepts common truthy and falsey strings', () => {
+    expect(parseEnvBoolean('FALSE', true)).toBe(false)
+    expect(parseEnvBoolean('0', true)).toBe(false)
+    expect(parseEnvBoolean('no', true)).toBe(false)
+    expect(parseEnvBoolean('yes', false)).toBe(true)
+  })
+})
+
+describe('s3ConfigFromEnv', () => {
+  it('treats S3_FORCE_PATH_STYLE=0 as false', () => {
+    const config = s3ConfigFromEnv({
+      S3_BUCKET: 'secupaste',
+      S3_ACCESS_KEY_ID: 'id',
+      S3_SECRET_ACCESS_KEY: 'secret',
+      S3_ENDPOINT: 'https://s3.example.com',
+      S3_FORCE_PATH_STYLE: '0',
+    })
+    expect(config.forcePathStyle).toBe(false)
   })
 })

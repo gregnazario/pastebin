@@ -76,7 +76,7 @@ function getStructuredData() {
             name: 'How long are files stored?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Files are stored for 30 days by default. After this period, the encrypted blob is deleted from object storage.',
+              text: 'Files are stored for 30 days by default. After that they are no longer served, and unused objects should also be expired with a bucket lifecycle rule on the pastes/ prefix.',
             },
           },
           {

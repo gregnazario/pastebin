@@ -151,6 +151,9 @@ components:
         account:
           type: string
           nullable: true
+        durable:
+          type: boolean
+          description: False when the store is memory or ephemeral disk (e.g. Vercel /tmp).
       required: [configured, account]
     CapabilitiesResponse:
       type: object

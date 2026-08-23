@@ -54,6 +54,22 @@ describe('uploadBlobInternal / downloadBlobInternal', () => {
     expect(downloaded.data).toEqual(ciphertext)
   })
 
+  it('accepts filenames that contain consecutive dots', async () => {
+    const { uploadBlobInternal, downloadBlobInternal, resetServerStateForTests } = await import(
+      './blobs'
+    )
+    resetServerStateForTests()
+
+    const uploaded = await uploadBlobInternal({
+      data: [9, 8, 7],
+      filename: 'report..final.txt',
+    })
+
+    expect(uploaded.id).toMatch(/^pastebin-\d+-report\.\.final\.txt-[0-9a-f]+$/)
+    const downloaded = await downloadBlobInternal({ id: uploaded.id })
+    expect(downloaded.data).toEqual([9, 8, 7])
+  })
+
   it('returns file not found for unknown IDs', async () => {
     const { downloadBlobInternal, resetServerStateForTests } = await import('./blobs')
     resetServerStateForTests()
@@ -68,7 +84,7 @@ describe('uploadBlobInternal / downloadBlobInternal', () => {
     resetServerStateForTests()
 
     const health = await checkHealthInternal()
-    expect(health).toEqual({ configured: true, account: 'memory' })
+    expect(health).toEqual({ configured: true, account: 'memory', durable: false })
   })
 })
 

@@ -108,7 +108,9 @@ The server stores **ciphertext only**. Client-side ML-KEM + AES-256-GCM encrypti
 | --- | --- | --- |
 | Local dev (default) | Filesystem | `.data/blobs` (no credentials) |
 | Tests | In-memory | `BLOB_STORE=memory` |
-| Production (free) | S3-compatible | Cloudflare R2 recommended |
+| Production (required on Vercel) | S3-compatible | Cloudflare R2 recommended |
+
+Vercel/Lambda/Netlify **must** set S3/R2 credentials. The server will not auto-use `/tmp` (that would accept uploads and then lose them). `BLOB_STORE=filesystem` is an explicit opt-in and is not durable on serverless.
 
 Cloudflare R2 free-tier example:
 
@@ -121,6 +123,8 @@ S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
 S3_FORCE_PATH_STYLE=true
 ```
+
+Add an object lifecycle rule on prefix `pastes/` that expires objects after `DEFAULT_EXPIRATION_DAYS` (default 30). Read-path deletion only covers blobs that are fetched again.
 
 The same variables work with Backblaze B2 and MinIO. See `.env.example`.
 

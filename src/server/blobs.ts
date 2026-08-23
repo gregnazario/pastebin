@@ -118,19 +118,6 @@ function isRateLimited(
   return false
 }
 
-setInterval(
-  () => {
-    const now = Date.now()
-    for (const [key, entry] of uploadRateLimits) {
-      if (now > entry.resetAt) uploadRateLimits.delete(key)
-    }
-    for (const [key, entry] of downloadRateLimits) {
-      if (now > entry.resetAt) downloadRateLimits.delete(key)
-    }
-  },
-  10 * 60 * 1000,
-)
-
 // ============================================================================
 // Input Validation Utilities
 // ============================================================================
@@ -211,6 +198,7 @@ export interface DownloadBlobRequest {
 export interface StorageHealthResponse {
   configured: boolean
   account: string | null
+  durable: boolean
 }
 
 /** Capabilities response for `/api/v1/capabilities`. */
@@ -225,6 +213,26 @@ export interface StorageCapabilitiesResponse {
 
 let validatedConfig: ServerConfig | null = null
 let blobStore: BlobStore | null = null
+
+setInterval(
+  () => {
+    const now = Date.now()
+    for (const [key, entry] of uploadRateLimits) {
+      if (now > entry.resetAt) uploadRateLimits.delete(key)
+    }
+    for (const [key, entry] of downloadRateLimits) {
+      if (now > entry.resetAt) downloadRateLimits.delete(key)
+    }
+    if (blobStore) {
+      blobStore.sweepExpired().catch((error: unknown) => {
+        log('warn', 'Expired blob sweep failed', {
+          error: error instanceof Error ? error.message : 'unknown',
+        })
+      })
+    }
+  },
+  10 * 60 * 1000,
+)
 
 /**
  * Validate and get server configuration.
@@ -355,15 +363,14 @@ export async function uploadBlobInternal(
   input: UploadBlobRequest,
   requestHeaders?: Headers | Record<string, string | undefined>,
 ): Promise<{ id: string; expiresAt: number }> {
+  const store = getStore()
+  const config = getConfig()
   const clientId = requestHeaders ? getClientIp(requestHeaders) : 'unknown'
 
   if (isRateLimited(uploadRateLimits, clientId, MAX_UPLOADS_PER_WINDOW)) {
     log('warn', 'Rate limit exceeded for upload', { clientId })
     throw new Error('Too many requests. Please try again later.')
   }
-
-  const store = getStore()
-  const config = getConfig()
   const data = new Uint8Array(input.data)
   const sanitizedFilename = sanitizeFilename(input.filename)
   const randomSuffix = crypto.randomUUID().split('-')[0]
@@ -425,11 +432,13 @@ export async function checkHealthInternal(): Promise<StorageHealthResponse> {
     return {
       configured: true,
       account: store.account,
+      durable: store.durable,
     }
   } catch {
     return {
       configured: false,
       account: null,
+      durable: false,
     }
   }
 }

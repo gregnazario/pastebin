@@ -13,6 +13,21 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-08-23
+**Address PR comments on free blob backend**
+- **Prompt**: `"address pr comments"`
+- **Action**:
+  - Refused silent filesystem fallback on Vercel/Lambda/Netlify unless `BLOB_STORE=filesystem` is explicit.
+  - Allowed `..` inside filenames; still reject `.` / `..` as path segments.
+  - Fixed virtual-hosted S3 URLs to include `bucket.` on custom endpoints.
+  - Added filesystem/memory `sweepExpired`, documented R2 lifecycle rules, softened deletion copy.
+  - Health now reports `durable` and `filesystem:local` (no disk paths); S3 errors log status/body; boolean env parsing; missing expiry treated as expired; PUT body uses a type cast instead of a 100 MB copy.
+- **Commands Run**:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun run test`
+  - `bun run check:api-contract`
+
 ### 2026-08-22
 **Free blob storage backend (replace Shelby)**
 - **Prompt**: `"Can we update pastebin to use a different backend that is free, but keep the encryption and everything"`

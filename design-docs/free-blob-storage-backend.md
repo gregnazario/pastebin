@@ -91,7 +91,9 @@ Unchanged:
 - Server never decrypts
 - Rate limits, filename sanitization, 100 MB cap, and `pastebin-<timestamp>-<name>-<suffix>` IDs stay
 
-Expiration is enforced on read (delete + treat as missing). Default remains `DEFAULT_EXPIRATION_DAYS=30`.
+Expiration is enforced on read (delete + treat as missing) and by a periodic filesystem/memory sweep. S3/R2 still needs a bucket lifecycle rule on `pastes/` so unused objects are deleted. Default remains `DEFAULT_EXPIRATION_DAYS=30`.
+
+Serverless hosts (Vercel, Lambda, Netlify) refuse a silent filesystem fallback. Without S3 credentials, health reports `configured: false` and uploads return 503. `BLOB_STORE=filesystem` is an explicit, non-durable opt-in.
 
 ## Production setup (free)
 
@@ -111,10 +113,11 @@ Local development needs no cloud credentials.
 
 ## Health contract
 
-`GET /api/v1/health` still returns `{ configured, account }`.
+`GET /api/v1/health` returns `{ configured, account, durable }`.
 
 - `configured: true` when a store can be constructed
-- `account` is a non-secret label such as `s3:secupaste` (no longer an Aptos address)
+- `account` is a non-secret label such as `s3:secupaste` or `filesystem:local` (never a disk path)
+- `durable` is false for memory and for filesystem on ephemeral compute
 
 Native clients already treat this payload as opaque flags.
 

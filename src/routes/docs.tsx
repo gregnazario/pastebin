@@ -481,7 +481,9 @@ function DocsPage() {
             <p>
               Files use a configurable expiration policy. By default, deployments keep files for 30
               days unless <code>DEFAULT_EXPIRATION_DAYS</code> is overridden. After expiration, the
-              encrypted blob is deleted from object storage.
+              blob is no longer served and is removed when accessed. Configure a bucket lifecycle
+              rule on the <code>pastes/</code> prefix so unused objects are deleted even if nobody
+              downloads them.
             </p>
           </CollapsibleSection>
 
