@@ -2,7 +2,40 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-02-12)
+## Current State (2026-08-23)
+
+### Active Task
+- **Phase**: Address PR review on free blob backend.
+- **Current Task**: Review-comment fixes for ephemeral fallback, IDs, S3 URLs, expiry, health.
+
+### PR comment fixes (2026-08-23)
+- ✅ Serverless no longer auto-uses `/tmp` filesystem.
+- ✅ `assertSafeBlobId` allows `report..final.txt`.
+- ✅ Virtual-hosted custom endpoints include the bucket hostname.
+- ✅ Filesystem/memory sweep + lifecycle docs.
+- ✅ Health `durable` + `filesystem:local`; S3 error logging; boolean env parse; missing expiry fails closed.
+
+## Previous State (2026-08-22)
+
+### Active Task
+- **Phase**: Replace Shelby storage with a free blob backend.
+- **Current Task**: Filesystem + S3-compatible (R2) persistence, encryption unchanged.
+
+### Free Blob Storage Backend (2026-08-22)
+- ✅ Design/plan:
+  - `plans/free-blob-storage-backend.md`
+  - `design-docs/free-blob-storage-backend.md`
+- ✅ Storage adapters in `src/server/storage.ts`:
+  - `memory` (tests)
+  - `filesystem` (local default)
+  - `s3` (Cloudflare R2 / B2 / MinIO)
+- ✅ API handlers moved to `src/server/blobs.ts` (same `/api/v1` contract).
+- ✅ Removed Shelby SDK, Aptos SDK, `copyClayWasmPlugin`, `SHELBY_*` env vars.
+- ✅ Client encryption, share-link fragments, native API unchanged.
+- ⚠️ Existing Shelby-hosted paste IDs will not resolve after deploy.
+- ⚠️ Production needs R2/S3 env vars; local dev uses `.data/blobs` with no credentials.
+
+## Previous State (2026-02-12)
 
 ### Active Task
 - **Phase**: Cross-platform native parity hardening.

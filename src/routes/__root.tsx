@@ -36,7 +36,7 @@ function getStructuredData() {
           'AES-256-GCM symmetric encryption',
           'Argon2id password-based key derivation',
           'Client-side encryption — server never sees plaintext',
-          'Decentralized storage via Shelby Protocol',
+          'Zero-knowledge ciphertext storage',
           'Zero-knowledge architecture',
           'File and text note sharing',
           'Optional metadata encryption',
@@ -76,7 +76,7 @@ function getStructuredData() {
             name: 'How long are files stored?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Files are stored for 24 hours by default. After this period, the encrypted blob is automatically deleted from the Shelby network.',
+              text: 'Files are stored for 30 days by default. After that they are no longer served, and unused objects should also be expired with a bucket lifecycle rule on the pastes/ prefix.',
             },
           },
           {
@@ -198,9 +198,6 @@ export const Route = createRootRoute({
       { rel: 'manifest', href: '/manifest.json' },
       // Canonical URL
       { rel: 'canonical', href: SITE_URL },
-      // Preconnect to Shelby API for faster uploads/downloads
-      { rel: 'preconnect', href: 'https://api.shelby.xyz' },
-      { rel: 'dns-prefetch', href: 'https://api.shelby.xyz' },
     ],
   }),
   component: RootLayout,

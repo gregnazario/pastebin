@@ -100,6 +100,34 @@ Default production base URL for web and native clients:
 
 Native apps also support local/staging/runtime override via in-app settings.
 
+## Blob Storage
+
+The server stores **ciphertext only**. Client-side ML-KEM + AES-256-GCM encryption is unchanged.
+
+| Environment | Backend | Config |
+| --- | --- | --- |
+| Local dev (default) | Filesystem | `.data/blobs` (no credentials) |
+| Tests | In-memory | `BLOB_STORE=memory` |
+| Production (required on Vercel) | S3-compatible | Cloudflare R2 recommended |
+
+Vercel/Lambda/Netlify **must** set S3/R2 credentials. The server will not auto-use `/tmp` (that would accept uploads and then lose them). `BLOB_STORE=filesystem` is an explicit opt-in and is not durable on serverless.
+
+Cloudflare R2 free-tier example:
+
+```
+BLOB_STORE=s3
+S3_BUCKET=secupaste
+S3_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+S3_REGION=auto
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
+S3_FORCE_PATH_STYLE=true
+```
+
+Add an object lifecycle rule on prefix `pastes/` that expires objects after `DEFAULT_EXPIRATION_DAYS` (default 30). Read-path deletion only covers blobs that are fetched again.
+
+The same variables work with Backblaze B2 and MinIO. See `.env.example`.
+
 ## Notes
 
 - E2E testing is restricted to local environments.

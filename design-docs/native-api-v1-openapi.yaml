@@ -26,7 +26,7 @@ paths:
                 $ref: '#/components/schemas/CapabilitiesResponse'
   /api/v1/health:
     get:
-      summary: Service health and Shelby configuration status
+      summary: Service health and blob storage configuration status
       operationId: getHealth
       responses:
         '200':
@@ -151,6 +151,9 @@ components:
         account:
           type: string
           nullable: true
+        durable:
+          type: boolean
+          description: False when the store is memory or ephemeral disk (e.g. Vercel /tmp).
       required: [configured, account]
     CapabilitiesResponse:
       type: object

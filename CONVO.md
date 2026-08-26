@@ -13,6 +13,43 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-08-23
+**Address PR comments on free blob backend**
+- **Prompt**: `"address pr comments"`
+- **Action**:
+  - Refused silent filesystem fallback on Vercel/Lambda/Netlify unless `BLOB_STORE=filesystem` is explicit.
+  - Allowed `..` inside filenames; still reject `.` / `..` as path segments.
+  - Fixed virtual-hosted S3 URLs to include `bucket.` on custom endpoints.
+  - Added filesystem/memory `sweepExpired`, documented R2 lifecycle rules, softened deletion copy.
+  - Health now reports `durable` and `filesystem:local` (no disk paths); S3 errors log status/body; boolean env parsing; missing expiry treated as expired; PUT body uses a type cast instead of a 100 MB copy.
+- **Commands Run**:
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun run test`
+  - `bun run check:api-contract`
+
+### 2026-08-22
+**Free blob storage backend (replace Shelby)**
+- **Prompt**: `"Can we update pastebin to use a different backend that is free, but keep the encryption and everything"`
+- **Action**:
+  - Replaced Shelby Protocol / Aptos blob persistence with filesystem + S3-compatible storage (Cloudflare R2 recommended free production backend).
+  - Kept client-side ML-KEM + AES-256-GCM encryption, URL fragment keys, and `/api/v1` contract.
+  - Added `src/server/storage.ts` adapters (`memory`, `filesystem`, `s3`) and `src/server/blobs.ts`.
+  - Removed `@shelby-protocol/sdk`, `@aptos-labs/ts-sdk`, and the `clay.wasm` copy plugin.
+  - Tightened CSP / HTML preconnect so the browser no longer talks to `*.shelby.xyz`.
+- **Docs**:
+  - `plans/free-blob-storage-backend.md`
+  - `design-docs/free-blob-storage-backend.md`
+- **Commands Run**:
+  - `bun remove @shelby-protocol/sdk @aptos-labs/ts-sdk`
+  - `bun add aws4fetch`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun test`
+  - `bun run build`
+  - `bun run check:api-contract`
+- **Outcome**: Encrypted paste upload/download uses a free object store. Native apps keep the same API.
+
 ### 2026-02-12
 **Implementation: Shared Backend Risk Audit + Hardening**
 - **Prompt**: `"PLEASE IMPLEMENT THIS PLAN: Shared Backend Risk Discovery And Hardening Plan (Web + Native)"`

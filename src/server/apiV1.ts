@@ -16,7 +16,7 @@ import {
   validateDownloadBlobRequest,
   validateUploadBlobRequest,
   uploadBlobInternal,
-} from './shelby'
+} from './blobs'
 
 const API_V1_PREFIX = '/api/v1'
 

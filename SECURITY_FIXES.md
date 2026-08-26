@@ -4,6 +4,23 @@ This document tracks security issues and their fixes for the pastebin project.
 
 ---
 
+## [2026-08-22] Remove Shelby third-party browser surface
+
+### Issue 1: Browser CSP allowed Shelby origins that the app no longer needs
+- **Severity**: Low
+- **Description**: `connect-src` and HTML preconnect included `*.shelby.xyz` even though encrypted blobs are uploaded through same-origin `/api/v1`.
+- **Fix**: Restrict `connect-src` to `'self'` (plus local Vite HMR in development) and drop Shelby preconnect/dns-prefetch tags.
+- **Files**:
+  - `src/server.ts`
+  - `src/routes/__root.tsx`
+
+### Issue 2: Storage credentials must stay server-side after backend swap
+- **Severity**: Info
+- **Description**: The new S3/R2 adapter uses access keys. Those keys must never ship to web or native clients.
+- **Fix**: S3 signing (`aws4fetch`) runs only in `src/server/storage.ts`. Clients continue to send ciphertext to `/api/v1` only. Health `account` reports `s3:<bucket>` without secrets.
+
+---
+
 ## [2026-02-12] Shared Backend Transport Hardening
 
 ### Issue 1: Apple ATS policy was overly permissive
