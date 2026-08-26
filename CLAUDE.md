@@ -8,13 +8,13 @@ This file contains the development rules and guidelines for this project.
 2. **Documentation required** - Every file must include documentation
 3. **Unit testing** - Write unit tests when possible
 4. **E2E testing scope** - E2E testing against localnet only (never devnet/testnet/mainnet)
-5. **Conversation tracking** - Track user prompts and commands used in `CONVO.md`
-6. **State tracking** - Track current state in `SCRATCHPAD.md` for conversation handoffs
+5. **Conversation tracking** - Track user prompts and commands used in `notes/CONVO.md`
+6. **State tracking** - Track current state in `notes/SCRATCHPAD.md` for conversation handoffs
 7. **Plans location** - Implementation plans go in `plans/`
 8. **Design docs location** - Design documentation goes in `design-docs/`
 9. **Plan before implementing** - Create plan + detailed design docs with diagrams before implementing features
-10. **Mistake tracking** - Track mistakes and fixes in `MISTAKE_FIXES.md`
-11. **Security tracking** - Track security issues and fixes in `SECURITY_FIXES.md`
+10. **Mistake tracking** - Track mistakes and fixes in `notes/MISTAKE_FIXES.md`
+11. **Security tracking** - Track security issues and fixes in `notes/SECURITY_FIXES.md`
 12. **User interviews** - Interview user for non-obvious choices/tradeoffs (summarize tradeoffs first)
 
 ## Project Structure
@@ -22,10 +22,11 @@ This file contains the development rules and guidelines for this project.
 ```
 /
 ├── CLAUDE.md           # This file - project rules
-├── CONVO.md           # Conversation and prompt tracking
-├── SCRATCHPAD.md      # Current state tracking
-├── MISTAKE_FIXES.md   # Mistake and fix tracking
-├── SECURITY_FIXES.md  # Security issue tracking
+├── notes/              # Working notes (not for end users)
+│   ├── CONVO.md           # Conversation and prompt tracking
+│   ├── SCRATCHPAD.md      # Current state tracking
+│   ├── MISTAKE_FIXES.md   # Mistake and fix tracking
+│   └── SECURITY_FIXES.md  # Security issue tracking
 ├── plans/             # Implementation plans
 ├── design-docs/       # Design documentation with diagrams
 └── [project files]    # Actual project implementation
@@ -47,7 +48,7 @@ This file contains the development rules and guidelines for this project.
 - Never commit secrets or API keys
 - Always validate user inputs
 - Follow principle of least privilege
-- Track all security issues in SECURITY_FIXES.md
+- Track all security issues in notes/SECURITY_FIXES.md
 
 ### Planning
 - Before implementing any feature:
