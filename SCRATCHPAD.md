@@ -2,7 +2,29 @@
 
 This file maintains the current state of the project for smooth conversation handoffs.
 
-## Current State (2026-08-23)
+## Current State (2026-08-26)
+
+### Active Task
+- **Phase**: Dependency security audit remediation.
+- **Current Task**: Clear pnpm/bun/npm audit findings via patched versions + overrides.
+
+### pnpm / bun audit fixes (2026-08-26)
+- 🔄 Plan/design added:
+  - `plans/pnpm-bun-audit-dependency-fixes.md`
+  - `design-docs/pnpm-bun-audit-dependency-fixes.md`
+- ✅ Direct bumps: TanStack Start 1.168.x, Vite 7.3.6, Vitest 4.1.x
+- ✅ Overrides for h3, srvx, undici, ws, seroval, js-yaml, and other transitives
+- ✅ CI `bun audit` gate
+- ✅ Compatibility:
+  - `src/server.ts` unwraps TanStack Start 1.168 SSR handler results before applying security headers
+  - `createServerFn().validator()` replaces deprecated `inputValidator()`
+- ✅ Verification:
+  - `bun audit` / `npm audit` / `pnpm audit`: 0 vulnerabilities
+  - `bun run lint`, `bun run typecheck`, `bun run test` (50), `bun run check:api-contract`, `bun run build`
+  - Production server: `/`, `/upload`, `/docs`, `/api/v1/health`, `/api/v1/capabilities` all 200 with security headers
+- ⚠️ Nitro/Vitest warn that the Vite builder prefers Vite 8; Vite 7.3.6 still builds and is the patched 7.x line.
+
+## Previous State (2026-08-23)
 
 ### Active Task
 - **Phase**: Address PR review on free blob backend.

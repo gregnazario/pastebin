@@ -131,11 +131,29 @@ function withSecurityHeaders(response: Response): Response {
 }
 
 /**
+ * TanStack Start 1.168+ may return a bare Response or an SSR wrapper that
+ * also carries stream cleanup. Apply security headers without dropping that
+ * cleanup metadata.
+ */
+function withSecurityHeadersOnHandlerResult(
+  result: Awaited<ReturnType<typeof defaultStreamHandler>>,
+): Awaited<ReturnType<typeof defaultStreamHandler>> {
+  if (result instanceof Response) {
+    return withSecurityHeaders(result)
+  }
+
+  return {
+    ...result,
+    response: withSecurityHeaders(result.response),
+  }
+}
+
+/**
  * Custom handler that renders SSR routes and applies security headers.
  */
 const securityHeadersHandler = defineHandlerCallback(async (ctx) => {
-  const response = await defaultStreamHandler(ctx)
-  return withSecurityHeaders(response)
+  const result = await defaultStreamHandler(ctx)
+  return withSecurityHeadersOnHandlerResult(result)
 })
 
 const startFetch = createStartHandler(securityHeadersHandler)

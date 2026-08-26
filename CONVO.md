@@ -13,6 +13,26 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-08-26
+**Fix pnpm / bun audit issues**
+- **Prompt**: `"Fix teh pnpm / bun audit issues"`
+- **Action**:
+  - Audited current lockfiles (`npm audit` reported 20 issues: 3 critical, 9 high, 7 moderate, 1 low).
+  - Plan/design:
+    - `plans/pnpm-bun-audit-dependency-fixes.md`
+    - `design-docs/pnpm-bun-audit-dependency-fixes.md`
+  - Bumped patched direct deps (TanStack Start/Router, Vite 7.3.6, Vitest 4.1.x) and added npm/bun/pnpm overrides for remaining transitives.
+  - Pinned `nitro` to `nitro-nightly@3.0.1-20260826-135133-65a4e394` because `bun install` kept the January lockfile pin for `@latest`.
+  - Refresh `bun.lock` + `package-lock.json`; add CI `bun audit` gate.
+  - TanStack 1.168 compatibility: wrap SSR handler results in `src/server.ts`; rename `inputValidator` → `validator`.
+- **Verification**:
+  - `bun audit` / `npm audit` / `pnpm audit`: 0 vulnerabilities
+  - `bun run lint`, `bun run typecheck`, `bun run test` (50), `bun run check:api-contract`, `bun run build`
+  - Production server curl: `/`, `/upload`, `/docs`, `/api/v1/health`, `/api/v1/capabilities` all 200 with security headers
+- **Outcome**:
+  - PR https://github.com/gregnazario/pastebin/pull/30
+
+
 ### 2026-08-23
 **Address PR comments on free blob backend**
 - **Prompt**: `"address pr comments"`
