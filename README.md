@@ -5,7 +5,7 @@
 </p>
 
 [![CI](https://github.com/gregnazario/pastebin/actions/workflows/ci.yml/badge.svg)](https://github.com/gregnazario/pastebin/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 Post-quantum encrypted note and file sharing. Paste something, get a link —
 everything is encrypted on your device before it ever touches the server,
@@ -164,4 +164,4 @@ bun run check:api-contract
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Apache-2.0 — see [LICENSE](LICENSE).
