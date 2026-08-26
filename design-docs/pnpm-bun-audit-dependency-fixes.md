@@ -69,6 +69,10 @@ TanStack Start 1.157 → 1.168 and a seven-month `nitro-nightly` refresh can cha
 
 If those exports move, adapt `src/server.ts` and `vite.config.ts` without changing API v1 behavior.
 
+TanStack Start 1.168 `defaultStreamHandler` can return either a `Response` or `{ response, serverSsrCleanup }`. `src/server.ts` copies security headers onto whichever shape is returned so stream cleanup is not dropped.
+
+`createServerFn().inputValidator()` is deprecated; use `.validator()`.
+
 ## Verification
 
 1. `bun audit` and `npm audit` / `pnpm audit` report zero remaining issues, or only explicitly accepted residual risks.

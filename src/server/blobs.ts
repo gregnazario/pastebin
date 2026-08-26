@@ -465,7 +465,7 @@ export function getCapabilitiesInternal(): StorageCapabilitiesResponse {
  * Upload encrypted data to the configured blob store.
  */
 export const uploadBlob = createServerFn({ method: 'POST' })
-  .inputValidator((d: unknown) => validateUploadBlobRequest(d))
+  .validator((d: unknown) => validateUploadBlobRequest(d))
   .handler(async ({ data: input, context }) => {
     return uploadBlobInternal(input, extractRequestHeaders(context))
   })
@@ -474,7 +474,7 @@ export const uploadBlob = createServerFn({ method: 'POST' })
  * Download encrypted data from the configured blob store.
  */
 export const downloadBlob = createServerFn({ method: 'GET' })
-  .inputValidator((d: unknown) => validateDownloadBlobRequest(d))
+  .validator((d: unknown) => validateDownloadBlobRequest(d))
   .handler(async ({ data: input, context }) => {
     return downloadBlobInternal(input, extractRequestHeaders(context))
   })

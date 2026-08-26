@@ -28,8 +28,8 @@
 ## Tasks
 
 - [x] Document the audit findings and patched-version policy
-- [ ] Bump direct deps and add overrides
-- [ ] Refresh lockfiles
-- [ ] Verify audits are clean (or only remaining accepted risks)
-- [ ] Run lint, typecheck, tests, and build
-- [ ] Fix any TanStack Start / Nitro compatibility breakage
+- [x] Bump direct deps and add overrides
+- [x] Refresh lockfiles
+- [x] Verify audits are clean (`bun`/`npm`/`pnpm` audit: 0)
+- [x] Run lint, typecheck, tests, and build
+- [x] Fix TanStack Start 1.168 handler result wrapping and `validator()` deprecation

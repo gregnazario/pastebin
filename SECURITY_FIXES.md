@@ -21,6 +21,9 @@ This document tracks security issues and their fixes for the pastebin project.
   - `.github/workflows/ci.yml`
   - `plans/pnpm-bun-audit-dependency-fixes.md`
   - `design-docs/pnpm-bun-audit-dependency-fixes.md`
+  - `src/server.ts` (Start 1.168 SSR handler result wrapping)
+  - `src/server/blobs.ts` (`validator()` rename)
+  - `src/routeTree.gen.ts`
 
 ---
 
