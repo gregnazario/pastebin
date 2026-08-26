@@ -13,6 +13,18 @@ Each entry should include:
 
 ## Conversation History
 
+### 2026-08-26
+**Fix pnpm / bun audit issues**
+- **Prompt**: `"Fix teh pnpm / bun audit issues"`
+- **Action**:
+  - Audited current lockfiles (`npm audit` reported 20 issues: 3 critical, 9 high, 7 moderate, 1 low).
+  - Plan/design:
+    - `plans/pnpm-bun-audit-dependency-fixes.md`
+    - `design-docs/pnpm-bun-audit-dependency-fixes.md`
+  - Bumped patched direct deps (TanStack Start/Router, Vite 7.3.6, Vitest 4.1.x) and added npm/bun/pnpm overrides for remaining transitives.
+  - Refresh `bun.lock` + `package-lock.json`; add CI `bun audit` gate.
+
+
 ### 2026-08-23
 **Address PR comments on free blob backend**
 - **Prompt**: `"address pr comments"`

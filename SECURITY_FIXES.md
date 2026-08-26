@@ -4,6 +4,26 @@ This document tracks security issues and their fixes for the pastebin project.
 
 ---
 
+## [2026-08-26] pnpm / bun / npm Audit Dependency Remediation
+
+### Issue: Stale lockfiles pulled known-vulnerable transitives
+- **Severity**: Critical (vitest UI arbitrary file read/exec, seroval deserialization, shell-quote); High (h3, undici, vite, ws, js-yaml, postcss, rollup, nanoid, picomatch)
+- **Description**: `npm audit` / `pnpm audit` / `bun audit` reported 20 findings. Direct packages were on TanStack Start 1.157.18, Vite 7.3.1, Vitest 4.0.18, and a January 2026 `nitro-nightly` pin that still used `h3` 2.0.1-rc.11, `srvx` 0.10.1, and `undici` 7.19.2.
+- **Fix**:
+  - Bumped TanStack Start/Router to patched 1.168.x / 1.170.x (`@tanstack/start-server-core` ≥ 1.167.30).
+  - Bumped Vite to 7.3.6 and Vitest to 4.1.x (no Vite 8 / Vitest 5 major).
+  - Refreshed `nitro-nightly` and added `overrides` / `pnpm.overrides` for remaining transitives (`h3` 2.0.1-rc.29, `srvx` 0.12.7, `undici` 7.29.0, `ws` 8.21.3, `seroval` 1.6.4, `js-yaml` 4.3.1, and others).
+  - Added CI `bun audit` after install.
+- **Files**:
+  - `package.json`
+  - `bun.lock`
+  - `package-lock.json`
+  - `.github/workflows/ci.yml`
+  - `plans/pnpm-bun-audit-dependency-fixes.md`
+  - `design-docs/pnpm-bun-audit-dependency-fixes.md`
+
+---
+
 ## [2026-08-22] Remove Shelby third-party browser surface
 
 ### Issue 1: Browser CSP allowed Shelby origins that the app no longer needs

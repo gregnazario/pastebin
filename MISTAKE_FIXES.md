@@ -4,6 +4,16 @@ This document tracks implementation mistakes discovered during development and t
 
 ---
 
+## [2026-08-26] Bun kept stale nitro-nightly@latest from the lockfile
+
+### Issue 1: `bun install` did not refresh `nitro-nightly@latest`
+- **Context**: `package.json` already depended on `nitro: npm:nitro-nightly@latest`, but `bun.lock` pinned `3.0.1-20260131-190432-654aa755` with vulnerable `h3`/`srvx`/`undici`.
+- **Root Cause**: Bun treats the lockfile pin as the resolved `latest` unless the alias is changed with `bun add`.
+- **Fix**: Explicitly added `nitro@npm:nitro-nightly@3.0.1-20260826-135133-65a4e394` so the patched nightly is locked and reproducible.
+- **Result**: `bun audit`, `npm audit`, and `pnpm audit` report 0 vulnerabilities.
+
+---
+
 ## [2026-02-12] Shared Backend Audit Implementation Gaps
 
 ### Issue 1: Initial smoke-check assumptions did not match live environment routing
