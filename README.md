@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Post-quantum encrypted note and file sharing. Paste something, get a link —
-everything is encrypted in your browser before it ever touches the server,
+everything is encrypted on your device before it ever touches the server,
 and the decryption key never leaves it.
 
 **[Live instance →](https://pastebin.sed.fyi)**
